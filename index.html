@@ -6,11 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="JARVIS Leandro">
+<meta name="apple-mobile-web-app-title" content="Assistente inteligente">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="rosto.jpg">
-<title>JARVIS Leandro</title>
+<title>Assistente inteligente</title>
 <style>
   :root{
     --bg:#000; --bg2:#000; --glass:rgba(18,26,38,.55); --line:rgba(140,190,230,.14); --line2:rgba(140,190,230,.28);
@@ -143,14 +143,38 @@
   @media (max-height:520px) and (orientation:landscape){
     .liveav .frame{width:min(100%, calc(62dvh * 16 / 9));max-height:62dvh}
   }
+  /* ---------- Tela limpa: o texto continua sendo gerado, só não aparece ---------- */
+  #brandSub{display:none}
+  .caption{display:none}
+  body.showtext .caption{display:block}
+  .liveav .tag{display:none}
+
+  /* ---------- Modo videochamada: só o rosto, ocupando a tela ---------- */
+  .liveav .expand{position:absolute;right:10px;top:10px;z-index:4;width:34px;height:34px;display:none;
+    align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;
+    background:rgba(8,12,20,.55);color:var(--muted);cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .liveav.on .expand{display:flex}
+  .liveav .expand svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .liveav .expand:hover{color:var(--text);border-color:var(--ice)}
+  .liveav .expand .out{display:block} .liveav .expand .in{display:none}
+  body.cinema{overflow:hidden}
+  body.cinema header,body.cinema .side,body.cinema .caption,body.cinema .bar,body.cinema .hint{display:none}
+  body.cinema main{padding:0}
+  body.cinema .app{gap:0;padding:0}
+  body.cinema .liveav{--side-gutter:0px;position:fixed;inset:0;z-index:40;width:100vw;height:100dvh;padding:0;display:flex}
+  body.cinema .liveav .frame{width:100vw;height:100dvh;max-height:none;aspect-ratio:auto;border-radius:0;border:0}
+  body.cinema .liveav video{object-fit:cover;object-position:50% var(--face-y,18%);
+    transform:scale(var(--face-zoom,1.3));transform-origin:50% var(--face-y,18%)}
+  body.cinema .liveav .expand{right:16px;top:16px;width:40px;height:40px}
+  body.cinema .liveav .expand .out{display:none} body.cinema .liveav .expand .in{display:block}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand">
-      <h1 id="brandTitle">JARVIS Leandro</h1>
-      <small id="brandSub">Just A Rather Very Intelligent System</small>
+      <h1 id="brandTitle">Assistente inteligente</h1>
+      <small id="brandSub"></small>
     </div>
     <div class="hud">
       <div class="pill"><span class="dot" id="dot"></span><span id="statusTxt">pronto</span></div>
@@ -175,6 +199,10 @@
       <div class="frame" id="liveFrame">
         <video id="liveVideo" autoplay playsinline></video>
         <div class="tag" id="liveTag">LiveAvatar</div>
+        <button class="expand" id="expandBtn" title="Ampliar o rosto (tela cheia)" aria-label="Ampliar o rosto">
+          <svg class="out" viewBox="0 0 24 24"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></svg>
+          <svg class="in" viewBox="0 0 24 24"><path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/></svg>
+        </button>
         <div class="msgbox" id="liveMsg"></div>
       </div>
     </div>
@@ -250,7 +278,7 @@
 
     <div class="cfgsec">LiveAvatar</div>
     <label>Nome do agente</label>
-    <input class="field" type="text" id="cfgLiveAgent" placeholder="JARVIS — Felyx">
+    <input class="field" type="text" id="cfgLiveAgent" placeholder="Felyx">
     <label>Cérebro do avatar</label>
     <select id="cfgLiveKey"><option value="claude">Jarvis-Claude</option><option value="gpt">Jarvis-GPT</option><option value="gemini">Jarvis-Gemini</option></select>
     <label>Visual padrão desta página</label>
@@ -266,6 +294,13 @@
     <div class="row"><button class="btn" id="liveStartBtn">Chamar o avatar</button><button class="btn" id="liveStopBtn">Encerrar avatar</button></div>
 
     <div class="cfgsec">Segurança</div>
+    <label>Enquadramento do rosto no modo tela cheia (%)</label>
+    <input class="field" type="number" id="cfgFaceZoom" min="100" max="260" step="5" placeholder="130">
+    <div class="note">Quanto o vídeo é aproximado quando você amplia para só o rosto. 100 mostra o quadro inteiro; 130 é o padrão; acima de 180 fica bem perto.</div>
+
+    <div class="check"><input type="checkbox" id="cfgShowText"><span>Mostrar na tela o texto do que é falado</span></div>
+    <div class="note">Desligado, a tela fica limpa e o rosto centralizado. O texto continua sendo gerado e enviado normalmente, e fica guardado em Conversa.</div>
+
     <label>Senha do Jarvis (cabeçalho x-jarvis-key)</label>
     <input class="field" type="password" id="cfgKey" placeholder="a mesma senha da credencial no n8n" autocomplete="off">
     <div class="note">Guardada só neste aparelho e enviada em todo pedido ao n8n (webhook principal e briefing). Os webhooks recusam qualquer pedido sem ela. Comandos da casa passam sempre pelo n8n (apelidos, cenas e Memória Central).</div>
@@ -305,7 +340,7 @@
   if(!sessionId){ sessionId = 'web-' + Math.random().toString(36).slice(2,10); store.set('session', sessionId); }
   $('sessTxt').textContent = sessionId.slice(-6);
 
-  const LIVE_AGENT = 'JARVIS — Felyx';   // grafia na tela; na fala o avatar diz "Félix"
+  const LIVE_AGENT = 'Felyx';   // grafia na tela; na fala o avatar diz "Félix"
   // limpa preferências dos modos removidos (Avatar local e VRM ao vivo)
   ['view','faceTalk','faceIdle','heygen','vrmUrl','wsUrl','vrmBrain','wsHa','vrmSkipWs','haCode','liveUrl'].forEach(k => { try{ localStorage.removeItem('jarvis.'+k); }catch(e){} });
 
@@ -313,12 +348,14 @@
     url: store.get('url', BRAINS[BRAIN] ? BRAINS[BRAIN].url : ''), field: store.get('field','texto'),
     voice: store.get('voice','auto'), wake: store.get('wake','0')==='1',
     sysVoice: store.get('sysVoice',''), rate: parseFloat(store.get('rate','1')), pitch: parseFloat(store.get('pitch','0.95')),
-    music: store.get('music','musica.mp3'), musicTrigger: store.get('musicTrigger','bom dia, toca a música, toca a musica'),
+    music: store.get('music','musica.mp3'), musicTrigger: store.get('musicTrigger','bom dia, boa tarde, boa noite, toca a música, toca a musica'),
     shortcut: store.get('shortcut','Musica Jarvis'),
+    faceZoom: Math.min(260, Math.max(100, parseInt(store.get('faceZoom','130'), 10) || 130)),
+    showText: store.get('showText','0') === '1',
     briefUrl: store.get('briefUrl', BRAINS[BRAIN] ? BRIEF_URL : ''),
     greets: store.get('greets','saudacao1.mp3,saudacao2.mp3,saudacao3.mp3,saudacao4.mp3'),
     liveKey: (k => ['claude','gpt','gemini'].includes(k) ? k : 'claude')(store.get('liveKey', BRAINS[BRAIN] ? BRAIN : 'claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
-    liveAgent: (a => ['JARVIS — Cornélius (Free)', 'JARVIS — Cornélius', 'JARVIS — Félix'].includes(a) ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
+    liveAgent: (a => ['JARVIS — Cornélius (Free)', 'JARVIS — Cornélius', 'JARVIS — Félix', 'JARVIS — Felyx', 'JARVIS Felyx'].includes(a) ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
     liveMic: store.get('liveMic','1')==='1',
     // No Netlify a sessão do avatar vem da função /api/liveavatar-session; em outra hospedagem (GitHub Pages) fica vazio até existir o workflow no n8n
     liveSessionUrl: store.get('liveSessionUrl', LIVE_SESSION_URL),
@@ -327,6 +364,7 @@
   };
   $('cfgKey').value = cfg.key; $('cfgLiveUrl').value = cfg.liveSessionUrl;
   $('cfgMusic').value = cfg.music; $('cfgMusicTrigger').value = cfg.musicTrigger; $('cfgShortcut').value = cfg.shortcut;
+  $('cfgFaceZoom').value = cfg.faceZoom; $('cfgShowText').checked = cfg.showText;
   $('cfgBriefUrl').value = cfg.briefUrl; $('cfgGreets').value = cfg.greets;
   $('cfgVisual').value = cfg.visual; $('cfgLiveKey').value = cfg.liveKey; $('cfgLiveIdle').value = cfg.liveIdle; $('cfgLiveAgent').value = cfg.liveAgent; $('cfgLiveMic').checked = cfg.liveMic;
   $('cfgUrl').value = cfg.url; $('cfgField').value = cfg.field; $('cfgVoice').value = cfg.voice; $('cfgWake').checked = cfg.wake;
@@ -349,8 +387,7 @@
     const eng = engineOf(cfg.url), lbl = ENGINE_LABEL[eng] || '';
     $('voiceTxt').textContent = VOICE_LABEL[cfg.voice]; $('modeTxt').textContent = cfg.wake ? 'contínuo' : 'manual'; $('engineTxt').textContent = eng;
     // título e subtítulo acompanham o cérebro escolhido pela URL do webhook
-    $('brandSub').textContent = 'Just A Rather Very Intelligent System' + (lbl ? ' · ' + lbl : '');
-    document.title = 'JARVIS Leandro' + (lbl ? ' · ' + lbl : '');
+    document.title = 'Assistente inteligente';
   }
   refreshHud();
 
@@ -406,13 +443,15 @@
     cfg.voice = $('cfgVoice').value; cfg.wake = $('cfgWake').checked; cfg.sysVoice = $('cfgSysVoice').value;
     cfg.rate = parseFloat($('cfgRate').value); cfg.pitch = parseFloat($('cfgPitch').value);
     cfg.music = $('cfgMusic').value.trim(); cfg.musicTrigger = $('cfgMusicTrigger').value.trim(); cfg.shortcut = $('cfgShortcut').value.trim();
+    cfg.faceZoom = Math.min(260, Math.max(100, parseInt($('cfgFaceZoom').value, 10) || 130));
+    cfg.showText = $('cfgShowText').checked; applyScreen();
     cfg.briefUrl = $('cfgBriefUrl').value.trim(); cfg.greets = $('cfgGreets').value.trim();
     const liveChanged = cfg.liveKey !== $('cfgLiveKey').value;
     cfg.liveKey = $('cfgLiveKey').value; cfg.liveIdle = Math.min(30, Math.max(1, parseInt($('cfgLiveIdle').value,10) || 5));
     cfg.liveAgent = $('cfgLiveAgent').value.trim() || LIVE_AGENT;
     cfg.liveMic = $('cfgLiveMic').checked; cfg.liveSessionUrl = $('cfgLiveUrl').value.trim(); cfg.visual = $('cfgVisual').value === 'avatar' ? 'avatar' : 'brain';
     cfg.key = $('cfgKey').value.trim();
-    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets})
+    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets, faceZoom:String(cfg.faceZoom), showText:cfg.showText?'1':'0'})
       .forEach(([k,v]) => store.set(k, String(v)));
     preloadClips(); refreshHud(); $('liveTag').textContent = cfg.liveAgent; if(liveChanged && liveActive){ stopLive('reiniciando com outro cérebro').then(startLive); } else if(!liveActive) applyVisual(); sys('Configurações salvas.'); applyWakeMode(); setStatus(cfg.url?'pronto':'configure o webhook', cfg.url?'ok':'');
   };
@@ -718,7 +757,29 @@
     'Bom dia, Chefe! Viraste novamente a noite falando com a China ou sonhando com suas próximas loucuras tecnológicas? Sistemas online, café por sua conta e o mundo, como sempre, aguardando a sua aprovação.',
     'Bom dia, Chefe! Já nem pergunto porque sei que dormistes mal, certo? Sistemas online, café com Rivotril e vamos para mais uma! Permita-me um instante enquanto reúno os números do dia...'
   ];
-  function isBomDia(t){ return /\bbom\s*dia\b/i.test(t||''); }
+  // A rotina vale para o dia inteiro: bom dia, boa tarde e boa noite.
+  function isBomDia(t){ return /\b(bom\s*dia|boa\s*tarde|boa\s*noite)\b/i.test(t||''); }
+  function periodoDe(t){
+    const x = (t||'').toLowerCase();
+    if(/boa\s*tarde/.test(x)) return 'tarde';
+    if(/boa\s*noite/.test(x)) return 'noite';
+    if(/bom\s*dia/.test(x))   return 'manha';
+    const h = new Date().getHours();
+    return h < 12 ? 'manha' : (h < 18 ? 'tarde' : 'noite');
+  }
+  // Etapa 1 da tarde e da noite: não há saudação gravada, então a voz do navegador lê uma destas.
+  const SAUDA_TEXT = {
+    tarde: [
+      'Boa tarde, Chefe! A casa seguiu em ordem na sua ausência. Reunindo aqui os números da tarde...',
+      'Boa tarde, Sir! Pronto para a segunda metade? Puxando os dados num instante...',
+      'Boa tarde, Leandro! Espero que a manhã tenha rendido. Já volto com o quadro do dia...'
+    ],
+    noite: [
+      'Boa noite, Chefe! Dia cumprido. Deixe-me fechar o balanço para o senhor...',
+      'Boa noite, Sir! A casa já está no modo sereno. Um instante enquanto reúno os números...',
+      'Boa noite, Leandro! O senhor trabalhou bem hoje. Encerrando com o quadro da noite...'
+    ]
+  };
   // Pré-carrega as saudações em memória para tocarem sem atraso (inclusive no iPhone/iPad)
   const clipUrl = {};
   function preloadClips(){
@@ -750,17 +811,19 @@
     const t0 = performance.now();
     if(!isIOS && cfg.shortcut) openShortcut(false);          // Mac: música já, junto com a fala
     const etapa2 = cfg.briefUrl ? fetchEtapa2() : null;       // etapa 2 em paralelo, já começa agora
-    const clips = cfg.greets.split(',').map(s => s.trim()).filter(Boolean);
-    const n = clips.length ? Math.min(clips.length, GREET_TEXT.length) : GREET_TEXT.length;
+    const periodo = periodoDe(text);                           // manha usa as gravações; tarde e noite, a voz do navegador
+    const clips = periodo === 'manha' ? cfg.greets.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const falas = periodo === 'manha' ? GREET_TEXT : SAUDA_TEXT[periodo];
+    const n = clips.length ? Math.min(clips.length, falas.length) : falas.length;
     const i = Math.floor(Math.random() * n);                   // etapa 1: imediata, sem IA
-    const el = $('reply'); el.textContent = GREET_TEXT[i]; el.classList.remove('long'); el.scrollTop = 0;
+    const el = $('reply'); el.textContent = falas[i]; el.classList.remove('long'); el.scrollTop = 0;
     $('meta').textContent = 'etapa 1 · preparando o briefing…';
-    log('bot', GREET_TEXT[i], 'etapa 1');
+    log('bot', falas[i], 'etapa 1');
     if(cfg.voice !== 'none'){
       setState('speaking'); setStatus('falando','speak');
       const res = clips[i] ? await playAudio(clipUrl[clips[i]] || clips[i]) : 'error';
       if(myTurn !== turn) return;
-      if(res !== 'ended' && res !== 'stopped') await speakBrowser(GREET_TEXT[i]);
+      if(res !== 'ended' && res !== 'stopped') await speakBrowser(falas[i]);
       if(myTurn !== turn) return;
     }
     if(!etapa2){ busy = false; finishTurn(); return; }
@@ -876,7 +939,7 @@
   document.addEventListener('keydown', e => {
     const tag = document.activeElement.tagName;
     if(e.code==='Space' && tag!=='INPUT' && tag!=='SELECT' && tag!=='IFRAME'){ e.preventDefault(); toggle(); }
-    if(e.key==='Escape'){ closeDrawers(); if(musicPlaying){ stopMusic(); setState('idle'); setStatus('pronto','ok'); }
+    if(e.key==='Escape'){ if(cinema){ setCinema(false); return; } closeDrawers(); if(musicPlaying){ stopMusic(); setState('idle'); setStatus('pronto','ok'); }
       else if(currentAudio || synthSpeaking || busy){ cancelAll(); } else stopRec(); }
   });
 
@@ -937,7 +1000,34 @@
     return false;
   }
   // Mostra o quadro do avatar no lugar do cérebro de partículas (e vice-versa)
-  function showLiveFrame(on){ $('liveav').classList.toggle('on', !!on); $('core').hidden = !!on; }
+  function showLiveFrame(on){
+    $('liveav').classList.toggle('on', !!on); $('core').hidden = !!on;
+    if(!on) setCinema(false);                                  // sem avatar na tela não há o que ampliar
+  }
+
+  // ---------- Tela limpa e modo videochamada ----------
+  // applyScreen: liga/desliga a faixa de texto e aplica o quanto o rosto é aproximado.
+  // setCinema: o quadro do avatar passa a ocupar a tela inteira, recortado no rosto.
+  function applyScreen(){
+    document.body.classList.toggle('showtext', !!cfg.showText);
+    document.documentElement.style.setProperty('--face-zoom', (cfg.faceZoom / 100).toFixed(2));
+  }
+  let cinema = false;
+  function setCinema(on){
+    on = !!on;
+    if(on === cinema) return;
+    cinema = on;
+    document.body.classList.toggle('cinema', on);
+    const el = $('liveav');
+    try{
+      if(on && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+      else if(!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    }catch(e){}
+    setTimeout(resize, 120);                                   // o cérebro recalcula o tamanho ao voltar
+  }
+  $('expandBtn').onclick = e => { e.stopPropagation(); setCinema(!cinema); };
+  document.addEventListener('fullscreenchange', () => { if(!document.fullscreenElement && cinema) setCinema(false); });
+  applyScreen();
   async function startLive(){
     if(liveActive) return;
     const myReq = ++liveReq;
