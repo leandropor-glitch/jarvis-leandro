@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JARVIS Leandro">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="rosto.jpg">
+<title>JARVIS Leandro</title>
+<style>
+  :root{
+    --bg:#000; --bg2:#000; --glass:rgba(18,26,38,.55); --line:rgba(140,190,230,.14); --line2:rgba(140,190,230,.28);
+    --text:#e6eef7; --muted:#7d8a9c; --dim:#4a5566;
+    --ice:#7fe7ff; --ice2:#2ab7ff; --amber:#ffb547; --violet:#9b8cff; --ok:#43e5a0; --err:#ff6b7a;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{margin:0;background:#000;color:var(--text);font:15px/1.5 var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+  .app{position:relative;height:100%;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);max-width:1100px;margin:0 auto;
+       padding:max(18px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left))}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand h1{margin:0;font:600 17px/1 var(--sans);letter-spacing:.42em}
+  .brand small{font:10px/1 var(--mono);letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+  .hud{display:flex;align-items:center;gap:10px}
+  .pill{display:flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;
+        background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:11px/1 var(--mono);
+        letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--dim);box-shadow:0 0 0 0 transparent}
+  .dot.ok{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+  .dot.busy{background:var(--ice);box-shadow:0 0 10px var(--ice);animation:blink 1s infinite}
+  .dot.speak{background:var(--amber);box-shadow:0 0 10px var(--amber);animation:blink .6s infinite}
+  .dot.err{background:var(--err);box-shadow:0 0 10px var(--err)}
+  @keyframes blink{50%{opacity:.35}}
+  .iconbtn{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);
+           background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--muted);cursor:pointer;transition:.2s}
+  .iconbtn:hover{color:var(--ice);border-color:var(--line2)}
+  .iconbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  main{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;padding-top:4px}
+
+  /* ---------- Bolinha (esfera) — o visual padrão do Jarvis, sem avatar ---------- */
+  .core{position:relative;width:min(62vmin,500px);width:min(62vmin,500px,52dvh);max-width:100%;aspect-ratio:1;flex:0 1 auto;min-height:0;
+        cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  .core canvas{position:absolute;inset:0;width:100%;height:100%}
+  .core .label{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);font:10px/1 var(--mono);letter-spacing:.32em;
+               color:var(--dim);text-transform:uppercase;white-space:nowrap;transition:color .3s}
+  .core.listening .label{color:var(--ice)} .core.thinking .label{color:var(--violet)}
+  .core.speaking .label,.core.music .label{color:var(--amber)} .core.error .label{color:var(--err)}
+  .core[hidden]{display:none}
+  .side{position:absolute;z-index:6;top:50%;transform:translateY(-50%);font:10px/1.9 var(--mono);letter-spacing:.14em;color:var(--dim);
+        text-transform:uppercase;pointer-events:none}
+  .side.l{left:0;text-align:left} .side.r{right:0;text-align:right}
+  .side b{color:var(--muted);font-weight:500}
+  @media (max-width:760px){.side{display:none}}
+
+  .caption{width:min(760px,100%);text-align:center;margin-top:6px;min-height:118px;flex:0 1 auto}
+  .caption .you{font:13px/1.5 var(--sans);color:var(--muted);min-height:20px}
+  .caption .you::before{content:"Você  ·  ";font:10px var(--mono);letter-spacing:.2em;color:var(--dim)}
+  .caption .you:empty::before{content:""}
+  .caption .reply{font:300 clamp(18px,2.6vw,25px)/1.45 var(--sans);color:var(--text);margin-top:8px;letter-spacing:.005em;white-space:pre-line;
+                  max-height:24vh;max-height:24dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;word-wrap:break-word}
+  .caption .reply.long{font-size:clamp(15px,1.9vw,19px);text-align:left}
+  .caption .live{font:italic 15px/1.4 var(--sans);color:var(--ice);min-height:22px;margin-top:6px;opacity:.9}
+  .caption .meta{font:10px var(--mono);letter-spacing:.18em;color:var(--dim);margin-top:8px;text-transform:uppercase}
+
+  .bar{display:flex;gap:10px;align-items:center;width:min(760px,100%);margin:0 auto;padding:8px;border:1px solid var(--line);
+       border-radius:18px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .bar input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font:16px var(--sans);padding:10px 12px;-webkit-appearance:none;border-radius:0}
+  .bar input::placeholder{color:var(--dim)}
+  .mic,.send{height:42px;border-radius:12px;border:1px solid var(--line);background:rgba(127,231,255,.06);color:var(--ice);
+       cursor:pointer;display:grid;place-items:center;transition:.2s}
+  .mic{width:42px} .send{padding:0 16px;font:600 12px var(--mono);letter-spacing:.16em;text-transform:uppercase}
+  .mic:hover,.send:hover{background:rgba(127,231,255,.14);border-color:var(--line2)}
+  .mic.on{background:var(--ice);color:#03131b}
+  .mic svg{width:18px;height:18px;fill:currentColor}
+  .hint{text-align:center;font:10px var(--mono);letter-spacing:.2em;color:var(--dim);margin-top:10px;text-transform:uppercase}
+
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:rgba(8,12,18,.92);
+          backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-left:1px solid var(--line);
+          transform:translateX(102%);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:10;display:flex;flex-direction:column}
+  .drawer.open{transform:none}
+  .drawer header{padding:max(18px, env(safe-area-inset-top)) 20px 18px;border-bottom:1px solid var(--line)}
+  .drawer h2{margin:0;font:600 12px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+  .drawer .body{padding:16px 20px max(28px, env(safe-area-inset-bottom));overflow:auto;flex:1;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .log{display:flex;flex-direction:column;gap:10px}
+  .msg{padding:10px 13px;border-radius:12px;max-width:90%;white-space:pre-wrap;word-wrap:break-word;font-size:14px}
+  .msg.me{align-self:flex-end;background:rgba(42,183,255,.14);border:1px solid rgba(42,183,255,.25)}
+  .msg.bot{align-self:flex-start;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+  .msg.sys{align-self:center;color:var(--muted);font:11px var(--mono);letter-spacing:.06em;text-align:center}
+  .msg.sys.err{color:var(--err)}
+  .msg .t{display:block;font:10px var(--mono);color:var(--dim);margin-top:4px;letter-spacing:.1em}
+
+  label{display:block;font:10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+  .field,select{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font:16px var(--sans);-webkit-appearance:none}
+  .field:focus,select:focus{outline:none;border-color:var(--line2)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .btn{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 13px;font:12px var(--mono);
+       letter-spacing:.08em;cursor:pointer}
+  .btn:hover{border-color:var(--line2);color:var(--ice)}
+  .check{display:flex;align-items:flex-start;gap:10px;margin-top:16px;font-size:13px;color:var(--text)}
+  .check input{margin-top:3px;accent-color:var(--ice)}
+  .range{display:flex;align-items:center;gap:10px} .range input{flex:1;accent-color:var(--ice)} .range span{font:11px var(--mono);color:var(--muted);width:34px;text-align:right}
+  pre{background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:10px;overflow:auto;font:11px/1.5 var(--mono);max-height:220px;margin:0;color:var(--muted)}
+  .note{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.5}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.3s;z-index:9}
+  .scrim.on{opacity:1;pointer-events:auto}
+
+  /* ---------- LiveAvatar (opcional: só aparece no lugar da bolinha enquanto o avatar estiver chamado) ---------- */
+  /* --side-gutter reserva espaço lateral para os indicadores (sistema/sessão à esquerda, latência/voz/modo à direita) */
+  .liveav{--side-gutter:150px;position:relative;z-index:1;display:none;width:100%;flex:1 1 auto;min-height:0;align-items:center;justify-content:center;
+         padding:0 var(--side-gutter);background:#000}
+  .liveav.on{display:flex}
+  .liveav .frame{position:relative;width:min(100%, calc(56vh * 16 / 9));width:min(100%, calc(56dvh * 16 / 9));aspect-ratio:16/9;max-height:56vh;max-height:56dvh;
+         background:#000;border:0;border-radius:0;outline:0;box-shadow:none;overflow:hidden}
+  .liveav iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+  .liveav video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+  .liveav .msgbox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center;
+         font-size:13px;color:var(--muted);z-index:2;background:rgba(0,0,0,.55)}
+  .liveav .msgbox b{font:600 11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ice)}
+  .liveav .msgbox .row{justify-content:center;margin-top:4px}
+  .liveav .tag{position:absolute;left:10px;top:10px;z-index:3;font:10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+         padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.55);border:1px solid var(--line);pointer-events:none}
+  .cfgsec{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font:600 11px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--ice)}
+  code{font:11px var(--mono);color:var(--ice)}
+  @media (max-width:1000px) and (min-width:761px){
+    .liveav{--side-gutter:128px}
+  }
+  @media (max-width:760px){
+    .liveav{--side-gutter:0px}
+    .liveav .frame{width:100%;max-height:none}
+  }
+  @media (max-height:520px) and (orientation:landscape){
+    .liveav .frame{width:min(100%, calc(62dvh * 16 / 9));max-height:62dvh}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1 id="brandTitle">JARVIS Leandro</h1>
+      <small id="brandSub">Just A Rather Very Intelligent System</small>
+    </div>
+    <div class="hud">
+      <div class="pill"><span class="dot" id="dot"></span><span id="statusTxt">pronto</span></div>
+      <div class="pill" id="clock">--:--</div>
+      <button class="iconbtn" id="histBtn" title="Conversa">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </button>
+      <button class="iconbtn" id="cfgBtn" title="Configurações">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="side l" id="sideL">sistema <b>online</b><br>motor <b id="engineTxt">—</b><br>sessão <b id="sessTxt">—</b></div>
+    <div class="side r" id="sideR">latência <b id="latTxt">—</b><br>voz <b id="voiceTxt">—</b><br>modo <b id="modeTxt">manual</b></div>
+    <div class="core" id="core" title="Falar (ou barra de espaço)">
+      <canvas id="cv"></canvas>
+      <div class="label" id="coreLabel">toque para falar</div>
+    </div>
+    <div class="liveav" id="liveav" aria-label="LiveAvatar">
+      <div class="frame" id="liveFrame">
+        <video id="liveVideo" autoplay playsinline></video>
+        <div class="tag" id="liveTag">LiveAvatar</div>
+        <div class="msgbox" id="liveMsg"></div>
+      </div>
+    </div>
+    <div class="caption">
+      <div class="you" id="you"></div>
+      <div class="reply" id="reply">Às suas ordens.</div>
+      <div class="live" id="live"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </main>
+
+  <div>
+    <div class="bar">
+      <button class="mic" id="micBtn" title="Falar">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+      </button>
+      <input type="text" id="textIn" placeholder="Fale ou digite um comando…" autocomplete="off">
+      <button class="send" id="sendBtn">Enviar</button>
+    </div>
+    <div class="hint" id="hint">espaço para falar · esc para interromper</div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer" id="histDrawer">
+  <header><h2>Conversa</h2></header>
+  <div class="body"><div class="log" id="log"></div>
+    <div class="row"><button class="btn" id="clearBtn">Limpar conversa</button></div>
+  </div>
+</aside>
+
+<aside class="drawer" id="cfgDrawer">
+  <header><h2>Configurações</h2></header>
+  <div class="body">
+    <label>URL do webhook (produção)</label>
+    <input class="field" type="url" id="cfgUrl" placeholder="https://…app.n8n.cloud/webhook/…">
+    <div class="note">Cole a URL do Jarvis-Claude, do Jarvis-GPT ou do Jarvis-Gemini: é ela que escolhe qual cérebro responde. O título da página e o indicador "motor" acompanham a escolha.</div>
+    <label>Campo do texto no JSON</label>
+    <input class="field" type="text" id="cfgField" placeholder="texto">
+    <div class="note">O texto vai também em "chatInput" e "message", junto com "sessionId".</div>
+
+    <label>Voz da resposta</label>
+    <select id="cfgVoice">
+      <option value="auto">Automático — áudio do n8n (ElevenLabs); se vier só texto, voz do aparelho</option>
+      <option value="n8n">Só o áudio vindo do n8n</option>
+      <option value="browser">Sempre a voz do aparelho (Mac, iPhone, iPad)</option>
+      <option value="none">Sem voz (só texto)</option>
+    </select>
+
+    <label>Voz do aparelho (quando usada)</label>
+    <select id="cfgSysVoice"></select>
+    <label>Velocidade</label>
+    <div class="range"><input type="range" id="cfgRate" min="0.7" max="1.4" step="0.05"><span id="rateTxt">1.0</span></div>
+    <label>Tom</label>
+    <div class="range"><input type="range" id="cfgPitch" min="0.5" max="1.5" step="0.05"><span id="pitchTxt">1.0</span></div>
+
+    <div class="check"><input type="checkbox" id="cfgWake"><span>Modo contínuo: fica escutando e só envia quando a frase começar com “Jarvis”</span></div>
+
+    <label>Atalho de música (app Atalhos — nome exato)</label>
+    <input class="field" type="text" id="cfgShortcut" placeholder="Musica Jarvis">
+    <div class="note">Se preenchido, o Jarvis roda este Atalho (Spotify) e volta para cá. Deixe vazio para usar o arquivo abaixo.</div>
+    <label>URL do bom dia — etapa 2 (webhook do briefing)</label>
+    <input class="field" type="url" id="cfgBriefUrl" placeholder="https://…app.n8n.cloud/webhook/jarvis-bomdia">
+    <label>Saudações gravadas — etapa 1 (arquivos, separados por vírgula)</label>
+    <input class="field" type="text" id="cfgGreets" placeholder="saudacao1.mp3,saudacao2.mp3,…">
+    <div class="note">“Bom dia” toca uma saudação gravada na hora (sem esperar a IA) e, em paralelo, busca a etapa 2 já pronta no n8n. No Mac a música começa junto; no iPad/iPhone ela entra no final.</div>
+    <label>Música da manhã (arquivo MP3 ou link direto)</label>
+    <input class="field" type="text" id="cfgMusic" placeholder="musica.mp3">
+    <label>Frases que disparam a música (separe por vírgula)</label>
+    <input class="field" type="text" id="cfgMusicTrigger" placeholder="bom dia, toca a música">
+    <div class="note">A música toca neste aparelho logo depois que o Jarvis termina de falar. Toque no microfone ou aperte Esc para parar.</div>
+
+    <div class="cfgsec">LiveAvatar</div>
+    <label>Nome do agente</label>
+    <input class="field" type="text" id="cfgLiveAgent" placeholder="JARVIS — Cornélius">
+    <label>Cérebro do avatar</label>
+    <select id="cfgLiveKey"><option value="claude">Jarvis-Claude</option><option value="gpt">Jarvis-GPT</option></select>
+    <label>Encerrar o avatar após (minutos sem uso)</label>
+    <input class="field" type="number" id="cfgLiveIdle" min="1" max="30" step="1">
+    <label>URL que abre a sessão do avatar</label>
+    <input class="field" type="text" id="cfgLiveUrl" placeholder="/api/liveavatar-session (Netlify) ou webhook do n8n">
+    <div class="note">No Netlify é <code>/api/liveavatar-session</code> (preenchido sozinho). No GitHub Pages não existe essa função: deixe vazio até ela virar um workflow no n8n e cole aqui o webhook dele.</div>
+    <div class="note">Opcional. O visual padrão do Jarvis é a bolinha; o avatar só aparece no lugar dela enquanto estiver chamado. Ele roda em modo FULL do LiveAvatar (microfone, reconhecimento de fala, voz e sincronia labial) com o cérebro no n8n — o mesmo agente da barra de texto. A sessão só abre quando você chama e fecha sozinha sem uso, para não gastar créditos.</div>
+    <div class="check"><input type="checkbox" id="cfgLiveMic"><span>Pausar o modo contínuo do microfone local enquanto o avatar estiver ativo (o avatar tem o próprio microfone).</span></div>
+    <div class="row"><button class="btn" id="liveStartBtn">Chamar o avatar</button><button class="btn" id="liveStopBtn">Encerrar avatar</button></div>
+
+    <div class="cfgsec">Segurança</div>
+    <label>Senha do Jarvis (cabeçalho x-jarvis-key)</label>
+    <input class="field" type="password" id="cfgKey" placeholder="a mesma senha da credencial no n8n" autocomplete="off">
+    <div class="note">Guardada só neste aparelho e enviada em todo pedido ao n8n (webhook principal e briefing). Os webhooks recusam qualquer pedido sem ela. Comandos da casa passam sempre pelo n8n (apelidos, cenas e Memória Central).</div>
+
+    <div class="row">
+      <button class="btn" id="saveCfg">Salvar</button>
+      <button class="btn" id="pingBtn">Testar webhook</button>
+      <button class="btn" id="testVoice">Testar voz</button>
+      <button class="btn" id="testMusic">Testar música</button>
+    </div>
+    <label>Última resposta bruta</label>
+    <pre id="raw">—</pre>
+  </div>
+</aside>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d){ try{ const v = localStorage.getItem('jarvis.'+k); return v===null ? d : v; }catch(e){ return d; } },
+    set(k, v){ try{ localStorage.setItem('jarvis.'+k, v); }catch(e){} }
+  };
+
+  let sessionId = store.get('session', null);
+  if(!sessionId){ sessionId = 'web-' + Math.random().toString(36).slice(2,10); store.set('session', sessionId); }
+  $('sessTxt').textContent = sessionId.slice(-6);
+
+  const LIVE_AGENT = 'JARVIS — Cornélius';
+  // limpa preferências dos modos removidos (Avatar local e VRM ao vivo)
+  ['view','faceTalk','faceIdle','heygen','vrmUrl','wsUrl','vrmBrain','wsHa','vrmSkipWs','haCode','liveUrl'].forEach(k => { try{ localStorage.removeItem('jarvis.'+k); }catch(e){} });
+
+  const cfg = {
+    url: store.get('url',''), field: store.get('field','texto'),
+    voice: store.get('voice','auto'), wake: store.get('wake','0')==='1',
+    sysVoice: store.get('sysVoice',''), rate: parseFloat(store.get('rate','1')), pitch: parseFloat(store.get('pitch','0.95')),
+    music: store.get('music','musica.mp3'), musicTrigger: store.get('musicTrigger','bom dia, toca a música, toca a musica'),
+    shortcut: store.get('shortcut','Musica Jarvis'),
+    briefUrl: store.get('briefUrl',''),
+    greets: store.get('greets','saudacao1.mp3,saudacao2.mp3,saudacao3.mp3,saudacao4.mp3'),
+    liveKey: (k => k === 'gpt' ? 'gpt' : 'claude')(store.get('liveKey','claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
+    liveAgent: (a => a === 'JARVIS — Cornélius (Free)' ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
+    liveMic: store.get('liveMic','1')==='1',
+    // No Netlify a sessão do avatar vem da função /api/liveavatar-session; em outra hospedagem (GitHub Pages) fica vazio até existir o workflow no n8n
+    liveSessionUrl: store.get('liveSessionUrl', /\.netlify\.app$/i.test(location.hostname) ? '/api/liveavatar-session' : ''),
+    key: store.get('key','')
+  };
+  $('cfgKey').value = cfg.key; $('cfgLiveUrl').value = cfg.liveSessionUrl;
+  $('cfgMusic').value = cfg.music; $('cfgMusicTrigger').value = cfg.musicTrigger; $('cfgShortcut').value = cfg.shortcut;
+  $('cfgBriefUrl').value = cfg.briefUrl; $('cfgGreets').value = cfg.greets;
+  $('cfgLiveKey').value = cfg.liveKey; $('cfgLiveIdle').value = cfg.liveIdle; $('cfgLiveAgent').value = cfg.liveAgent; $('cfgLiveMic').checked = cfg.liveMic;
+  $('cfgUrl').value = cfg.url; $('cfgField').value = cfg.field; $('cfgVoice').value = cfg.voice; $('cfgWake').checked = cfg.wake;
+  $('cfgRate').value = cfg.rate; $('cfgPitch').value = cfg.pitch;
+  $('rateTxt').textContent = cfg.rate.toFixed(2); $('pitchTxt').textContent = cfg.pitch.toFixed(2);
+  $('cfgRate').oninput = e => $('rateTxt').textContent = (+e.target.value).toFixed(2);
+  $('cfgPitch').oninput = e => $('pitchTxt').textContent = (+e.target.value).toFixed(2);
+
+  const VOICE_LABEL = {auto:'auto', n8n:'elevenlabs', browser:'aparelho', none:'mudo'};
+  // Qual motor está por trás do webhook configurado (os três workflows do n8n: Jarvis-Claude, Jarvis-GPT e Jarvis-Gemini)
+  const ENGINES = {'ee76918a-f244-4b2c-8c70-7566c46597bf':'claude', '751b3b85-4222-4abe-8b72-9e32be6fe233':'gpt', '88128828-d796-479c-ae66-7de3501006ee':'gemini'};
+  function engineOf(u){
+    const m = (u||'').match(/\/webhook(?:-test)?\/([^/?#]+)/);
+    if(m && ENGINES[m[1]]) return ENGINES[m[1]];
+    const n = (u||'').match(/claude|gpt|gemini/i);
+    return n ? n[0].toLowerCase() : (u ? 'n8n' : '—');
+  }
+  const ENGINE_LABEL = {claude:'Claude', gpt:'GPT', gemini:'Gemini', n8n:'n8n'};
+  function refreshHud(){
+    const eng = engineOf(cfg.url), lbl = ENGINE_LABEL[eng] || '';
+    $('voiceTxt').textContent = VOICE_LABEL[cfg.voice]; $('modeTxt').textContent = cfg.wake ? 'contínuo' : 'manual'; $('engineTxt').textContent = eng;
+    // título e subtítulo acompanham o cérebro escolhido pela URL do webhook
+    $('brandSub').textContent = 'Just A Rather Very Intelligent System' + (lbl ? ' · ' + lbl : '');
+    document.title = 'JARVIS Leandro' + (lbl ? ' · ' + lbl : '');
+  }
+  refreshHud();
+
+  // ---------- Drawers ----------
+  function openDrawer(id){ closeDrawers(); $(id).classList.add('open'); $('scrim').classList.add('on'); }
+  function closeDrawers(){ ['histDrawer','cfgDrawer'].forEach(d => $(d).classList.remove('open')); $('scrim').classList.remove('on'); }
+  $('histBtn').onclick = () => openDrawer('histDrawer');
+  $('cfgBtn').onclick = () => openDrawer('cfgDrawer');
+  $('scrim').onclick = closeDrawers;
+  if(!cfg.url) openDrawer('cfgDrawer');
+
+  // ---------- Relógio ----------
+  function tick(){ const d = new Date(); $('clock').textContent = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+  tick(); setInterval(tick, 10000);
+
+  // ---------- Estado ----------
+  let state = 'idle';
+  const LABELS = {idle:'pronto', listening:'ouvindo', thinking:'processando', speaking:'falando', music:'tocando música', error:'erro'};
+  const CORE_STATES = ['listening','thinking','speaking','music','error'];
+  function setState(s){
+    state = s; $('micBtn').classList.toggle('on', s==='listening'); $('micBtn').title = s === 'idle' ? 'Falar' : LABELS[s] || 'Falar';
+    // a bolinha segue o mesmo estado: cor do rótulo via classe; o desenho lê "state" a cada quadro
+    const core = $('core'); CORE_STATES.forEach(c => core.classList.remove(c)); if(s !== 'idle') core.classList.add(s);
+    $('coreLabel').textContent = s === 'idle' ? 'toque para falar' : (LABELS[s] || s);
+  }
+
+  function setStatus(txt, kind){ $('statusTxt').textContent = txt; $('dot').className = 'dot ' + (kind||''); }
+
+  function log(role, text, meta){
+    const d = document.createElement('div'); d.className = 'msg ' + role; d.textContent = text;
+    if(meta){ const m = document.createElement('span'); m.className = 't'; m.textContent = meta; d.appendChild(m); }
+    $('log').appendChild(d); d.scrollIntoView({block:'end'});
+  }
+  function sys(text, err){ log('sys' + (err?' err':''), text); if(err){ $('reply').textContent = text; } }
+
+  // ---------- Configurações ----------
+  function populateVoices(){
+    if(!('speechSynthesis' in window)) return;
+    const voices = speechSynthesis.getVoices(); if(!voices.length) return;
+    const sel = $('cfgSysVoice'); sel.innerHTML = '';
+    const sorted = voices.slice().sort((a,b) => {
+      const s = v => v.lang.toLowerCase().startsWith('pt') ? 0 : v.lang.toLowerCase()==='en-gb' ? 1 : 2;
+      return s(a)-s(b) || a.name.localeCompare(b.name);
+    });
+    const def = document.createElement('option'); def.value = ''; def.textContent = 'Padrão (português do Brasil)'; sel.appendChild(def);
+    sorted.forEach(v => { const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = `${v.name} — ${v.lang}`; sel.appendChild(o); });
+    sel.value = cfg.sysVoice;
+  }
+  if('speechSynthesis' in window){ populateVoices(); speechSynthesis.onvoiceschanged = populateVoices; }
+
+  $('saveCfg').onclick = () => {
+    cfg.url = $('cfgUrl').value.trim(); cfg.field = $('cfgField').value.trim() || 'texto';
+    cfg.voice = $('cfgVoice').value; cfg.wake = $('cfgWake').checked; cfg.sysVoice = $('cfgSysVoice').value;
+    cfg.rate = parseFloat($('cfgRate').value); cfg.pitch = parseFloat($('cfgPitch').value);
+    cfg.music = $('cfgMusic').value.trim(); cfg.musicTrigger = $('cfgMusicTrigger').value.trim(); cfg.shortcut = $('cfgShortcut').value.trim();
+    cfg.briefUrl = $('cfgBriefUrl').value.trim(); cfg.greets = $('cfgGreets').value.trim();
+    const liveChanged = cfg.liveKey !== $('cfgLiveKey').value;
+    cfg.liveKey = $('cfgLiveKey').value; cfg.liveIdle = Math.min(30, Math.max(1, parseInt($('cfgLiveIdle').value,10) || 5));
+    cfg.liveAgent = $('cfgLiveAgent').value.trim() || LIVE_AGENT;
+    cfg.liveMic = $('cfgLiveMic').checked; cfg.liveSessionUrl = $('cfgLiveUrl').value.trim();
+    cfg.key = $('cfgKey').value.trim();
+    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets})
+      .forEach(([k,v]) => store.set(k, String(v)));
+    preloadClips(); refreshHud(); $('liveTag').textContent = cfg.liveAgent; if(liveChanged && liveActive){ stopLive('reiniciando com outro cérebro').then(startLive); } sys('Configurações salvas.'); applyWakeMode(); setStatus(cfg.url?'pronto':'configure o webhook', cfg.url?'ok':'');
+  };
+  $('clearBtn').onclick = () => { $('log').innerHTML = ''; $('you').textContent=''; $('reply').textContent='Às suas ordens.'; $('meta').textContent=''; };
+  $('pingBtn').onclick = () => { closeDrawers(); send('Teste de conexão. Responda apenas: online.'); };
+  $('testVoice').onclick = () => { ensureAudio(); closeDrawers(); speak('Boa noite, Leandro. Todos os sistemas operacionais.'); };
+  $('testMusic').onclick = () => { ensureAudio(); cfg.music = $('cfgMusic').value.trim(); cfg.shortcut = $('cfgShortcut').value.trim(); closeDrawers(); playMusic(); };
+
+  // ---------- Áudio ----------
+  // Um único <audio> para a voz. No iPhone/iPad ele é "destravado" no primeiro toque e,
+  // a partir daí, pode tocar respostas que chegam depois do fetch ou pelo microfone (sem gesto).
+  // Sem WebAudio no caminho: no iOS um AudioContext suspenso (ou um áudio de outro domínio) deixa tudo mudo.
+  const voiceEl = new Audio(); voiceEl.preload = 'auto'; voiceEl.setAttribute('playsinline', '');
+  const SILENT = (() => {
+    const n = 800, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+    const w = (o, s) => { for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+    w(0,'RIFF'); v.setUint32(4, 36+n, true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+    v.setUint32(24,8000,true); v.setUint32(28,8000,true); v.setUint16(32,1,true); v.setUint16(34,8,true); w(36,'data'); v.setUint32(40,n,true);
+    for(let i=0;i<n;i++) v.setUint8(44+i, 128);
+    return URL.createObjectURL(new Blob([buf], {type:'audio/wav'}));
+  })();
+  let voiceUnlocked = false, synthUnlocked = false;
+  function ensureAudio(){
+    if(!voiceUnlocked && !currentAudio){
+      try{ voiceEl.src = SILENT; const p = voiceEl.play(); if(p) p.then(() => { voiceUnlocked = true; }).catch(() => {}); }catch(e){}
+    }
+    if(!synthUnlocked && 'speechSynthesis' in window){
+      try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); synthUnlocked = true; }catch(e){}
+    }
+    unlockMusic();
+  }
+
+  // ---------- Música ----------
+  const musicEl = new Audio(); musicEl.preload = 'auto'; musicEl.setAttribute('playsinline', '');
+  let musicUnlocked = false, pendingMusic = false, musicPlaying = false, fadeTimer = null, musicAttempt = false;
+  function unlockMusic(){
+    if(musicUnlocked || !cfg.music) return;
+    try{
+      musicEl.src = cfg.music; musicEl.muted = true;
+      const p = musicEl.play();
+      if(p) p.then(() => { musicEl.pause(); musicEl.currentTime = 0; musicEl.muted = false; musicUnlocked = true; })
+             .catch(() => { musicEl.muted = false; });
+    }catch(e){}
+  }
+  function wantsMusic(text){
+    const t = (text||'').toLowerCase();
+    return cfg.musicTrigger.split(',').map(s => s.trim().toLowerCase()).filter(Boolean).some(k => t.includes(k));
+  }
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function openShortcut(withCallback){
+    const back = location.href.split('#')[0];
+    let link = 'shortcuts://' + (withCallback ? 'x-callback-url/' : '') + 'run-shortcut?name=' + encodeURIComponent(cfg.shortcut);
+    if(withCallback) link += '&x-success=' + encodeURIComponent(back) + '&x-cancel=' + encodeURIComponent(back) + '&x-error=' + encodeURIComponent(back);
+    log('sys', 'Rodando o atalho “' + cfg.shortcut + '”…');
+    window.location.href = link;
+  }
+  function playMusic(){
+    if(cfg.shortcut){
+      setState('idle'); setStatus('pronto','ok');
+      openShortcut(isIOS);
+      return;
+    }
+    if(!cfg.music){ sys('Defina a música da manhã nas configurações.', true); return; }
+    musicAttempt = true;
+    if(musicEl.src.indexOf(cfg.music) === -1) musicEl.src = cfg.music;
+    musicEl.currentTime = 0; musicEl.volume = 0; musicEl.muted = false;   // no iOS o volume é fixo; o fade só vale no Mac
+    musicEl.play().then(() => {
+      musicPlaying = true; setState('music'); setStatus('tocando música','speak');
+      clearInterval(fadeTimer);
+      fadeTimer = setInterval(() => { musicEl.volume = Math.min(1, musicEl.volume + .05); if(musicEl.volume >= 1) clearInterval(fadeTimer); }, 120);
+    }).catch(err => sys('Não consegui tocar a música: ' + err.message + '. Toque no microfone uma vez e tente de novo.', true));
+  }
+  function stopMusic(){
+    clearInterval(fadeTimer);
+    if(musicPlaying){ musicEl.pause(); musicPlaying = false; }
+    pendingMusic = false;
+  }
+  musicEl.onended = () => { musicPlaying = false; setState('idle'); setStatus('pronto','ok'); if(cfg.wake) setTimeout(startRec, 250); };
+  musicEl.onerror = () => { if(musicAttempt){ sys('Arquivo de música não encontrado: ' + cfg.music, true); setState('idle'); setStatus('pronto','ok'); } musicPlaying = false; musicAttempt = false; };
+
+  // ---------- Voz ----------
+  // playAudio/speakBrowser resolvem com: 'ended' | 'stopped' | 'blocked' | 'error'
+  let currentAudio = null, synthSpeaking = false, endVoice = null, turn = 0;
+  function stopSpeaking(){
+    if(currentAudio){ try{ voiceEl.pause(); }catch(e){} currentAudio = null; }
+    if('speechSynthesis' in window && (synthSpeaking || speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
+    synthSpeaking = false;
+    if(endVoice){ const f = endVoice; endVoice = null; f('stopped'); }
+  }
+  // cancela a resposta em andamento (qualquer await pendente percebe pela troca do "turn")
+  function interrupt(){
+    turn++; pendingMusic = false; stopSpeaking();
+  }
+  function cancelAll(){ interrupt(); busy = false; finishTurn(); }
+  function playAudio(src){
+    return new Promise(res => {
+      stopSpeaking();
+      let done = false;
+      const finish = r => {
+        if(done) return; done = true;
+        if(endVoice === finish) endVoice = null;
+        voiceEl.onended = voiceEl.onerror = null;
+        if(r !== 'stopped') currentAudio = null;
+        res(r);
+      };
+      endVoice = finish; currentAudio = src;
+      voiceEl.onended = () => finish('ended');
+      voiceEl.onerror = () => finish('error');
+      try{ voiceEl.src = src; const p = voiceEl.play();
+        if(p) p.then(() => { voiceUnlocked = true; })
+               .catch(err => finish(err && err.name === 'NotAllowedError' ? 'blocked' : err && err.name === 'AbortError' ? 'stopped' : 'error'));
+      }catch(e){ finish('error'); }
+    });
+  }
+  let voiceCache = null;
+  function pickVoice(){
+    const voices = speechSynthesis.getVoices();
+    if(voiceCache && voices.includes(voiceCache) && (!cfg.sysVoice || voiceCache.voiceURI === cfg.sysVoice)) return voiceCache;
+    voiceCache = voices.find(v => v.voiceURI === cfg.sysVoice) || voices.find(v => v.lang && v.lang.toLowerCase().replace('_','-').startsWith('pt-br')) || null;
+    return voiceCache;
+  }
+  // Fala em frases curtas: Safari/iOS e Chrome cortam falas longas (~15 s) e às vezes não disparam onend
+  function speakBrowser(text){
+    return new Promise(res => {
+      if(!('speechSynthesis' in window) || !text || !text.trim()) return res('error');
+      const parts = (text.replace(/\s+/g, ' ').match(/[^.!?…;:]+[.!?…;:]*\s*/g) || [text]).map(s => s.trim()).filter(Boolean);
+      const chunks = [];
+      parts.forEach(p => { const last = chunks[chunks.length-1]; if(last && (last + ' ' + p).length < 180) chunks[chunks.length-1] = last + ' ' + p; else chunks.push(p); });
+      const keep = []; let idx = 0, done = false, timer = null;
+      const finish = r => { if(done) return; done = true; clearTimeout(timer); synthSpeaking = false; if(endVoice === finish) endVoice = null; res(r); };
+      const next = () => {
+        clearTimeout(timer);
+        if(done) return;
+        if(idx >= chunks.length) return finish('ended');
+        const chunk = chunks[idx++], u = new SpeechSynthesisUtterance(chunk), v = pickVoice();
+        if(v){ u.voice = v; u.lang = v.lang; } else u.lang = 'pt-BR';
+        u.rate = cfg.rate; u.pitch = cfg.pitch;
+        u.onend = next;
+        u.onerror = e => (e.error === 'interrupted' || e.error === 'canceled') ? finish('stopped') : next();
+        keep.push(u);   // segura a referência (o Safari descarta o utterance e perde o onend)
+        speechSynthesis.speak(u);
+        // rede de segurança caso o onend nunca chegue
+        const limit = 3000 + chunk.length * 110 / Math.max(.5, cfg.rate);
+        const watch = () => { timer = setTimeout(() => { if(done) return; if(speechSynthesis.speaking) watch(); else next(); }, limit); };
+        watch();
+      };
+      endVoice = finish; synthSpeaking = true;
+      if(speechSynthesis.paused) speechSynthesis.resume();
+      next();
+    });
+  }
+  async function speak(t){ interrupt(); setState('speaking'); setStatus('falando','speak'); await speakBrowser(t); finishTurn(); }
+  function finishTurn(){
+    if(pendingMusic){ pendingMusic = false; playMusic(); return; }
+    setState('idle'); setStatus('pronto','ok'); if(cfg.wake) setTimeout(startRec, 250);
+  }
+  // Toca a resposta (áudio do n8n e/ou voz do aparelho) respeitando o modo de voz escolhido
+  async function voiceReply(r, myTurn){
+    if(cfg.voice === 'none') return;
+    if(liveActive && r.text && avatarSay(r.text)){ setState('speaking'); setStatus('falando','speak'); return; }
+    if(r.audio && cfg.voice !== 'browser'){
+      setState('speaking'); setStatus('falando','speak');
+      const res = await playAudio(r.audio);
+      if(r.revoke) setTimeout(() => URL.revokeObjectURL(r.audio), 1000);
+      if(res === 'ended' || res === 'stopped' || myTurn !== turn) return;
+      note(res === 'blocked' ? 'O navegador bloqueou o áudio — toque no microfone uma vez para liberar o som.' : 'Não consegui tocar o áudio recebido.');
+      if(cfg.voice === 'auto' && r.text){ setState('speaking'); setStatus('falando','speak'); await speakBrowser(r.text); }
+    } else if(cfg.voice !== 'n8n' && r.text){
+      setState('speaking'); setStatus('falando','speak');
+      await speakBrowser(r.text);
+    }
+  }
+
+  // ---------- Resposta do n8n (JSON, texto ou áudio) ----------
+  const TEXT_KEYS = ['resposta','output','text','texto','reply','answer','message','content','response','mensagem','fala'];
+  const AUDIO_KEYS = ['audio','audioBase64','audio_base64','audioUrl','audio_url','audioURL','mp3'];
+  const B64 = /^[A-Za-z0-9+/=_-]+$/;
+  function looksLikeAudio(s){
+    s = (s||'').trim();
+    if(/^data:audio\/|^blob:/i.test(s)) return true;
+    return s.length > 400 && B64.test(s.slice(0, 400));
+  }
+  function isAudioSrc(s){
+    s = (s||'').trim();
+    return /^(https?:|data:|blob:)/i.test(s) || /\.(mp3|m4a|aac|wav|ogg|opus|webm|mp4)(\?|#|$)/i.test(s) || (s.length > 100 && B64.test(s.replace(/\s/g,'').slice(0, 400)));
+  }
+  function pickText(obj, depth){
+    depth = depth || 0;
+    if(typeof obj === 'string') return depth === 0 && obj.trim() && !looksLikeAudio(obj) ? obj.trim() : null;
+    if(typeof obj === 'number' && depth === 0) return String(obj);
+    if(!obj || typeof obj !== 'object' || depth > 6) return null;
+    if(Array.isArray(obj)){
+      for(const v of obj){ const r = typeof v === 'string' ? pickText(v, depth) : pickText(v, depth+1); if(r) return r; }
+      return null;
+    }
+    for(const k of TEXT_KEYS){ const v = obj[k]; if(typeof v === 'string' && v.trim() && !looksLikeAudio(v)) return v.trim(); }
+    for(const [k, v] of Object.entries(obj)){
+      if(v && typeof v === 'object' && !AUDIO_KEYS.includes(k) && k !== 'binary'){ const r = pickText(v, depth+1); if(r) return r; }
+    }
+    return null;
+  }
+  function pickAudio(obj, depth){
+    depth = depth || 0;
+    if(!obj || typeof obj !== 'object' || depth > 6) return null;
+    if(Array.isArray(obj)){ for(const v of obj){ const r = pickAudio(v, depth+1); if(r) return r; } return null; }
+    const mimeOf = o => [o.mimeType, o.mime, o.contentType, o.mime_type].find(x => typeof x === 'string') || '';
+    const mime = mimeOf(obj);
+    for(const k of AUDIO_KEYS){
+      const v = obj[k];
+      if(typeof v === 'string' && isAudioSrc(v)) return { src: v.trim(), mime };
+      if(v && typeof v === 'object' && !Array.isArray(v)){
+        const s = ['url','src','data','base64','content'].map(x => v[x]).find(x => typeof x === 'string' && isAudioSrc(x));
+        if(s) return { src: s.trim(), mime: mimeOf(v) || mime };
+      }
+    }
+    // formato binário do n8n: { data: "<base64>", mimeType: "audio/mpeg" }
+    if(typeof obj.data === 'string' && /^audio\//i.test(mime) && isAudioSrc(obj.data)) return { src: obj.data, mime };
+    for(const v of Object.values(obj)){ if(v && typeof v === 'object'){ const r = pickAudio(v, depth+1); if(r) return r; } }
+    return null;
+  }
+  function sniffMime(u8){
+    const s = String.fromCharCode.apply(null, u8.subarray(0, 12));
+    if(s.startsWith('ID3') || (u8[0] === 0xFF && (u8[1] & 0xE0) === 0xE0)) return 'audio/mpeg';
+    if(s.startsWith('RIFF')) return 'audio/wav';
+    if(s.startsWith('OggS')) return 'audio/ogg';
+    if(s.slice(4, 8) === 'ftyp') return 'audio/mp4';
+    if(u8[0] === 0x1A && u8[1] === 0x45) return 'audio/webm';
+    return 'audio/mpeg';
+  }
+  // base64 / data: viram blob: — tocam mais rápido e são bem mais estáveis no Safari do iPhone/iPad
+  function toAudioUrl(a){
+    let src = a.src.trim(), mime = a.mime || '';
+    if(/^(https?:|blob:)/i.test(src) || (!/^data:/i.test(src) && /\.(mp3|m4a|aac|wav|ogg|opus|webm|mp4)(\?|#|$)/i.test(src))) return { url: src, revoke: false };
+    const m = src.match(/^data:([^;,]*)[^,]*,/i);
+    if(m){ mime = mime || m[1]; src = src.slice(m[0].length); }
+    try{
+      let b64 = src.replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/');
+      while(b64.length % 4) b64 += '=';
+      const bin = atob(b64), u8 = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+      if(!/^audio\//i.test(mime)) mime = sniffMime(u8);
+      return { url: URL.createObjectURL(new Blob([u8], {type: mime})), revoke: true };
+    }catch(e){ return { url: 'data:' + (mime || 'audio/mpeg') + ';base64,' + src, revoke: false }; }
+  }
+  function headerText(resp){
+    for(const h of ['x-jarvis-text','x-jarvis-texto','x-text','x-response-text']){
+      const v = resp.headers.get(h); if(!v) continue;
+      let s = v;
+      try{ s = decodeURIComponent(v.replace(/\+/g, ' ')); }catch(e){}
+      // cabeçalho em UTF-8 cru chega como latin-1: reinterpreta
+      if(/[\u0080-ÿ]/.test(s) && !/[^\u0000-ÿ]/.test(s)){
+        try{ s = new TextDecoder('utf-8', {fatal:true}).decode(Uint8Array.from(s, c => c.charCodeAt(0))); }catch(e){}
+      }
+      if(s.trim()) return s.trim();
+    }
+    return '';
+  }
+  function showRaw(data, fallback){
+    $('raw').textContent = data !== null && typeof data === 'object'
+      ? JSON.stringify(data, (k, v) => typeof v === 'string' && v.length > 300 ? v.slice(0, 120) + `… [${v.length} caracteres]` : v, 2)
+      : String(fallback).slice(0, 4000);
+  }
+  // Lê qualquer formato de resposta. onText é chamado assim que o texto é conhecido
+  // (antes de baixar o áudio), para a legenda aparecer sem esperar.
+  async function readReply(resp, onText){
+    const ct = (resp.headers.get('content-type')||'').toLowerCase();
+    if(ct.startsWith('audio/') || ct.startsWith('video/') || ct.includes('octet-stream')){
+      const text = headerText(resp);
+      onText(text, true);
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      const mime = ct.startsWith('audio/') ? ct.split(';')[0] : sniffMime(buf);
+      $('raw').textContent = `[áudio ${mime}, ${Math.round(buf.length/1024)} KB]` + (text ? '\n' + text : '');
+      return { text, audio: URL.createObjectURL(new Blob([buf], {type: mime})), revoke: true };
+    }
+    const raw = await resp.text(); let data = null;
+    if(raw.trim()){ try{ data = JSON.parse(raw); }catch(e){} }
+    showRaw(data, raw);
+    let text = '', a = null;
+    if(data !== null){ text = pickText(data) || ''; a = typeof data === 'object' ? pickAudio(data) : null; }
+    else if(looksLikeAudio(raw)) a = { src: raw.trim(), mime: '' };
+    else text = raw.trim();
+    if(!text) text = headerText(resp);
+    onText(text, !!a);
+    if(!a) return { text, audio: null };
+    const u = toAudioUrl(a);
+    return { text, audio: u.url, revoke: u.revoke };
+  }
+
+  function showReply(text, ms, hasAudio){
+    const shown = text || (hasAudio ? '(resposta em áudio)' : '(resposta vazia)');
+    const el = $('reply');
+    el.textContent = shown; el.classList.toggle('long', shown.length > 220); el.scrollTop = 0;
+    const secs = (ms/1000).toFixed(1) + ' s';
+    $('meta').textContent = secs; $('latTxt').textContent = secs;
+    log('bot', shown, secs);
+  }
+  function note(text){ log('sys err', text); $('meta').textContent = text; }
+
+  // ---------- Bom dia em duas etapas ----------
+  const GREET_TEXT = [
+    'Morning, Sir! Já foi na gaveta dos remedinhos, certo? Sistemas online, e vai sem ou com vontade. A Vinci precisa dessa cabecinha operante! Puxando aqui os números que importam...',
+    'Buenos días, hombre! Só vai, meu garoto! Atualizando aqui os parâmetros, me dá 1 segundo...',
+    'Bom dia, Chefe! Viraste novamente a noite falando com a China ou sonhando com suas próximas loucuras tecnológicas? Sistemas online, café por sua conta e o mundo, como sempre, aguardando a sua aprovação.',
+    'Bom dia, Chefe! Já nem pergunto porque sei que dormistes mal, certo? Sistemas online, café com Rivotril e vamos para mais uma! Permita-me um instante enquanto reúno os números do dia...'
+  ];
+  function isBomDia(t){ return /\bbom\s*dia\b/i.test(t||''); }
+  // Pré-carrega as saudações em memória para tocarem sem atraso (inclusive no iPhone/iPad)
+  const clipUrl = {};
+  function preloadClips(){
+    (cfg.greets||'').split(',').map(s => s.trim()).filter(Boolean).forEach(src => {
+      if(clipUrl[src]) return;
+      clipUrl[src] = src;
+      fetch(src).then(r => r.ok ? r.arrayBuffer() : null).then(b => {
+        if(!b || !b.byteLength) return;
+        const u8 = new Uint8Array(b);
+        clipUrl[src] = URL.createObjectURL(new Blob([u8], {type: sniffMime(u8)}));
+      }).catch(() => {});
+    });
+  }
+  setTimeout(preloadClips, 500);
+  // Cabeçalhos de todo pedido ao n8n: JSON + senha do Jarvis (x-jarvis-key)
+  function n8nHeaders(){ const h = {'Content-Type':'application/json'}; if(cfg.key) h['x-jarvis-key'] = cfg.key; return h; }
+  async function fetchEtapa2(){
+    try{
+      const r = await fetch(cfg.briefUrl, { method:'POST', headers:n8nHeaders(),
+        body: JSON.stringify({ sessionId, origem:'jarvis-web', ts:new Date().toISOString() }) });
+      if(!r.ok) throw new Error('HTTP ' + r.status + ' — ' + (await r.text()).slice(0,160));
+      return await readReply(r, () => {});
+    }catch(err){ return { error: err }; }
+  }
+  async function bomDia(text){
+    ensureAudio(); stopRec(true); interrupt(); stopMusic();
+    const myTurn = turn; busy = true;
+    $('you').textContent = text; $('meta').textContent = ''; $('live').textContent = ''; log('me', text);
+    const t0 = performance.now();
+    if(!isIOS && cfg.shortcut) openShortcut(false);          // Mac: música já, junto com a fala
+    const etapa2 = cfg.briefUrl ? fetchEtapa2() : null;       // etapa 2 em paralelo, já começa agora
+    const clips = cfg.greets.split(',').map(s => s.trim()).filter(Boolean);
+    const n = clips.length ? Math.min(clips.length, GREET_TEXT.length) : GREET_TEXT.length;
+    const i = Math.floor(Math.random() * n);                   // etapa 1: imediata, sem IA
+    const el = $('reply'); el.textContent = GREET_TEXT[i]; el.classList.remove('long'); el.scrollTop = 0;
+    $('meta').textContent = 'etapa 1 · preparando o briefing…';
+    log('bot', GREET_TEXT[i], 'etapa 1');
+    if(cfg.voice !== 'none'){
+      setState('speaking'); setStatus('falando','speak');
+      const res = clips[i] ? await playAudio(clipUrl[clips[i]] || clips[i]) : 'error';
+      if(myTurn !== turn) return;
+      if(res !== 'ended' && res !== 'stopped') await speakBrowser(GREET_TEXT[i]);
+      if(myTurn !== turn) return;
+    }
+    if(!etapa2){ busy = false; finishTurn(); return; }
+    setState('thinking'); setStatus('processando','busy');
+    const r = await etapa2;
+    if(myTurn !== turn) return;
+    busy = false;
+    if(r.error){ sys('Bom dia — etapa 2 falhou: ' + r.error.message, true); }
+    else{
+      showReply(r.text, performance.now() - t0, !!r.audio);
+      await voiceReply(r, myTurn);
+      if(myTurn !== turn) return;
+    }
+    if(isIOS && cfg.shortcut){ setState('idle'); setStatus('pronto','ok'); openShortcut(true); return; }
+    finishTurn();
+  }
+
+  // ---------- Envio ----------
+  let busy = false;
+  async function send(text){
+    text = (text||'').trim(); if(!text || busy) return;
+    liveTouch();
+    if(cfg.briefUrl && isBomDia(text)) return bomDia(text);
+    if(!cfg.url){ openDrawer('cfgDrawer'); sys('Informe a URL do webhook nas configurações.', true); return; }
+    ensureAudio();
+    stopRec(true); interrupt(); stopMusic();
+    const myTurn = turn; busy = true;
+    pendingMusic = wantsMusic(text);
+    $('you').textContent = text; $('reply').textContent = ''; $('reply').classList.remove('long'); $('meta').textContent = ''; $('live').textContent = '';
+    log('me', text);
+    setState('thinking'); setStatus('processando','busy');
+    const t0 = performance.now();
+    try{
+      const body = { [cfg.field]: text, chatInput: text, message: text, sessionId, origem: 'jarvis-web', ts: new Date().toISOString() };
+      const resp = await fetch(cfg.url, { method:'POST', headers:n8nHeaders(), body: JSON.stringify(body) });
+      if(myTurn !== turn) return;
+      if(resp.status === 401 || resp.status === 403) throw new Error('senha do Jarvis ausente ou incorreta — confira em Configurações › Segurança');
+      if(!resp.ok) throw new Error('HTTP ' + resp.status + ' — ' + (await resp.text()).slice(0,200));
+      let shown = false;
+      const r = await readReply(resp, (t, hasAudio) => { if(myTurn !== turn) return; shown = true; showReply(t, performance.now()-t0, hasAudio); });
+      if(myTurn !== turn) return;
+      if(!shown) showReply(r.text, performance.now()-t0, !!r.audio);
+      busy = false;
+      await voiceReply(r, myTurn);
+      if(myTurn !== turn) return;
+      finishTurn();
+    }catch(err){
+      if(myTurn !== turn) return;
+      busy = false;
+      setState('error'); setStatus('erro','err');
+      const hint = err instanceof TypeError ? ' (provável bloqueio de CORS ou n8n fora do ar)' : '';
+      sys('Falha: ' + err.message + hint, true);
+      $('raw').textContent = String(err);
+      setTimeout(() => { if(state==='error'){ setState('idle'); setStatus('pronto','ok'); } }, 2500);
+    }finally{ if(myTurn === turn) busy = false; }
+  }
+  $('sendBtn').onclick = () => { send($('textIn').value); $('textIn').value=''; };
+  $('textIn').addEventListener('keydown', e => { if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); send($('textIn').value); $('textIn').value=''; if(isIOS) $('textIn').blur(); } });
+
+  // ---------- Reconhecimento de voz ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, listening = false, manualStop = false;
+  if(!SR) $('hint').textContent = 'sem reconhecimento de voz — use chrome ou safari';
+  function startRec(manual){
+    if(!SR || listening || busy) return;
+    if(manual !== true && liveHoldsMic()) return;   // modo contínuo pausado enquanto o LiveAvatar está aberto
+    rec = new SR(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = cfg.wake; manualStop = false;
+    let finalText = '', fired = false;
+    rec.onstart = () => { listening = true; setState('listening'); setStatus(cfg.wake ? 'aguardando “jarvis”' : 'ouvindo','busy'); };
+    rec.onresult = e => {
+      if(fired) return;
+      // Bom dia instantâneo: dispara assim que "bom dia" aparece, sem esperar terminar a frase
+      if(cfg.briefUrl && !busy){
+        let heard = '';
+        for(let i=e.resultIndex;i<e.results.length;i++) heard += ' ' + e.results[i][0].transcript;
+        if(isBomDia(heard)){ fired = true; finalText = ''; $('live').textContent = ''; bomDia(heard.trim()); return; }
+      }
+      let interim = '';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const r = e.results[i];
+        if(r.isFinal){
+          const t = r[0].transcript.trim();
+          if(cfg.wake){
+            const m = t.match(/^\s*(ok\s+|ei\s+|hey\s+)?jarvis[\s,.:!]*(.*)$/i);
+            if(m && m[2]){ $('live').textContent=''; send(m[2]); return; }
+          } else finalText += ' ' + t;
+        } else interim += r[0].transcript;
+      }
+      $('live').textContent = interim || finalText.trim();
+    };
+    rec.onerror = e => {
+      if(e.error==='not-allowed' || e.error==='service-not-allowed'){ sys('Permissão de microfone negada. Libere no navegador e em Ajustes do Sistema → Privacidade → Microfone.', true); cfg.wake = false; }
+      else if(e.error!=='no-speech' && e.error!=='aborted') sys('Microfone: ' + e.error, true);
+    };
+    rec.onend = () => {
+      listening = false; $('live').textContent = '';
+      if(!cfg.wake && finalText.trim()){ send(finalText); return; }
+      if(!busy && state==='listening'){ setState('idle'); setStatus('pronto','ok'); }
+      if(cfg.wake && !manualStop && !busy) setTimeout(startRec, 300);
+    };
+    try{ rec.start(); }catch(e){}
+  }
+  // hard = abort: libera o microfone na hora (no iPhone/iPad o áudio sai baixo enquanto o microfone está aberto)
+  function stopRec(hard){ manualStop = true; if(rec && listening){ try{ hard ? rec.abort() : rec.stop(); }catch(e){} } }
+  function toggle(){
+    ensureAudio();
+    if(musicPlaying){ stopMusic(); setState('idle'); setStatus('pronto','ok'); return; }
+    if(currentAudio || synthSpeaking || busy){ cancelAll(); return; }
+    listening ? stopRec() : startRec(true);
+  }
+  function applyWakeMode(){ stopRec(); if(cfg.wake) setTimeout(startRec, 300); }
+  $('micBtn').onclick = toggle;
+  document.addEventListener('keydown', e => {
+    const tag = document.activeElement.tagName;
+    if(e.code==='Space' && tag!=='INPUT' && tag!=='SELECT' && tag!=='IFRAME'){ e.preventDefault(); toggle(); }
+    if(e.key==='Escape'){ closeDrawers(); if(musicPlaying){ stopMusic(); setState('idle'); setStatus('pronto','ok'); }
+      else if(currentAudio || synthSpeaking || busy){ cancelAll(); } else stopRec(); }
+  });
+
+  // ---------- LiveAvatar (modo FULL + Custom LLM = n8n) ----------
+  // O LiveAvatar cuida de microfone, reconhecimento de fala, voz e sincronia labial; o cérebro é o
+  // gateway do n8n (Jarvis LLM Gateway), o mesmo agente da barra de texto. A sessão só abre sob demanda
+  // e encerra sozinha sem uso, porque cada minuto de sessão consome créditos da assinatura.
+  let liveSession = null, liveSdkPromise = null, liveReq = 0, liveActive = false, liveLast = 0, liveIdleTimer = null, liveSaid = '';
+  function liveHoldsMic(){ return liveActive && cfg.liveMic; }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function liveMsg(html){ const el = $('liveMsg'); el.innerHTML = html; el.style.display = html ? 'flex' : 'none'; }
+  function liveIdleBox(extra){
+    liveMsg('<b>' + escapeHtml(cfg.liveAgent) + '</b><span>' + (extra || 'Avatar em espera — a sessão só consome créditos enquanto estiver ativa.') + '</span>' +
+      '<div class="row"><button class="btn" data-live="start">Chamar o avatar</button><button class="btn" data-live="cfg">Configurar</button></div>');
+  }
+  $('liveMsg').addEventListener('click', e => {
+    const b = e.target.closest('[data-live]'); if(!b) return;
+    const a = b.dataset.live;
+    if(a === 'start') startLive();
+    else if(a === 'cfg') openDrawer('cfgDrawer');
+  });
+  $('liveStartBtn').onclick = () => { closeDrawers(); startLive(); };
+  $('liveStopBtn').onclick = () => { closeDrawers(); stopLive('encerrado por você'); };
+  async function loadLiveAvatarSdk(){
+    if(!liveSdkPromise) liveSdkPromise = import('https://cdn.jsdelivr.net/npm/@heygen/liveavatar-web-sdk@0.0.19/+esm');   // versão fixa: a testada em 07/10/2026
+    return liveSdkPromise;
+  }
+  function liveTouch(){ liveLast = Date.now(); }
+  // Faz o avatar falar um texto já respondido pelo n8n (barra de texto / microfone local)
+  function avatarSay(text){
+    if(!liveActive || !liveSession || !text) return false;
+    for(const m of ['repeat','speak']){
+      if(typeof liveSession[m] === 'function'){
+        try{ liveSession[m](text); liveSaid = String(text).trim(); liveTouch(); return true; }catch(e){ log('sys', 'Avatar não falou: ' + (e.message || e)); return false; }
+      }
+    }
+    return false;
+  }
+  // Mostra o quadro do avatar no lugar da bolinha (e vice-versa)
+  function showLiveFrame(on){ $('liveav').classList.toggle('on', !!on); $('core').hidden = !!on; }
+  async function startLive(){
+    if(liveActive) return;
+    const myReq = ++liveReq;
+    liveTouch();
+    showLiveFrame(true);
+    liveMsg('<b>Conectando</b><span>Chamando ' + escapeHtml(cfg.liveAgent) + '… permita o microfone quando o navegador pedir.</span>');
+    try{
+      if(!cfg.liveSessionUrl) throw new Error('nesta hospedagem não há a função do LiveAvatar — informe a URL que abre a sessão em Configurações › LiveAvatar');
+      const response = await fetch(cfg.liveSessionUrl, { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ agent: cfg.liveKey }) });
+      const data = await response.json().catch(() => ({}));
+      if(!response.ok || !data.session_token) throw new Error(data.error || ('sessão indisponível (HTTP ' + response.status + ')'));
+      const sdk = await loadLiveAvatarSdk();
+      const Session = sdk.LiveAvatarSession;
+      if(!Session) throw new Error('SDK do LiveAvatar não carregou');
+      const s = new Session(data.session_token, { voiceChat: {} });   // {} = microfone do avatar ligado
+      const video = $('liveVideo');
+      // O <video> só recebe a imagem depois que as faixas de vídeo e áudio chegam (evento session.stream_ready);
+      // chamar attach() antes disso não faz nada e a tela ficaria preta.
+      let streamReady = false, heardAt = 0;
+      const showStream = () => {
+        if(liveSession !== s || !streamReady) return;
+        s.attach(video); video.style.display = 'block';
+        const p = video.play(); if(p && p.catch) p.catch(() => {});
+        $('liveFrame').style.backgroundImage = 'none';
+        liveMsg('');
+      };
+      s.on('session.stream_ready', () => { streamReady = true; showStream(); });
+      s.on('session.disconnected', () => { if(liveSession === s) stopLive('encerrado pelo LiveAvatar'); });
+      // Conversar por voz também conta como uso — sem isto o encerramento por inatividade cortaria a conversa no meio.
+      ['user.speak_started','user.speak_ended','avatar.speak_started','avatar.speak_ended'].forEach(ev => s.on(ev, liveTouch));
+      s.on('user.speak_started', () => { if(liveSession === s) setStatus('ouvindo','busy'); });
+      s.on('user.transcription', e => {
+        if(liveSession !== s || !e || !e.text) return;
+        liveTouch(); heardAt = performance.now();
+        $('you').textContent = e.text; $('reply').textContent = ''; $('meta').textContent = ''; log('me', e.text);
+        setStatus('processando','busy');
+      });
+      s.on('avatar.speak_started', () => {
+        if(liveSession !== s) return;
+        if(heardAt){ const secs = ((performance.now() - heardAt) / 1000).toFixed(1) + ' s'; $('latTxt').textContent = secs; $('meta').textContent = secs; heardAt = 0; }
+        setStatus('falando','speak');
+      });
+      s.on('avatar.transcription', e => {
+        if(liveSession !== s || !e || !e.text) return;
+        liveTouch();
+        if(e.text.trim() === liveSaid){ liveSaid = ''; return; }   // texto que a própria página mandou falar: já está na legenda
+        const el = $('reply'); el.textContent = e.text; el.classList.toggle('long', e.text.length > 220); el.scrollTop = 0;
+        log('bot', e.text, 'avatar');
+      });
+      s.on('avatar.speak_ended', () => { if(liveSession === s && !busy) setStatus('pronto','ok'); });
+      await s.start();
+      if(myReq !== liveReq){ try{ await s.stop(); }catch(e){} return; }
+      liveSession = s; liveActive = true;
+      if(streamReady) showStream(); else liveMsg('<b>Conectando</b><span>Aguardando o vídeo de ' + escapeHtml(cfg.liveAgent) + '…</span>');
+      $('liveTag').textContent = cfg.liveAgent + ' · ' + (data.custom_llm ? 'cérebro n8n · ' + cfg.liveKey : 'LLM do LiveAvatar');
+      if(!data.custom_llm) log('sys', 'Aviso: a sessão abriu sem o Custom LLM — o avatar está usando o LLM do LiveAvatar, não o n8n.');
+      if(data.context === false) log('sys', 'Aviso: a sessão abriu sem contexto — o LiveAvatar transcreve a fala, mas o avatar não responde por voz.');
+      stopRec(true);
+      clearInterval(liveIdleTimer);
+      liveIdleTimer = setInterval(() => {
+        const lim = Math.max(1, cfg.liveIdle) * 60000;
+        if(liveActive && Date.now() - liveLast > lim) stopLive('encerrado após ' + cfg.liveIdle + ' min sem uso');
+      }, 15000);
+    }catch(e){
+      if(myReq !== liveReq) return;
+      liveSession = null; liveActive = false;
+      showLiveFrame(false); liveMsg('');
+      sys('Não foi possível abrir o avatar: ' + (e.message || String(e)) + '. O Jarvis continua com a bolinha, por texto e microfone.', true);
+      setTimeout(() => { if(state === 'idle') $('reply').textContent = 'Às suas ordens.'; }, 6000);
+    }
+  }
+  async function stopLive(reason){
+    liveReq++; clearInterval(liveIdleTimer);
+    const s = liveSession; liveSession = null; liveActive = false;
+    if(s){ try{ await s.stop(); }catch(e){} }
+    const video = $('liveVideo'); try{ video.srcObject = null; }catch(e){} video.style.display = 'none';
+    $('liveTag').textContent = cfg.liveAgent;
+    liveMsg(''); showLiveFrame(false);                 // volta para a bolinha
+    if(reason) log('sys', 'Avatar ' + reason + '.');
+    if(!busy){ setState('idle'); setStatus(cfg.url ? 'pronto' : 'configure o webhook', cfg.url ? 'ok' : ''); }
+    if(cfg.wake && cfg.url) applyWakeMode();
+  }
+  document.addEventListener('visibilitychange', () => { if(document.hidden && liveActive) stopLive('pausado ao sair da aba'); });
+  ['pointerdown','keydown'].forEach(ev => document.addEventListener(ev, liveTouch, true));
+  $('liveVideo').style.display = 'none';
+  $('liveTag').textContent = cfg.liveAgent;
+  showLiveFrame(false);
+
+  // ---------- Bolinha (esfera no canvas) ----------
+  // Lê "state" a cada quadro: idle = respiração lenta; listening = pulso suave; thinking = gira mais rápido,
+  // com arco de progresso; speaking/music = pulsa no ritmo (simulado — sem WebAudio, que no iPhone/iPad
+  // deixava o áudio mudo); error = vermelho. Toque na bolinha = mesma ação do microfone.
+  const cv = $('cv'), cx = cv.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio||1, 2); const r = cv.getBoundingClientRect(); W = r.width; H = r.height;
+    cv.width = Math.max(1, Math.round(W*DPR)); cv.height = Math.max(1, Math.round(H*DPR)); cx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize); resize();
+  if(window.ResizeObserver) new ResizeObserver(resize).observe($('core'));
+  $('core').onclick = toggle;
+
+  const PALETTE = {
+    idle:      {a:[127,231,255], b:[42,183,255]},
+    listening: {a:[160,240,255], b:[60,200,255]},
+    thinking:  {a:[155,140,255], b:[90,170,255]},
+    speaking:  {a:[255,190,90],  b:[255,140,60]},
+    music:     {a:[255,120,80],  b:[255,190,90]},
+    error:     {a:[255,110,125], b:[200,60,80]}
+  };
+  let col = {a:[...PALETTE.idle.a], b:[...PALETTE.idle.b]};
+  let level = 0, rot = 0, t = 0;
+  const lerp = (x,y,k) => x + (y-x)*k;
+  const rgba = (c,al) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${al})`;
+
+  function frame(){
+    requestAnimationFrame(frame);
+    if($('core').hidden) return;                       // avatar na tela: a bolinha descansa
+    if(!W || !H){ resize(); if(!W || !H) return; }
+    t += 1/60;
+    const target = PALETTE[state] || PALETTE.idle;
+    for(let i=0;i<3;i++){ col.a[i] = lerp(col.a[i], target.a[i], .06); col.b[i] = lerp(col.b[i], target.b[i], .06); }
+
+    // nível de energia por estado
+    let lv;
+    if(state==='speaking' || state==='music') lv = .35 + .3*Math.abs(Math.sin(t*9)) * (0.6 + 0.4*Math.sin(t*2.3));
+    else if(state==='listening') lv = .25 + .15*Math.sin(t*3);
+    else if(state==='thinking') lv = .2;
+    else lv = .06 + .03*Math.sin(t*1.2);
+    level = lerp(level, lv, .18);
+
+    const spd = state==='thinking' ? .045 : state==='listening' ? .016 : (state==='speaking' || state==='music') ? .012 : .005;
+    rot += spd;
+
+    const c = Math.min(W,H)/2, X = W/2, Y = H/2;
+    cx.clearRect(0,0,W,H);
+
+    // halo
+    const halo = cx.createRadialGradient(X,Y,c*.05,X,Y,c*.95);
+    halo.addColorStop(0, rgba(col.a, .22 + level*.35)); halo.addColorStop(.35, rgba(col.b, .08 + level*.12)); halo.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = halo; cx.beginPath(); cx.arc(X,Y,c*.95,0,Math.PI*2); cx.fill();
+
+    // núcleo
+    const rCore = c*(.17 + level*.07);
+    const core = cx.createRadialGradient(X - rCore*.3, Y - rCore*.3, rCore*.1, X, Y, rCore);
+    core.addColorStop(0, 'rgba(255,255,255,.95)'); core.addColorStop(.35, rgba(col.a, .9)); core.addColorStop(1, rgba(col.b, .15));
+    cx.fillStyle = core; cx.beginPath(); cx.arc(X,Y,rCore,0,Math.PI*2); cx.fill();
+
+    cx.lineCap = 'round';
+
+    // anel de onda (acompanha a energia)
+    const N = 128, rW = c*.34;
+    cx.beginPath();
+    for(let i=0;i<=N;i++){
+      const ang = (i/N)*Math.PI*2;
+      const amp = (Math.sin(ang*6 + t*2.2) * .5 + Math.sin(ang*11 - t*3.1) * .3 + Math.sin(ang*3 + t) *.2) * c*.035 * (level*3.2 + .3);
+      const r = rW + amp;
+      const px = X + Math.cos(ang)*r, py = Y + Math.sin(ang)*r;
+      i ? cx.lineTo(px,py) : cx.moveTo(px,py);
+    }
+    cx.strokeStyle = rgba(col.a, .75); cx.lineWidth = 1.4; cx.shadowColor = rgba(col.a, .8); cx.shadowBlur = 12; cx.stroke(); cx.shadowBlur = 0;
+
+    // anel fino
+    cx.beginPath(); cx.arc(X,Y,c*.46,0,Math.PI*2); cx.strokeStyle = rgba(col.b,.28); cx.lineWidth = 1; cx.stroke();
+
+    // arcos rotativos
+    const arcs = [[0,.9],[1.4,.55],[2.6,1.1],[4.1,.7],[5.2,.45]];
+    arcs.forEach(([s,len],i) => {
+      cx.beginPath(); const dir = i%2 ? -1 : 1;
+      cx.arc(X,Y,c*.52, s + rot*dir*1.4, s + len + rot*dir*1.4);
+      cx.strokeStyle = rgba(i%2 ? col.b : col.a, .55); cx.lineWidth = i%2 ? 2 : 3; cx.stroke();
+    });
+
+    // marcações (ticks)
+    const T = 72, r1 = c*.6, r2 = c*.635;
+    for(let i=0;i<T;i++){
+      const ang = (i/T)*Math.PI*2 - rot*.6;
+      const major = i % 6 === 0;
+      const lit = state!=='idle' && ((i + Math.floor(t*18)) % 24 < 3);
+      cx.beginPath();
+      cx.moveTo(X + Math.cos(ang)*r1, Y + Math.sin(ang)*r1);
+      cx.lineTo(X + Math.cos(ang)*(major ? r2 + c*.02 : r2), Y + Math.sin(ang)*(major ? r2 + c*.02 : r2));
+      cx.strokeStyle = lit ? rgba(col.a, .95) : rgba(col.b, major ? .45 : .18); cx.lineWidth = major ? 1.6 : 1; cx.stroke();
+    }
+
+    // anel externo segmentado
+    const segs = 3, gap = .35;
+    for(let i=0;i<segs;i++){
+      const s = (i/segs)*Math.PI*2 + rot*.35;
+      cx.beginPath(); cx.arc(X,Y,c*.74, s, s + (Math.PI*2/segs) - gap);
+      cx.strokeStyle = rgba(col.b, .22); cx.lineWidth = 1; cx.stroke();
+    }
+
+    // indicador de progresso ao pensar
+    if(state==='thinking'){
+      cx.beginPath(); const s = t*3.2; cx.arc(X,Y,c*.74, s, s + 1.2);
+      cx.strokeStyle = rgba(col.a,.9); cx.lineWidth = 2.5; cx.shadowColor = rgba(col.a,.9); cx.shadowBlur = 14; cx.stroke(); cx.shadowBlur = 0;
+    }
+
+    // partículas
+    for(let i=0;i<36;i++){
+      const ang = i*2.399 + rot*(.4 + (i%5)*.08);
+      const r = c*(.4 + ((i*37)%100)/100*.42) + Math.sin(t*1.5 + i)*c*.01;
+      const sz = (i%7===0 ? 1.8 : 1) * (1 + level);
+      cx.fillStyle = rgba(i%3 ? col.a : col.b, .25 + ((i*13)%10)/30);
+      cx.beginPath(); cx.arc(X + Math.cos(ang)*r, Y + Math.sin(ang)*r, sz, 0, Math.PI*2); cx.fill();
+    }
+  }
+  requestAnimationFrame(frame);
+
+  setStatus(cfg.url ? 'pronto' : 'configure o webhook', cfg.url ? 'ok' : '');
+  if(cfg.wake && cfg.url) applyWakeMode();
+})();
+</script>
+</body>
+</html>
