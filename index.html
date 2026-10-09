@@ -301,6 +301,9 @@
     <input class="field" type="number" id="cfgFaceZoom" min="100" max="260" step="5" placeholder="130">
     <div class="note">Quanto o vídeo é aproximado quando você amplia para só o rosto. 100 mostra o quadro inteiro; 130 é o padrão; acima de 180 fica bem perto.</div>
 
+    <div class="check"><input type="checkbox" id="cfgLiveAuto"><span>Chamar o avatar sozinho ao abrir a página</span></div>
+    <div class="note">Sem precisar tocar em “Chamar o avatar”. A sessão leva alguns segundos para nascer; quando o Félix terminar de cumprimentar, ele já está ouvindo. No Safari, libere o microfone e a reprodução automática para este site, senão o navegador bloqueia a abertura sozinha.</div>
+
     <div class="check"><input type="checkbox" id="cfgSysFullscreen"><span>Usar a tela cheia do sistema ao ampliar o rosto</span></div>
     <div class="note">Desligado, o rosto ocupa a janela inteira e nada mais muda. Ligado, o macOS cria uma área de trabalho separada — aí, quando o atalho da música roda, o sistema troca de área e o avatar sai da frente. Para tela cheia de verdade sem esse efeito, instale a página como aplicativo no Chrome.</div>
 
@@ -363,6 +366,7 @@
     briefUrl: store.get('briefUrl', BRAINS[BRAIN] ? BRIEF_URL : ''),
     greets: store.get('greets','saudacao1.mp3,saudacao2.mp3,saudacao3.mp3,saudacao4.mp3'),
     liveKey: (k => ['claude','gpt','gemini'].includes(k) ? k : 'claude')(store.get('liveKey', BRAINS[BRAIN] ? BRAIN : 'claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
+    liveAuto: store.get('liveAuto','1') === '1',
     liveAgent: (a => ['JARVIS — Cornélius (Free)', 'JARVIS — Cornélius', 'JARVIS — Félix', 'JARVIS — Felyx', 'JARVIS Felyx'].includes(a) ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
     liveMic: store.get('liveMic','1')==='1',
     // No Netlify a sessão do avatar vem da função /api/liveavatar-session; em outra hospedagem (GitHub Pages) fica vazio até existir o workflow no n8n
@@ -374,6 +378,7 @@
   $('cfgMusic').value = cfg.music; $('cfgMusicTrigger').value = cfg.musicTrigger; $('cfgShortcut').value = cfg.shortcut;
   $('cfgFaceZoom').value = cfg.faceZoom; $('cfgShowText').checked = cfg.showText;
   $('cfgMusicOnGreet').checked = cfg.musicOnGreet; $('cfgSysFullscreen').checked = cfg.sysFullscreen;
+  $('cfgLiveAuto').checked = cfg.liveAuto;
   $('cfgBriefUrl').value = cfg.briefUrl; $('cfgGreets').value = cfg.greets;
   $('cfgVisual').value = cfg.visual; $('cfgLiveKey').value = cfg.liveKey; $('cfgLiveIdle').value = cfg.liveIdle; $('cfgLiveAgent').value = cfg.liveAgent; $('cfgLiveMic').checked = cfg.liveMic;
   $('cfgUrl').value = cfg.url; $('cfgField').value = cfg.field; $('cfgVoice').value = cfg.voice; $('cfgWake').checked = cfg.wake;
@@ -454,14 +459,15 @@
     cfg.music = $('cfgMusic').value.trim(); cfg.musicTrigger = $('cfgMusicTrigger').value.trim(); cfg.shortcut = $('cfgShortcut').value.trim();
     cfg.faceZoom = Math.min(260, Math.max(100, parseInt($('cfgFaceZoom').value, 10) || 130));
     cfg.showText = $('cfgShowText').checked;
-    cfg.musicOnGreet = $('cfgMusicOnGreet').checked; cfg.sysFullscreen = $('cfgSysFullscreen').checked; applyScreen();
+    cfg.musicOnGreet = $('cfgMusicOnGreet').checked; cfg.sysFullscreen = $('cfgSysFullscreen').checked;
+    cfg.liveAuto = $('cfgLiveAuto').checked; applyScreen();
     cfg.briefUrl = $('cfgBriefUrl').value.trim(); cfg.greets = $('cfgGreets').value.trim();
     const liveChanged = cfg.liveKey !== $('cfgLiveKey').value;
     cfg.liveKey = $('cfgLiveKey').value; cfg.liveIdle = Math.min(30, Math.max(1, parseInt($('cfgLiveIdle').value,10) || 5));
     cfg.liveAgent = $('cfgLiveAgent').value.trim() || LIVE_AGENT;
     cfg.liveMic = $('cfgLiveMic').checked; cfg.liveSessionUrl = $('cfgLiveUrl').value.trim(); cfg.visual = $('cfgVisual').value === 'avatar' ? 'avatar' : 'brain';
     cfg.key = $('cfgKey').value.trim();
-    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets, faceZoom:String(cfg.faceZoom), showText:cfg.showText?'1':'0', musicOnGreet:cfg.musicOnGreet?'1':'0', sysFullscreen:cfg.sysFullscreen?'1':'0'})
+    Object.entries({liveAuto:cfg.liveAuto?'1':'0', liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets, faceZoom:String(cfg.faceZoom), showText:cfg.showText?'1':'0', musicOnGreet:cfg.musicOnGreet?'1':'0', sysFullscreen:cfg.sysFullscreen?'1':'0'})
       .forEach(([k,v]) => store.set(k, String(v)));
     preloadClips(); refreshHud(); $('liveTag').textContent = cfg.liveAgent; if(liveChanged && liveActive){ stopLive('reiniciando com outro cérebro').then(startLive); } else if(!liveActive) applyVisual(); sys('Configurações salvas.'); applyWakeMode(); setStatus(cfg.url?'pronto':'configure o webhook', cfg.url?'ok':'');
   };
@@ -1021,6 +1027,12 @@
     return liveSdkPromise;
   }
   function liveTouch(){ liveLast = Date.now(); }
+  // Saudação de entrada do avatar, no período certo do dia.
+  function saudacaoAvatar(){
+    const h = new Date().getHours();
+    const parte = h < 12 ? 'Bom dia' : (h < 18 ? 'Boa tarde' : 'Boa noite');
+    return parte + ', Leandro. Félix em linha, às suas ordens.';
+  }
   // Faz o avatar falar um texto já respondido pelo n8n (barra de texto / microfone local)
   function avatarSay(text){
     if(!liveActive || !liveSession || !text) return false;
@@ -1078,13 +1090,30 @@
       const video = $('liveVideo');
       // O <video> só recebe a imagem depois que as faixas de vídeo e áudio chegam (evento session.stream_ready);
       // chamar attach() antes disso não faz nada e a tela ficaria preta.
-      let streamReady = false, heardAt = 0;
+      let streamReady = false, heardAt = 0, saudou = false;
       const showStream = () => {
         if(liveSession !== s || !streamReady) return;
         s.attach(video); video.style.display = 'block';
         const p = video.play(); if(p && p.catch) p.catch(() => {});
         $('liveFrame').style.backgroundImage = 'none';
         liveMsg('');
+        // A saudação sai daqui, não do LiveAvatar. Antes o contexto tinha opening_text e o avatar
+        // falava no instante em que a sessão nascia, antes de a página prender o áudio ao vídeo —
+        // por isso o começo vinha cortado. Agora esperamos o vídeo estar de fato tocando, com uma
+        // folga curta, e só então o Félix fala. O fim dessa frase é o sinal de que ele já ouve.
+        if(!saudou){
+          saudou = true;
+          const saudar = () => {
+            if(liveSession !== s) return;
+            setTimeout(() => {
+              if(liveSession !== s) return;
+              setStatus('falando','speak');
+              avatarSay(saudacaoAvatar());
+            }, 700);
+          };
+          if(video.readyState >= 3 && !video.paused) saudar();
+          else video.addEventListener('playing', saudar, { once: true });
+        }
       };
       s.on('session.stream_ready', () => { streamReady = true; showStream(); });
       s.on('session.disconnected', () => { if(liveSession === s) stopLive('encerrado pelo LiveAvatar'); });
@@ -1150,6 +1179,10 @@
   $('liveVideo').style.display = 'none';
   $('liveTag').textContent = cfg.liveAgent;
   applyVisual();
+  // Abre a sessão do avatar sozinho, sem o clique em "Chamar o avatar".
+  // Se o navegador recusar (microfóne ou autoplay bloqueados), o catch de startLive devolve
+  // o quadro com o botão, e aí basta um toque.
+  if(cfg.visual === 'avatar' && cfg.liveAuto) setTimeout(() => { if(!liveActive) startLive(); }, 400);
 
   // ---------- Cérebro de partículas (canvas) ----------
   // Lê "state" a cada quadro: idle = giro lento; listening = pulso suave; thinking = gira rápido e dispara
