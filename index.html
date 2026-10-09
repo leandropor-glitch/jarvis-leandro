@@ -250,15 +250,18 @@
 
     <div class="cfgsec">LiveAvatar</div>
     <label>Nome do agente</label>
-    <input class="field" type="text" id="cfgLiveAgent" placeholder="JARVIS — Cornélius">
+    <input class="field" type="text" id="cfgLiveAgent" placeholder="JARVIS — Félix">
     <label>Cérebro do avatar</label>
-    <select id="cfgLiveKey"><option value="claude">Jarvis-Claude</option><option value="gpt">Jarvis-GPT</option></select>
+    <select id="cfgLiveKey"><option value="claude">Jarvis-Claude</option><option value="gpt">Jarvis-GPT</option><option value="gemini">Jarvis-Gemini</option></select>
+    <label>Visual padrão desta página</label>
+    <select id="cfgVisual"><option value="brain">Cérebro de partículas</option><option value="avatar">Avatar (LiveAvatar)</option></select>
+    <div class="note">Com "Avatar", a página abre mostrando o quadro do avatar com o botão para chamá-lo; a sessão (que consome créditos) só começa no toque.</div>
     <label>Encerrar o avatar após (minutos sem uso)</label>
     <input class="field" type="number" id="cfgLiveIdle" min="1" max="30" step="1">
     <label>URL que abre a sessão do avatar</label>
-    <input class="field" type="text" id="cfgLiveUrl" placeholder="/api/liveavatar-session (Netlify) ou webhook do n8n">
-    <div class="note">No Netlify é <code>/api/liveavatar-session</code> (preenchido sozinho). No GitHub Pages não existe essa função: deixe vazio até ela virar um workflow no n8n e cole aqui o webhook dele.</div>
-    <div class="note">Opcional. O visual padrão do Jarvis é o cérebro de partículas; o avatar só aparece no lugar dele enquanto estiver chamado. Ele roda em modo FULL do LiveAvatar (microfone, reconhecimento de fala, voz e sincronia labial) com o cérebro no n8n — o mesmo agente da barra de texto. A sessão só abre quando você chama e fecha sozinha sem uso, para não gastar créditos.</div>
+    <input class="field" type="text" id="cfgLiveUrl" placeholder="webhook jarvis-avatar-sessao do n8n">
+    <div class="note">Preenchido sozinho com o workflow "Jarvis LiveAvatar Sessão" do n8n, que guarda a chave do LiveAvatar e escolhe o avatar. No Netlify também funciona <code>/api/liveavatar-session</code>.</div>
+    <div class="note">O avatar roda em modo FULL do LiveAvatar (microfone, reconhecimento de fala, voz e sincronia labial) com o cérebro no n8n — o mesmo agente da barra de texto. A sessão só abre quando você chama e fecha sozinha sem uso, para não gastar créditos.</div>
     <div class="check"><input type="checkbox" id="cfgLiveMic"><span>Pausar o modo contínuo do microfone local enquanto o avatar estiver ativo (o avatar tem o próprio microfone).</span></div>
     <div class="row"><button class="btn" id="liveStartBtn">Chamar o avatar</button><button class="btn" id="liveStopBtn">Encerrar avatar</button></div>
 
@@ -284,10 +287,12 @@
   // Cérebro pré-escolhido pelo endereço: /?cerebro=claude | gpt | gemini (as pastas /claude/, /gpt/ e /gemini/ redirecionam para cá).
   // Cada cérebro guarda as próprias configurações neste navegador, por isso o prefixo muda.
   const BRAINS = {
-    claude: { url: 'https://vinciautomacao.app.n8n.cloud/webhook/ee76918a-f244-4b2c-8c70-7566c46597bf' },
-    gpt:    { url: 'https://vinciautomacao.app.n8n.cloud/webhook/751b3b85-4222-4abe-8b72-9e32be6fe233' },
-    gemini: { url: 'https://vinciautomacao.app.n8n.cloud/webhook/88128828-d796-479c-ae66-7de3501006ee' }
+    claude: { url: 'https://vinciautomacao.app.n8n.cloud/webhook/ee76918a-f244-4b2c-8c70-7566c46597bf', visual: 'brain' },
+    gpt:    { url: 'https://vinciautomacao.app.n8n.cloud/webhook/751b3b85-4222-4abe-8b72-9e32be6fe233', visual: 'avatar' },
+    gemini: { url: 'https://vinciautomacao.app.n8n.cloud/webhook/88128828-d796-479c-ae66-7de3501006ee', visual: 'brain' }
   };
+  // Workflow do n8n que abre a sessão do LiveAvatar (substitui a função do Netlify); vale no GitHub Pages e no Netlify
+  const LIVE_SESSION_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/jarvis-avatar-sessao';
   const BRAIN = (new URLSearchParams(location.search).get('cerebro') || location.hash.replace('#','') || '').toLowerCase().trim();
   const BRIEF_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/jarvis-bomdia';
   const PREFIX = 'jarvis.' + (BRAINS[BRAIN] ? BRAIN + '.' : '');
@@ -300,7 +305,7 @@
   if(!sessionId){ sessionId = 'web-' + Math.random().toString(36).slice(2,10); store.set('session', sessionId); }
   $('sessTxt').textContent = sessionId.slice(-6);
 
-  const LIVE_AGENT = 'JARVIS — Cornélius';
+  const LIVE_AGENT = 'JARVIS — Félix';
   // limpa preferências dos modos removidos (Avatar local e VRM ao vivo)
   ['view','faceTalk','faceIdle','heygen','vrmUrl','wsUrl','vrmBrain','wsHa','vrmSkipWs','haCode','liveUrl'].forEach(k => { try{ localStorage.removeItem('jarvis.'+k); }catch(e){} });
 
@@ -312,17 +317,18 @@
     shortcut: store.get('shortcut','Musica Jarvis'),
     briefUrl: store.get('briefUrl', BRAINS[BRAIN] ? BRIEF_URL : ''),
     greets: store.get('greets','saudacao1.mp3,saudacao2.mp3,saudacao3.mp3,saudacao4.mp3'),
-    liveKey: (k => k === 'gpt' ? 'gpt' : 'claude')(store.get('liveKey','claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
-    liveAgent: (a => a === 'JARVIS — Cornélius (Free)' ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
+    liveKey: (k => ['claude','gpt','gemini'].includes(k) ? k : 'claude')(store.get('liveKey', BRAINS[BRAIN] ? BRAIN : 'claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
+    liveAgent: (a => (a === 'JARVIS — Cornélius (Free)' || a === 'JARVIS — Cornélius') ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
     liveMic: store.get('liveMic','1')==='1',
     // No Netlify a sessão do avatar vem da função /api/liveavatar-session; em outra hospedagem (GitHub Pages) fica vazio até existir o workflow no n8n
-    liveSessionUrl: store.get('liveSessionUrl', /\.netlify\.app$/i.test(location.hostname) ? '/api/liveavatar-session' : ''),
+    liveSessionUrl: store.get('liveSessionUrl', LIVE_SESSION_URL),
+    visual: (v => v === 'avatar' ? 'avatar' : 'brain')(store.get('visual', BRAINS[BRAIN] ? BRAINS[BRAIN].visual : 'brain')),
     key: store.get('key','')
   };
   $('cfgKey').value = cfg.key; $('cfgLiveUrl').value = cfg.liveSessionUrl;
   $('cfgMusic').value = cfg.music; $('cfgMusicTrigger').value = cfg.musicTrigger; $('cfgShortcut').value = cfg.shortcut;
   $('cfgBriefUrl').value = cfg.briefUrl; $('cfgGreets').value = cfg.greets;
-  $('cfgLiveKey').value = cfg.liveKey; $('cfgLiveIdle').value = cfg.liveIdle; $('cfgLiveAgent').value = cfg.liveAgent; $('cfgLiveMic').checked = cfg.liveMic;
+  $('cfgVisual').value = cfg.visual; $('cfgLiveKey').value = cfg.liveKey; $('cfgLiveIdle').value = cfg.liveIdle; $('cfgLiveAgent').value = cfg.liveAgent; $('cfgLiveMic').checked = cfg.liveMic;
   $('cfgUrl').value = cfg.url; $('cfgField').value = cfg.field; $('cfgVoice').value = cfg.voice; $('cfgWake').checked = cfg.wake;
   $('cfgRate').value = cfg.rate; $('cfgPitch').value = cfg.pitch;
   $('rateTxt').textContent = cfg.rate.toFixed(2); $('pitchTxt').textContent = cfg.pitch.toFixed(2);
@@ -404,11 +410,11 @@
     const liveChanged = cfg.liveKey !== $('cfgLiveKey').value;
     cfg.liveKey = $('cfgLiveKey').value; cfg.liveIdle = Math.min(30, Math.max(1, parseInt($('cfgLiveIdle').value,10) || 5));
     cfg.liveAgent = $('cfgLiveAgent').value.trim() || LIVE_AGENT;
-    cfg.liveMic = $('cfgLiveMic').checked; cfg.liveSessionUrl = $('cfgLiveUrl').value.trim();
+    cfg.liveMic = $('cfgLiveMic').checked; cfg.liveSessionUrl = $('cfgLiveUrl').value.trim(); cfg.visual = $('cfgVisual').value === 'avatar' ? 'avatar' : 'brain';
     cfg.key = $('cfgKey').value.trim();
-    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets})
+    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets})
       .forEach(([k,v]) => store.set(k, String(v)));
-    preloadClips(); refreshHud(); $('liveTag').textContent = cfg.liveAgent; if(liveChanged && liveActive){ stopLive('reiniciando com outro cérebro').then(startLive); } sys('Configurações salvas.'); applyWakeMode(); setStatus(cfg.url?'pronto':'configure o webhook', cfg.url?'ok':'');
+    preloadClips(); refreshHud(); $('liveTag').textContent = cfg.liveAgent; if(liveChanged && liveActive){ stopLive('reiniciando com outro cérebro').then(startLive); } else if(!liveActive) applyVisual(); sys('Configurações salvas.'); applyWakeMode(); setStatus(cfg.url?'pronto':'configure o webhook', cfg.url?'ok':'');
   };
   $('clearBtn').onclick = () => { $('log').innerHTML = ''; $('you').textContent=''; $('reply').textContent='Às suas ordens.'; $('meta').textContent=''; };
   $('pingBtn').onclick = () => { closeDrawers(); send('Teste de conexão. Responda apenas: online.'); };
@@ -883,8 +889,29 @@
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function liveMsg(html){ const el = $('liveMsg'); el.innerHTML = html; el.style.display = html ? 'flex' : 'none'; }
   function liveIdleBox(extra){
-    liveMsg('<b>' + escapeHtml(cfg.liveAgent) + '</b><span>' + (extra || 'Avatar em espera — a sessão só consome créditos enquanto estiver ativa.') + '</span>' +
+    liveMsg('<b>' + escapeHtml(cfg.liveAgent) + '</b><span>' + (extra || 'Toque em Chamar o avatar. A sessão só consome créditos enquanto estiver aberta.') + '</span>' +
       '<div class="row"><button class="btn" data-live="start">Chamar o avatar</button><button class="btn" data-live="cfg">Configurar</button></div>');
+  }
+  // Visual padrão da página quando o avatar NÃO está em sessão: quadro do avatar em espera (com pôster) ou cérebro de partículas
+  let posterLoaded = false;
+  function applyVisual(extra){
+    if(liveActive) return;
+    if(cfg.visual === 'avatar'){ showLiveFrame(true); liveIdleBox(extra); loadAvatarPoster(); }
+    else { liveMsg(''); showLiveFrame(false); }
+  }
+  // Pede ao workflow só a conferência (sem abrir sessão) para mostrar o nome e a imagem do avatar no quadro
+  async function loadAvatarPoster(){
+    const frame = $('liveFrame');
+    if(!frame.style.backgroundImage) Object.assign(frame.style, { backgroundImage: "url('rosto.jpg')", backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' });
+    if(posterLoaded || !cfg.liveSessionUrl) return;
+    posterLoaded = true;
+    try{
+      const r = await fetch(cfg.liveSessionUrl, { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ agent: cfg.liveKey, check: true }) });
+      const data = await r.json().catch(() => ({}));
+      if(r.ok && data.image){ frame.style.backgroundImage = "url('" + String(data.image).replace(/['"\\]/g, '') + "')"; }
+      if(r.ok && data.avatar && !liveActive && !cfg.liveAgent.toLowerCase().includes(String(data.avatar).toLowerCase())) $('liveTag').textContent = cfg.liveAgent + ' · ' + data.avatar;
+      if(!r.ok && data.message) log('sys', 'Avatar: ' + data.message);
+    }catch(e){ posterLoaded = false; }
   }
   $('liveMsg').addEventListener('click', e => {
     const b = e.target.closest('[data-live]'); if(!b) return;
@@ -921,7 +948,7 @@
       if(!cfg.liveSessionUrl) throw new Error('nesta hospedagem não há a função do LiveAvatar — informe a URL que abre a sessão em Configurações › LiveAvatar');
       const response = await fetch(cfg.liveSessionUrl, { method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify({ agent: cfg.liveKey }) });
       const data = await response.json().catch(() => ({}));
-      if(!response.ok || !data.session_token) throw new Error(data.error || ('sessão indisponível (HTTP ' + response.status + ')'));
+      if(!response.ok || !data.session_token) throw new Error(data.message || data.error || ('sessão indisponível (HTTP ' + response.status + ')'));
       const sdk = await loadLiveAvatarSdk();
       const Session = sdk.LiveAvatarSession;
       if(!Session) throw new Error('SDK do LiveAvatar não carregou');
@@ -977,8 +1004,8 @@
     }catch(e){
       if(myReq !== liveReq) return;
       liveSession = null; liveActive = false;
-      showLiveFrame(false); liveMsg('');
-      sys('Não foi possível abrir o avatar: ' + (e.message || String(e)) + '. O Jarvis continua com o cérebro de partículas, por texto e microfone.', true);
+      applyVisual('Não foi possível abrir o avatar: ' + escapeHtml(e.message || String(e)));
+      sys('Não foi possível abrir o avatar: ' + (e.message || String(e)) + '. O Jarvis continua por texto e microfone.', true);
       setTimeout(() => { if(state === 'idle') $('reply').textContent = 'Às suas ordens.'; }, 6000);
     }
   }
@@ -988,7 +1015,7 @@
     if(s){ try{ await s.stop(); }catch(e){} }
     const video = $('liveVideo'); try{ video.srcObject = null; }catch(e){} video.style.display = 'none';
     $('liveTag').textContent = cfg.liveAgent;
-    liveMsg(''); showLiveFrame(false);                 // volta para o cérebro de partículas
+    applyVisual(reason ? 'Avatar ' + escapeHtml(reason) + '.' : '');   // volta para o visual padrão desta página
     if(reason) log('sys', 'Avatar ' + reason + '.');
     if(!busy){ setState('idle'); setStatus(cfg.url ? 'pronto' : 'configure o webhook', cfg.url ? 'ok' : ''); }
     if(cfg.wake && cfg.url) applyWakeMode();
@@ -997,7 +1024,7 @@
   ['pointerdown','keydown'].forEach(ev => document.addEventListener(ev, liveTouch, true));
   $('liveVideo').style.display = 'none';
   $('liveTag').textContent = cfg.liveAgent;
-  showLiveFrame(false);
+  applyVisual();
 
   // ---------- Cérebro de partículas (canvas) ----------
   // Lê "state" a cada quadro: idle = giro lento; listening = pulso suave; thinking = gira rápido e dispara
