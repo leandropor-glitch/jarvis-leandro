@@ -264,7 +264,10 @@
 
     <label>Atalho de música (app Atalhos — nome exato)</label>
     <input class="field" type="text" id="cfgShortcut" placeholder="Musica Jarvis">
-    <div class="note">Se preenchido, o Jarvis roda este Atalho (Spotify) e volta para cá. Deixe vazio para usar o arquivo abaixo.</div>
+    <div class="note">Nome exato do atalho no app Atalhos (hoje: <code>musica jarvis</code>, que toca no Apple Music). A página o dispara por um quadro invisível, sem sair do ar. Deixe vazio para usar o arquivo abaixo.</div>
+
+    <div class="check"><input type="checkbox" id="cfgMusicOnGreet"><span>Rodar o atalho quando eu cumprimentar o avatar</span></div>
+    <div class="note">Vale para bom dia, boa tarde e boa noite, inclusive quando a fala vai pelo microfone do avatar. Não repete se já tiver tocado nos últimos vinte segundos.</div>
     <label>URL do bom dia — etapa 2 (webhook do briefing)</label>
     <input class="field" type="url" id="cfgBriefUrl" placeholder="https://…app.n8n.cloud/webhook/jarvis-bomdia">
     <label>Saudações gravadas — etapa 1 (arquivos, separados por vírgula)</label>
@@ -297,6 +300,9 @@
     <label>Enquadramento do rosto no modo tela cheia (%)</label>
     <input class="field" type="number" id="cfgFaceZoom" min="100" max="260" step="5" placeholder="130">
     <div class="note">Quanto o vídeo é aproximado quando você amplia para só o rosto. 100 mostra o quadro inteiro; 130 é o padrão; acima de 180 fica bem perto.</div>
+
+    <div class="check"><input type="checkbox" id="cfgSysFullscreen"><span>Usar a tela cheia do sistema ao ampliar o rosto</span></div>
+    <div class="note">Desligado, o rosto ocupa a janela inteira e nada mais muda. Ligado, o macOS cria uma área de trabalho separada — aí, quando o atalho da música roda, o sistema troca de área e o avatar sai da frente. Para tela cheia de verdade sem esse efeito, instale a página como aplicativo no Chrome.</div>
 
     <div class="check"><input type="checkbox" id="cfgShowText"><span>Mostrar na tela o texto do que é falado</span></div>
     <div class="note">Desligado, a tela fica limpa e o rosto centralizado. O texto continua sendo gerado e enviado normalmente, e fica guardado em Conversa.</div>
@@ -349,7 +355,9 @@
     voice: store.get('voice','auto'), wake: store.get('wake','0')==='1',
     sysVoice: store.get('sysVoice',''), rate: parseFloat(store.get('rate','1')), pitch: parseFloat(store.get('pitch','0.95')),
     music: store.get('music','musica.mp3'), musicTrigger: store.get('musicTrigger','bom dia, boa tarde, boa noite, toca a música, toca a musica'),
-    shortcut: store.get('shortcut','Musica Jarvis'),
+    shortcut: (a => a === 'Musica Jarvis' ? 'musica jarvis' : a)(store.get('shortcut','musica jarvis')),
+    musicOnGreet: store.get('musicOnGreet','1') === '1',
+    sysFullscreen: store.get('sysFullscreen','0') === '1',
     faceZoom: Math.min(260, Math.max(100, parseInt(store.get('faceZoom','130'), 10) || 130)),
     showText: store.get('showText','0') === '1',
     briefUrl: store.get('briefUrl', BRAINS[BRAIN] ? BRIEF_URL : ''),
@@ -365,6 +373,7 @@
   $('cfgKey').value = cfg.key; $('cfgLiveUrl').value = cfg.liveSessionUrl;
   $('cfgMusic').value = cfg.music; $('cfgMusicTrigger').value = cfg.musicTrigger; $('cfgShortcut').value = cfg.shortcut;
   $('cfgFaceZoom').value = cfg.faceZoom; $('cfgShowText').checked = cfg.showText;
+  $('cfgMusicOnGreet').checked = cfg.musicOnGreet; $('cfgSysFullscreen').checked = cfg.sysFullscreen;
   $('cfgBriefUrl').value = cfg.briefUrl; $('cfgGreets').value = cfg.greets;
   $('cfgVisual').value = cfg.visual; $('cfgLiveKey').value = cfg.liveKey; $('cfgLiveIdle').value = cfg.liveIdle; $('cfgLiveAgent').value = cfg.liveAgent; $('cfgLiveMic').checked = cfg.liveMic;
   $('cfgUrl').value = cfg.url; $('cfgField').value = cfg.field; $('cfgVoice').value = cfg.voice; $('cfgWake').checked = cfg.wake;
@@ -444,14 +453,15 @@
     cfg.rate = parseFloat($('cfgRate').value); cfg.pitch = parseFloat($('cfgPitch').value);
     cfg.music = $('cfgMusic').value.trim(); cfg.musicTrigger = $('cfgMusicTrigger').value.trim(); cfg.shortcut = $('cfgShortcut').value.trim();
     cfg.faceZoom = Math.min(260, Math.max(100, parseInt($('cfgFaceZoom').value, 10) || 130));
-    cfg.showText = $('cfgShowText').checked; applyScreen();
+    cfg.showText = $('cfgShowText').checked;
+    cfg.musicOnGreet = $('cfgMusicOnGreet').checked; cfg.sysFullscreen = $('cfgSysFullscreen').checked; applyScreen();
     cfg.briefUrl = $('cfgBriefUrl').value.trim(); cfg.greets = $('cfgGreets').value.trim();
     const liveChanged = cfg.liveKey !== $('cfgLiveKey').value;
     cfg.liveKey = $('cfgLiveKey').value; cfg.liveIdle = Math.min(30, Math.max(1, parseInt($('cfgLiveIdle').value,10) || 5));
     cfg.liveAgent = $('cfgLiveAgent').value.trim() || LIVE_AGENT;
     cfg.liveMic = $('cfgLiveMic').checked; cfg.liveSessionUrl = $('cfgLiveUrl').value.trim(); cfg.visual = $('cfgVisual').value === 'avatar' ? 'avatar' : 'brain';
     cfg.key = $('cfgKey').value.trim();
-    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets, faceZoom:String(cfg.faceZoom), showText:cfg.showText?'1':'0'})
+    Object.entries({liveKey:cfg.liveKey, liveIdle:cfg.liveIdle, liveAgent:cfg.liveAgent, liveMic:cfg.liveMic?'1':'0', liveSessionUrl:cfg.liveSessionUrl, visual:cfg.visual, key:cfg.key, url:cfg.url, field:cfg.field, voice:cfg.voice, wake:cfg.wake?'1':'0', sysVoice:cfg.sysVoice, rate:cfg.rate, pitch:cfg.pitch, music:cfg.music, musicTrigger:cfg.musicTrigger, shortcut:cfg.shortcut, briefUrl:cfg.briefUrl, greets:cfg.greets, faceZoom:String(cfg.faceZoom), showText:cfg.showText?'1':'0', musicOnGreet:cfg.musicOnGreet?'1':'0', sysFullscreen:cfg.sysFullscreen?'1':'0'})
       .forEach(([k,v]) => store.set(k, String(v)));
     preloadClips(); refreshHud(); $('liveTag').textContent = cfg.liveAgent; if(liveChanged && liveActive){ stopLive('reiniciando com outro cérebro').then(startLive); } else if(!liveActive) applyVisual(); sys('Configurações salvas.'); applyWakeMode(); setStatus(cfg.url?'pronto':'configure o webhook', cfg.url?'ok':'');
   };
@@ -508,10 +518,32 @@
     log('sys', 'Rodando o atalho “' + cfg.shortcut + '”…');
     window.location.href = link;
   }
+  // Roda o Atalho sem tirar a página do ar: um iframe escondido entrega o link ao app Atalhos,
+  // enquanto window.location.href navegaria e derrubaria a sessão do avatar.
+  // O travão de 20 segundos evita tocar duas vezes quando a frase chega picada do avatar.
+  let shortcutFrame = null, lastShortcutAt = 0;
+  function runShortcutQuiet(force){
+    if(!cfg.shortcut) return false;
+    const now = Date.now();
+    if(!force && now - lastShortcutAt < 20000) return false;
+    lastShortcutAt = now;
+    try{
+      if(!shortcutFrame){
+        shortcutFrame = document.createElement('iframe');
+        shortcutFrame.setAttribute('aria-hidden', 'true');
+        shortcutFrame.style.cssText = 'position:absolute;left:-9999px;width:0;height:0;border:0;opacity:0;pointer-events:none';
+        document.body.appendChild(shortcutFrame);
+      }
+      shortcutFrame.src = 'shortcuts://run-shortcut?name=' + encodeURIComponent(cfg.shortcut);
+    }catch(e){ return false; }
+    log('sys', 'Atalho “' + cfg.shortcut + '” disparado.');
+    setTimeout(() => { try{ window.focus(); }catch(e){} }, 500);   // tenta trazer a janela de volta
+    return true;
+  }
   function playMusic(){
     if(cfg.shortcut){
       setState('idle'); setStatus('pronto','ok');
-      openShortcut(isIOS);
+      if(isIOS) openShortcut(true); else runShortcutQuiet(true);
       return;
     }
     if(!cfg.music){ sys('Defina a música da manhã nas configurações.', true); return; }
@@ -809,7 +841,7 @@
     const myTurn = turn; busy = true;
     $('you').textContent = text; $('meta').textContent = ''; $('live').textContent = ''; log('me', text);
     const t0 = performance.now();
-    if(!isIOS && cfg.shortcut) openShortcut(false);          // Mac: música já, junto com a fala
+    if(!isIOS && cfg.shortcut) runShortcutQuiet(true);       // Mac: música já, junto com a fala
     const etapa2 = cfg.briefUrl ? fetchEtapa2() : null;       // etapa 2 em paralelo, já começa agora
     const periodo = periodoDe(text);                           // manha usa as gravações; tarde e noite, a voz do navegador
     const clips = periodo === 'manha' ? cfg.greets.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -1020,7 +1052,7 @@
     document.body.classList.toggle('cinema', on);
     const el = $('liveav');
     try{
-      if(on && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+      if(on && cfg.sysFullscreen && el.requestFullscreen) el.requestFullscreen().catch(() => {});
       else if(!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
     }catch(e){}
     setTimeout(resize, 120);                                   // o cérebro recalcula o tamanho ao voltar
@@ -1063,6 +1095,9 @@
         if(liveSession !== s || !e || !e.text) return;
         liveTouch(); heardAt = performance.now();
         $('you').textContent = e.text; $('reply').textContent = ''; $('meta').textContent = ''; log('me', e.text);
+        // Pelo avatar a fala vai direto para o n8n e não passa por send(); por isso a música
+        // é disparada aqui, assim que a saudação aparece na transcrição.
+        if(cfg.musicOnGreet && isBomDia(e.text)) runShortcutQuiet();
         setStatus('processando','busy');
       });
       s.on('avatar.speak_started', () => {
