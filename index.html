@@ -49,7 +49,7 @@
 
   main{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;padding-top:4px}
 
-  /* ---------- Bolinha (esfera) — o visual padrão do Jarvis, sem avatar ---------- */
+  /* ---------- Cérebro de partículas — o visual padrão do Jarvis, sem avatar ---------- */
   .core{position:relative;width:min(62vmin,500px);width:min(62vmin,500px,52dvh);max-width:100%;aspect-ratio:1;flex:0 1 auto;min-height:0;
         cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
   .core canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -116,7 +116,7 @@
   .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.3s;z-index:9}
   .scrim.on{opacity:1;pointer-events:auto}
 
-  /* ---------- LiveAvatar (opcional: só aparece no lugar da bolinha enquanto o avatar estiver chamado) ---------- */
+  /* ---------- LiveAvatar (opcional: só aparece no lugar do cérebro de partículas enquanto o avatar estiver chamado) ---------- */
   /* --side-gutter reserva espaço lateral para os indicadores (sistema/sessão à esquerda, latência/voz/modo à direita) */
   .liveav{--side-gutter:150px;position:relative;z-index:1;display:none;width:100%;flex:1 1 auto;min-height:0;align-items:center;justify-content:center;
          padding:0 var(--side-gutter);background:#000}
@@ -258,7 +258,7 @@
     <label>URL que abre a sessão do avatar</label>
     <input class="field" type="text" id="cfgLiveUrl" placeholder="/api/liveavatar-session (Netlify) ou webhook do n8n">
     <div class="note">No Netlify é <code>/api/liveavatar-session</code> (preenchido sozinho). No GitHub Pages não existe essa função: deixe vazio até ela virar um workflow no n8n e cole aqui o webhook dele.</div>
-    <div class="note">Opcional. O visual padrão do Jarvis é a bolinha; o avatar só aparece no lugar dela enquanto estiver chamado. Ele roda em modo FULL do LiveAvatar (microfone, reconhecimento de fala, voz e sincronia labial) com o cérebro no n8n — o mesmo agente da barra de texto. A sessão só abre quando você chama e fecha sozinha sem uso, para não gastar créditos.</div>
+    <div class="note">Opcional. O visual padrão do Jarvis é o cérebro de partículas; o avatar só aparece no lugar dele enquanto estiver chamado. Ele roda em modo FULL do LiveAvatar (microfone, reconhecimento de fala, voz e sincronia labial) com o cérebro no n8n — o mesmo agente da barra de texto. A sessão só abre quando você chama e fecha sozinha sem uso, para não gastar créditos.</div>
     <div class="check"><input type="checkbox" id="cfgLiveMic"><span>Pausar o modo contínuo do microfone local enquanto o avatar estiver ativo (o avatar tem o próprio microfone).</span></div>
     <div class="row"><button class="btn" id="liveStartBtn">Chamar o avatar</button><button class="btn" id="liveStopBtn">Encerrar avatar</button></div>
 
@@ -356,7 +356,7 @@
   const CORE_STATES = ['listening','thinking','speaking','music','error'];
   function setState(s){
     state = s; $('micBtn').classList.toggle('on', s==='listening'); $('micBtn').title = s === 'idle' ? 'Falar' : LABELS[s] || 'Falar';
-    // a bolinha segue o mesmo estado: cor do rótulo via classe; o desenho lê "state" a cada quadro
+    // o cérebro segue o mesmo estado: cor do rótulo via classe; o desenho lê "state" a cada quadro
     const core = $('core'); CORE_STATES.forEach(c => core.classList.remove(c)); if(s !== 'idle') core.classList.add(s);
     $('coreLabel').textContent = s === 'idle' ? 'toque para falar' : (LABELS[s] || s);
   }
@@ -899,7 +899,7 @@
     }
     return false;
   }
-  // Mostra o quadro do avatar no lugar da bolinha (e vice-versa)
+  // Mostra o quadro do avatar no lugar do cérebro de partículas (e vice-versa)
   function showLiveFrame(on){ $('liveav').classList.toggle('on', !!on); $('core').hidden = !!on; }
   async function startLive(){
     if(liveActive) return;
@@ -968,7 +968,7 @@
       if(myReq !== liveReq) return;
       liveSession = null; liveActive = false;
       showLiveFrame(false); liveMsg('');
-      sys('Não foi possível abrir o avatar: ' + (e.message || String(e)) + '. O Jarvis continua com a bolinha, por texto e microfone.', true);
+      sys('Não foi possível abrir o avatar: ' + (e.message || String(e)) + '. O Jarvis continua com o cérebro de partículas, por texto e microfone.', true);
       setTimeout(() => { if(state === 'idle') $('reply').textContent = 'Às suas ordens.'; }, 6000);
     }
   }
@@ -978,7 +978,7 @@
     if(s){ try{ await s.stop(); }catch(e){} }
     const video = $('liveVideo'); try{ video.srcObject = null; }catch(e){} video.style.display = 'none';
     $('liveTag').textContent = cfg.liveAgent;
-    liveMsg(''); showLiveFrame(false);                 // volta para a bolinha
+    liveMsg(''); showLiveFrame(false);                 // volta para o cérebro de partículas
     if(reason) log('sys', 'Avatar ' + reason + '.');
     if(!busy){ setState('idle'); setStatus(cfg.url ? 'pronto' : 'configure o webhook', cfg.url ? 'ok' : ''); }
     if(cfg.wake && cfg.url) applyWakeMode();
@@ -989,10 +989,10 @@
   $('liveTag').textContent = cfg.liveAgent;
   showLiveFrame(false);
 
-  // ---------- Bolinha (esfera no canvas) ----------
-  // Lê "state" a cada quadro: idle = respiração lenta; listening = pulso suave; thinking = gira mais rápido,
-  // com arco de progresso; speaking/music = pulsa no ritmo (simulado — sem WebAudio, que no iPhone/iPad
-  // deixava o áudio mudo); error = vermelho. Toque na bolinha = mesma ação do microfone.
+  // ---------- Cérebro de partículas (canvas) ----------
+  // Lê "state" a cada quadro: idle = giro lento; listening = pulso suave; thinking = gira rápido e dispara
+  // sinapses; speaking/music = pulsa no ritmo (simulado — sem WebAudio, que no iPhone/iPad deixava o áudio
+  // mudo); error = vermelho. Toque no cérebro = mesma ação do microfone.
   const cv = $('cv'), cx = cv.getContext('2d');
   let W = 0, H = 0, DPR = 1;
   function resize(){
@@ -1012,13 +1012,19 @@
     error:     {a:[255,110,125], b:[200,60,80]}
   };
   let col = {a:[...PALETTE.idle.a], b:[...PALETTE.idle.b]};
-  let level = 0, rot = 0, t = 0;
+  let level = 0, t = 0, ay = 0;
   const lerp = (x,y,k) => x + (y-x)*k;
-  const rgba = (c,al) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${al})`;
+  const rgba = (c,al) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${Math.max(0, Math.min(1, al))})`;
+
+  // nuvem de pontos numa casca esférica levemente achatada; as ligações são fixas, só a rotação muda
+  const N_PTS = 120, pts = [], edges = [], flashes = [];
+  let seed = 7; const rnd = () => { seed = (seed*16807) % 2147483647; return seed/2147483647; };
+  for(let i=0;i<N_PTS;i++){ const u = rnd()*2-1, ph = rnd()*Math.PI*2, r = .6 + rnd()*.4, s = Math.sqrt(1-u*u); pts.push({x:s*Math.cos(ph)*r, y:u*r*.84, z:s*Math.sin(ph)*r}); }
+  for(let i=0;i<N_PTS;i++) for(let j=i+1;j<N_PTS;j++){ const d = Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y, pts[i].z-pts[j].z); if(d < .4) edges.push([i,j,d]); }
 
   function frame(){
     requestAnimationFrame(frame);
-    if($('core').hidden) return;                       // avatar na tela: a bolinha descansa
+    if($('core').hidden) return;                       // avatar na tela: o cérebro descansa
     if(!W || !H){ resize(); if(!W || !H) return; }
     t += 1/60;
     const target = PALETTE[state] || PALETTE.idle;
@@ -1029,85 +1035,35 @@
     if(state==='speaking' || state==='music') lv = .35 + .3*Math.abs(Math.sin(t*9)) * (0.6 + 0.4*Math.sin(t*2.3));
     else if(state==='listening') lv = .25 + .15*Math.sin(t*3);
     else if(state==='thinking') lv = .2;
+    else if(state==='error') lv = .3 + .1*Math.sin(t*12);
     else lv = .06 + .03*Math.sin(t*1.2);
     level = lerp(level, lv, .18);
 
-    const spd = state==='thinking' ? .045 : state==='listening' ? .016 : (state==='speaking' || state==='music') ? .012 : .005;
-    rot += spd;
-
-    const c = Math.min(W,H)/2, X = W/2, Y = H/2;
+    const c = Math.min(W,H)/2, X = W/2, Y = H/2, R = c*.74*(1 + level*.08);
+    const spd = state==='thinking' ? .95 : state==='listening' ? .3 : (state==='speaking' || state==='music') ? .4 : state==='error' ? .6 : .14;
+    ay += spd/60; const ax = Math.sin(t*.35)*.3;
+    const ca = Math.cos(ay), sa = Math.sin(ay), cb = Math.cos(ax), sb = Math.sin(ax);
+    const P = pts.map(p => { const x = p.x*ca + p.z*sa, z = -p.x*sa + p.z*ca, y2 = p.y*cb - z*sb, z2 = p.y*sb + z*cb, f = 2.4/(2.4 + z2); return {sx:X + x*R*f, sy:Y + y2*R*f, d:(z2+1)/2}; });
     cx.clearRect(0,0,W,H);
 
     // halo
-    const halo = cx.createRadialGradient(X,Y,c*.05,X,Y,c*.95);
-    halo.addColorStop(0, rgba(col.a, .22 + level*.35)); halo.addColorStop(.35, rgba(col.b, .08 + level*.12)); halo.addColorStop(1, 'rgba(0,0,0,0)');
-    cx.fillStyle = halo; cx.beginPath(); cx.arc(X,Y,c*.95,0,Math.PI*2); cx.fill();
+    const halo = cx.createRadialGradient(X,Y,0,X,Y,c*.95); halo.addColorStop(0, rgba(col.b, .16 + level*.25)); halo.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = halo; cx.fillRect(0,0,W,H);
 
-    // núcleo
-    const rCore = c*(.17 + level*.07);
-    const core = cx.createRadialGradient(X - rCore*.3, Y - rCore*.3, rCore*.1, X, Y, rCore);
-    core.addColorStop(0, 'rgba(255,255,255,.95)'); core.addColorStop(.35, rgba(col.a, .9)); core.addColorStop(1, rgba(col.b, .15));
-    cx.fillStyle = core; cx.beginPath(); cx.arc(X,Y,rCore,0,Math.PI*2); cx.fill();
+    // ligações
+    cx.lineWidth = 1;
+    for(const [i,j,d] of edges){ const a = P[i], b = P[j], depth = (a.d + b.d)/2; cx.strokeStyle = rgba(col.b, (1 - d/.4)*(.1 + .55*(1-depth))*(.55 + level)); cx.beginPath(); cx.moveTo(a.sx,a.sy); cx.lineTo(b.sx,b.sy); cx.stroke(); }
 
-    cx.lineCap = 'round';
+    // sinapses: lampejos que percorrem uma ligação (muitos ao pensar, alguns ao falar, raros em repouso)
+    const rate = state==='thinking' ? .55 : (state==='speaking' || state==='music') ? .25 : state==='error' ? .35 : state==='listening' ? .08 : .025;
+    if(Math.random() < rate) flashes.push({e: edges[(Math.random()*edges.length)|0], t0: t});
+    for(let k=flashes.length-1;k>=0;k--){ const F = flashes[k], age = t - F.t0; if(age > .6){ flashes.splice(k,1); continue; }
+      const a = P[F.e[0]], b = P[F.e[1]], u = age/.6;
+      cx.strokeStyle = rgba(col.a, .9*(1-u)); cx.lineWidth = 2; cx.shadowColor = rgba(col.a,.9); cx.shadowBlur = 10; cx.beginPath(); cx.moveTo(a.sx,a.sy); cx.lineTo(b.sx,b.sy); cx.stroke(); cx.shadowBlur = 0; cx.lineWidth = 1;
+      cx.fillStyle = 'rgba(255,255,255,.95)'; cx.beginPath(); cx.arc(a.sx + (b.sx-a.sx)*u, a.sy + (b.sy-a.sy)*u, 2.2, 0, Math.PI*2); cx.fill(); }
 
-    // anel de onda (acompanha a energia)
-    const N = 128, rW = c*.34;
-    cx.beginPath();
-    for(let i=0;i<=N;i++){
-      const ang = (i/N)*Math.PI*2;
-      const amp = (Math.sin(ang*6 + t*2.2) * .5 + Math.sin(ang*11 - t*3.1) * .3 + Math.sin(ang*3 + t) *.2) * c*.035 * (level*3.2 + .3);
-      const r = rW + amp;
-      const px = X + Math.cos(ang)*r, py = Y + Math.sin(ang)*r;
-      i ? cx.lineTo(px,py) : cx.moveTo(px,py);
-    }
-    cx.strokeStyle = rgba(col.a, .75); cx.lineWidth = 1.4; cx.shadowColor = rgba(col.a, .8); cx.shadowBlur = 12; cx.stroke(); cx.shadowBlur = 0;
-
-    // anel fino
-    cx.beginPath(); cx.arc(X,Y,c*.46,0,Math.PI*2); cx.strokeStyle = rgba(col.b,.28); cx.lineWidth = 1; cx.stroke();
-
-    // arcos rotativos
-    const arcs = [[0,.9],[1.4,.55],[2.6,1.1],[4.1,.7],[5.2,.45]];
-    arcs.forEach(([s,len],i) => {
-      cx.beginPath(); const dir = i%2 ? -1 : 1;
-      cx.arc(X,Y,c*.52, s + rot*dir*1.4, s + len + rot*dir*1.4);
-      cx.strokeStyle = rgba(i%2 ? col.b : col.a, .55); cx.lineWidth = i%2 ? 2 : 3; cx.stroke();
-    });
-
-    // marcações (ticks)
-    const T = 72, r1 = c*.6, r2 = c*.635;
-    for(let i=0;i<T;i++){
-      const ang = (i/T)*Math.PI*2 - rot*.6;
-      const major = i % 6 === 0;
-      const lit = state!=='idle' && ((i + Math.floor(t*18)) % 24 < 3);
-      cx.beginPath();
-      cx.moveTo(X + Math.cos(ang)*r1, Y + Math.sin(ang)*r1);
-      cx.lineTo(X + Math.cos(ang)*(major ? r2 + c*.02 : r2), Y + Math.sin(ang)*(major ? r2 + c*.02 : r2));
-      cx.strokeStyle = lit ? rgba(col.a, .95) : rgba(col.b, major ? .45 : .18); cx.lineWidth = major ? 1.6 : 1; cx.stroke();
-    }
-
-    // anel externo segmentado
-    const segs = 3, gap = .35;
-    for(let i=0;i<segs;i++){
-      const s = (i/segs)*Math.PI*2 + rot*.35;
-      cx.beginPath(); cx.arc(X,Y,c*.74, s, s + (Math.PI*2/segs) - gap);
-      cx.strokeStyle = rgba(col.b, .22); cx.lineWidth = 1; cx.stroke();
-    }
-
-    // indicador de progresso ao pensar
-    if(state==='thinking'){
-      cx.beginPath(); const s = t*3.2; cx.arc(X,Y,c*.74, s, s + 1.2);
-      cx.strokeStyle = rgba(col.a,.9); cx.lineWidth = 2.5; cx.shadowColor = rgba(col.a,.9); cx.shadowBlur = 14; cx.stroke(); cx.shadowBlur = 0;
-    }
-
-    // partículas
-    for(let i=0;i<36;i++){
-      const ang = i*2.399 + rot*(.4 + (i%5)*.08);
-      const r = c*(.4 + ((i*37)%100)/100*.42) + Math.sin(t*1.5 + i)*c*.01;
-      const sz = (i%7===0 ? 1.8 : 1) * (1 + level);
-      cx.fillStyle = rgba(i%3 ? col.a : col.b, .25 + ((i*13)%10)/30);
-      cx.beginPath(); cx.arc(X + Math.cos(ang)*r, Y + Math.sin(ang)*r, sz, 0, Math.PI*2); cx.fill();
-    }
+    // pontos (os da frente maiores e mais claros)
+    for(const p of P){ cx.fillStyle = rgba(p.d < .5 ? col.a : col.b, .3 + .65*(1-p.d)); cx.beginPath(); cx.arc(p.sx, p.sy, (1.1 + 2.2*(1-p.d))*(1 + level*.5), 0, Math.PI*2); cx.fill(); }
   }
   requestAnimationFrame(frame);
 
