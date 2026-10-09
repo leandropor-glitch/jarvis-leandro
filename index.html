@@ -281,9 +281,19 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  // Cérebro pré-escolhido pelo endereço: /?cerebro=claude | gpt | gemini (as pastas /claude/, /gpt/ e /gemini/ redirecionam para cá).
+  // Cada cérebro guarda as próprias configurações neste navegador, por isso o prefixo muda.
+  const BRAINS = {
+    claude: { url: 'https://vinciautomacao.app.n8n.cloud/webhook/ee76918a-f244-4b2c-8c70-7566c46597bf' },
+    gpt:    { url: 'https://vinciautomacao.app.n8n.cloud/webhook/751b3b85-4222-4abe-8b72-9e32be6fe233' },
+    gemini: { url: 'https://vinciautomacao.app.n8n.cloud/webhook/88128828-d796-479c-ae66-7de3501006ee' }
+  };
+  const BRAIN = (new URLSearchParams(location.search).get('cerebro') || location.hash.replace('#','') || '').toLowerCase().trim();
+  const BRIEF_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/jarvis-bomdia';
+  const PREFIX = 'jarvis.' + (BRAINS[BRAIN] ? BRAIN + '.' : '');
   const store = {
-    get(k, d){ try{ const v = localStorage.getItem('jarvis.'+k); return v===null ? d : v; }catch(e){ return d; } },
-    set(k, v){ try{ localStorage.setItem('jarvis.'+k, v); }catch(e){} }
+    get(k, d){ try{ const v = localStorage.getItem(PREFIX + k); return v===null ? d : v; }catch(e){ return d; } },
+    set(k, v){ try{ localStorage.setItem(PREFIX + k, v); }catch(e){} }
   };
 
   let sessionId = store.get('session', null);
@@ -295,12 +305,12 @@
   ['view','faceTalk','faceIdle','heygen','vrmUrl','wsUrl','vrmBrain','wsHa','vrmSkipWs','haCode','liveUrl'].forEach(k => { try{ localStorage.removeItem('jarvis.'+k); }catch(e){} });
 
   const cfg = {
-    url: store.get('url',''), field: store.get('field','texto'),
+    url: store.get('url', BRAINS[BRAIN] ? BRAINS[BRAIN].url : ''), field: store.get('field','texto'),
     voice: store.get('voice','auto'), wake: store.get('wake','0')==='1',
     sysVoice: store.get('sysVoice',''), rate: parseFloat(store.get('rate','1')), pitch: parseFloat(store.get('pitch','0.95')),
     music: store.get('music','musica.mp3'), musicTrigger: store.get('musicTrigger','bom dia, toca a música, toca a musica'),
     shortcut: store.get('shortcut','Musica Jarvis'),
-    briefUrl: store.get('briefUrl',''),
+    briefUrl: store.get('briefUrl', BRAINS[BRAIN] ? BRIEF_URL : ''),
     greets: store.get('greets','saudacao1.mp3,saudacao2.mp3,saudacao3.mp3,saudacao4.mp3'),
     liveKey: (k => k === 'gpt' ? 'gpt' : 'claude')(store.get('liveKey','claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
     liveAgent: (a => a === 'JARVIS — Cornélius (Free)' ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
