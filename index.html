@@ -250,7 +250,7 @@
 
     <div class="cfgsec">LiveAvatar</div>
     <label>Nome do agente</label>
-    <input class="field" type="text" id="cfgLiveAgent" placeholder="JARVIS — Félix">
+    <input class="field" type="text" id="cfgLiveAgent" placeholder="JARVIS — Felyx">
     <label>Cérebro do avatar</label>
     <select id="cfgLiveKey"><option value="claude">Jarvis-Claude</option><option value="gpt">Jarvis-GPT</option><option value="gemini">Jarvis-Gemini</option></select>
     <label>Visual padrão desta página</label>
@@ -305,7 +305,7 @@
   if(!sessionId){ sessionId = 'web-' + Math.random().toString(36).slice(2,10); store.set('session', sessionId); }
   $('sessTxt').textContent = sessionId.slice(-6);
 
-  const LIVE_AGENT = 'JARVIS — Félix';
+  const LIVE_AGENT = 'JARVIS — Felyx';   // grafia na tela; na fala o avatar diz "Félix"
   // limpa preferências dos modos removidos (Avatar local e VRM ao vivo)
   ['view','faceTalk','faceIdle','heygen','vrmUrl','wsUrl','vrmBrain','wsHa','vrmSkipWs','haCode','liveUrl'].forEach(k => { try{ localStorage.removeItem('jarvis.'+k); }catch(e){} });
 
@@ -318,7 +318,7 @@
     briefUrl: store.get('briefUrl', BRAINS[BRAIN] ? BRIEF_URL : ''),
     greets: store.get('greets','saudacao1.mp3,saudacao2.mp3,saudacao3.mp3,saudacao4.mp3'),
     liveKey: (k => ['claude','gpt','gemini'].includes(k) ? k : 'claude')(store.get('liveKey', BRAINS[BRAIN] ? BRAIN : 'claude')), liveIdle: Math.min(30, Math.max(1, parseInt(store.get('liveIdle','5'),10) || 5)),
-    liveAgent: (a => (a === 'JARVIS — Cornélius (Free)' || a === 'JARVIS — Cornélius') ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
+    liveAgent: (a => ['JARVIS — Cornélius (Free)', 'JARVIS — Cornélius', 'JARVIS — Félix'].includes(a) ? LIVE_AGENT : a)(store.get('liveAgent', LIVE_AGENT)),
     liveMic: store.get('liveMic','1')==='1',
     // No Netlify a sessão do avatar vem da função /api/liveavatar-session; em outra hospedagem (GitHub Pages) fica vazio até existir o workflow no n8n
     liveSessionUrl: store.get('liveSessionUrl', LIVE_SESSION_URL),
