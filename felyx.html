@@ -272,11 +272,7 @@ function frame(now){
   if(level > 1){ ctx.globalAlpha = Math.min(1, level - 1); ctx.drawImage(bloomA, 0, 0); }
   ctx.globalAlpha = Math.min(1, level*0.7); ctx.drawImage(bloomB, 0, 0);
   if(level > 1.2){ ctx.globalAlpha = Math.min(1, (level - 1.2)*0.8); ctx.drawImage(bloomB, 0, 0); }
-  // tatuagem: acesa em silêncio, volta ao preto original enquanto ele fala
-  const speakingNow = state === 'speaking' || now < demoUntil;
-  const tatTarget = speakingNow ? 0 : Math.min(1, level);
-  tatLevel += (tatTarget - tatLevel) * (tatTarget > tatLevel ? 0.06 : 0.25);
-  if(tatLevel > 0.01){ ctx.globalAlpha = tatLevel; ctx.drawImage(tatC, 0, 0); ctx.globalAlpha = tatLevel*0.9; ctx.drawImage(tatBloom, 0, 0); }
+  // tatuagem: fica sempre preta (original da foto), sem brilho
   ctx.globalAlpha = 1;
   const eyeA = Math.min(1, 0.25 + level*0.35), eyeR = 40 + Math.min(1.5, level)*28;
   EYES.forEach(([x,y])=>{ glow(x, y, eyeR, eyeA, '90,170,255'); glow(x, y, eyeR*0.4, Math.min(1, level*0.4), '210,235,255'); });
