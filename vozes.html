@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vozes do Felyx</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--ink:#ececea;--muted:#8c8c88;--line:#2c2c2b;--accent:#d6ff1a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Saira",system-ui,sans-serif;display:flex;justify-content:center}
+main{width:100%;max-width:560px;padding:28px 16px}
+h1{font-weight:500;font-size:1.3rem;margin:0 0 4px}
+p{color:var(--muted);margin:0 0 22px;font-weight:300}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{background:transparent;border:1.5px solid var(--line);color:var(--ink);border-radius:14px;padding:16px 12px;font:inherit;font-size:1.05rem;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+button:hover{border-color:var(--accent)}
+button small{display:block;color:var(--muted);font-size:.8rem;font-weight:300}
+button.on{background:var(--accent);color:#000;border-color:var(--accent)}
+button.on small{color:#000}
+button:disabled{opacity:.45;cursor:default}
+#status{margin-top:20px;min-height:1.4em;color:var(--muted)}
+#status.err{color:#ff6a62}
+</style>
+</head>
+<body>
+<main>
+  <h1>Leandro, clica aqui</h1>
+  <p>Cada botão fala uma frase com uma voz diferente. Escolhe a melhor.</p>
+  <div class="grid" id="grid"></div>
+  <div id="status" role="status" aria-live="polite"></div>
+</main>
+<script>
+const TOKEN_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/token';
+const MODEL = 'gemini-3.8-live';
+const VOZES = ['Orus','Alnilam','Charon','Fenrir','Puck','Algenib','Rasalgethi','Iapetus','Sadaltager','Algieba'];
+const grid = document.getElementById('grid'), statusEl = document.getElementById('status');
+let busy = false;
+
+VOZES.forEach((v, i) => {
+  const b = document.createElement('button');
+  b.innerHTML = 'Voz ' + (i+1) + '<small>' + v + '</small>';
+  b.onclick = () => tocar(i, v, b);
+  grid.appendChild(b);
+});
+
+function setStatus(t, err){ statusEl.textContent = t; statusEl.className = err ? 'err' : ''; }
+function lock(on){ busy = on; grid.querySelectorAll('button').forEach(x => x.disabled = on); }
+
+async function tocar(i, voz, btn){
+  if(busy) return;
+  lock(true); btn.classList.add('on'); btn.disabled = false;
+  setStatus('Carregando voz ' + (i+1) + '…');
+  const ctx = new (window.AudioContext||window.webkitAudioContext)({ sampleRate: 24000 });
+  let playhead = ctx.currentTime + 0.1, ws, fim = false;
+  const terminar = (msg, err) => {
+    if(fim) return; fim = true;
+    const espera = Math.max(0, (playhead - ctx.currentTime) * 1000) + 300;
+    setTimeout(() => { try{ ws && ws.close(); }catch(e){} try{ ctx.close(); }catch(e){} btn.classList.remove('on'); lock(false); setStatus(msg || '', err); }, err ? 0 : espera);
+  };
+  try{
+    const r = await fetch(TOKEN_URL, { cache:'no-store' });
+    if(!r.ok) throw new Error('n8n não devolveu o token (' + r.status + ')');
+    const tk = await r.json();
+    if(!tk.token) throw new Error('token vazio');
+    ws = new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token));
+    ws.onopen = () => ws.send(JSON.stringify({ setup: {
+      model: 'models/' + MODEL,
+      generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voz } } } },
+      systemInstruction: { parts: [{ text: 'Você é um locutor homem, jovem, forte e confiante, voz grave e encorpada, cheia de energia. Fale em português do Brasil. Quando receber um texto, apenas leia esse texto em voz alta, exatamente como está, sem comentar nada.' }] }
+    }}));
+    ws.onmessage = async (ev) => {
+      const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
+      let m; try{ m = JSON.parse(data); }catch(e){ return; }
+      if(m.setupComplete){
+        setStatus('Tocando voz ' + (i+1) + ' (' + voz + ')…');
+        ws.send(JSON.stringify({ clientContent: { turns: [{ role:'user', parts:[{ text: 'Fala, Leandro! Aqui é o Felyx, voz número ' + (i+1) + '. Tô pronto pra trabalhar com você na Vinci. Bora pra cima!' }] }], turnComplete: true } }));
+        return;
+      }
+      const sc = m.serverContent;
+      if(sc && sc.modelTurn && sc.modelTurn.parts){
+        for(const p of sc.modelTurn.parts){ if(p.inlineData && p.inlineData.data) play(p.inlineData.data); }
+      }
+      if(sc && sc.turnComplete) terminar('Voz ' + (i+1) + ' (' + voz + ') tocada.');
+    };
+    ws.onerror = () => terminar('Erro na conexão com o Gemini.', true);
+    ws.onclose = (e) => { if(!fim) terminar('Conexão fechada: ' + (e.reason || e.code), true); };
+  }catch(e){ terminar('Não foi possível tocar: ' + (e.message || e), true); }
+
+  function play(b64){
+    const bin = atob(b64), n = bin.length >> 1, f = new Float32Array(n);
+    for(let k=0;k<n;k++){ let v = bin.charCodeAt(2*k) | (bin.charCodeAt(2*k+1) << 8); if(v >= 0x8000) v -= 0x10000; f[k] = v / 0x8000; }
+    const buf = ctx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
+    const s = ctx.createBufferSource(); s.buffer = buf; s.connect(ctx.destination);
+    const t = Math.max(ctx.currentTime + 0.02, playhead); s.start(t); playhead = t + buf.duration;
+  }
+}
+</script>
+</body>
+</html>
