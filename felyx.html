@@ -150,7 +150,7 @@ function drawMouth(t, energy, now){
 // glowC = só as partes ciborgue azuis + olhos + tatuagem, pra acender junto com a voz
 // bloomA/bloomB = versões desfocadas do glowC (brilho espalhado)
 const IW = 1278, IH = 1230;
-let cut = null, glowC = null, bloomA = null, bloomB = null, layersReady = false;
+let cut = null, glowC = null, bloomA = null, bloomB = null, tatC = null, tatBloom = null, tatLevel = 0.35, layersReady = false;
 const NEON = '214,255,26';
 function buildLayers(){
   if(layersReady || !img.complete || !img.naturalWidth) return;
@@ -187,24 +187,27 @@ function buildLayers(){
 
   // 2) partes que brilham: azul forte da pele ciborgue, olhos e a tatuagem "V"
   const g = sx.createImageData(IW, IH), gd = g.data;
+  const tg = sx.createImageData(IW, IH), td = tg.data;
   for(let y=0; y<IH; y++) for(let x=0; x<IW; x++){
     const i = (y*IW + x)*4, r = d[i], gg = d[i+1], b = d[i+2];
     let a = 0;
     const blueness = b - Math.max(r, gg*0.85);
     if(b > 110 && blueness > 30) a = Math.min(1, (blueness-30)/90) * Math.min(1, (b-110)/110);
-    if(x > 790 && x < 852 && y > 372 && y < 436){ const l = 0.3*r + 0.59*gg + 0.11*b; if(l < 70) a = Math.max(a, Math.min(1, (70-l)/35)); }
+    if(x > 790 && x < 852 && y > 372 && y < 436){ const l = 0.3*r + 0.59*gg + 0.11*b; if(l < 70){ td[i] = 140; td[i+1] = 210; td[i+2] = 255; td[i+3] = Math.round(Math.min(1, (70-l)/35)*255); continue; } }
     if(a > 0.02){ gd[i] = 120 + r*0.5; gd[i+1] = 200 + gg*0.2; gd[i+2] = 255; gd[i+3] = Math.round(a*255); }
   }
   glowC = document.createElement('canvas'); glowC.width = IW; glowC.height = IH;
   glowC.getContext('2d').putImageData(g, 0, 0);
-  const blurCopy = (f)=>{
+  tatC = document.createElement('canvas'); tatC.width = IW; tatC.height = IH;
+  tatC.getContext('2d').putImageData(tg, 0, 0);
+  const blurCopy = (f, srcC = glowC)=>{
     const sm = document.createElement('canvas'); sm.width = Math.ceil(IW/f); sm.height = Math.ceil(IH/f);
-    const smx = sm.getContext('2d'); smx.imageSmoothingQuality = 'high'; smx.drawImage(glowC, 0, 0, sm.width, sm.height);
+    const smx = sm.getContext('2d'); smx.imageSmoothingQuality = 'high'; smx.drawImage(srcC, 0, 0, sm.width, sm.height);
     const out = document.createElement('canvas'); out.width = IW; out.height = IH;
     const ox = out.getContext('2d'); ox.imageSmoothingQuality = 'high'; ox.drawImage(sm, 0, 0, IW, IH);
     return out;
   };
-  bloomA = blurCopy(6); bloomB = blurCopy(16);
+  bloomA = blurCopy(6); bloomB = blurCopy(6, tatC); tatBloom = bloomB; bloomB = blurCopy(16);
   layersReady = true;
 }
 
@@ -269,6 +272,11 @@ function frame(now){
   if(level > 1){ ctx.globalAlpha = Math.min(1, level - 1); ctx.drawImage(bloomA, 0, 0); }
   ctx.globalAlpha = Math.min(1, level*0.7); ctx.drawImage(bloomB, 0, 0);
   if(level > 1.2){ ctx.globalAlpha = Math.min(1, (level - 1.2)*0.8); ctx.drawImage(bloomB, 0, 0); }
+  // tatuagem: acesa em silêncio, volta ao preto original enquanto ele fala
+  const speakingNow = state === 'speaking' || now < demoUntil;
+  const tatTarget = speakingNow ? 0 : Math.min(1, level);
+  tatLevel += (tatTarget - tatLevel) * (tatTarget > tatLevel ? 0.06 : 0.25);
+  if(tatLevel > 0.01){ ctx.globalAlpha = tatLevel; ctx.drawImage(tatC, 0, 0); ctx.globalAlpha = tatLevel*0.9; ctx.drawImage(tatBloom, 0, 0); }
   ctx.globalAlpha = 1;
   const eyeA = Math.min(1, 0.25 + level*0.35), eyeR = 40 + Math.min(1.5, level)*28;
   EYES.forEach(([x,y])=>{ glow(x, y, eyeR, eyeA, '90,170,255'); glow(x, y, eyeR*0.4, Math.min(1, level*0.4), '210,235,255'); });
