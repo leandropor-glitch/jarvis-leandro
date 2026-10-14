@@ -145,81 +145,135 @@ function drawMouth(t, energy, now){
   ctx.restore();
 }
 
-// ---------- Cérebro de partículas ----------
-const BRAIN={x:640,y:335,rx:215,ry:165};
-const nodes=[]; for(let i=0;i<72;i++){ nodes.push({u:Math.random()*Math.PI*2, v:Math.acos(2*Math.random()-1), r:0.5+0.5*Math.random(), ph:Math.random()*Math.PI*2, sp:0.4+Math.random()*0.8}); }
-const dust=[]; for(let i=0;i<40;i++){ dust.push({x:Math.random()*cv.width, y:Math.random()*cv.height*0.7, s:1+Math.random()*2.5, ph:Math.random()*Math.PI*2, vx:(Math.random()-0.5)*8, vy:-4-Math.random()*8}); }
-function drawBrain(t, energy){
-  const rot=t*0.22, wob=1+energy*3;
-  const pts=nodes.map(n=>{
-    const j=Math.sin(t*n.sp*3+n.ph)*0.025*wob;
-    const x3=n.r*Math.sin(n.v)*Math.cos(n.u+rot), y3=n.r*Math.cos(n.v), z3=n.r*Math.sin(n.v)*Math.sin(n.u+rot);
-    return {x:BRAIN.x+(x3+j)*BRAIN.rx, y:BRAIN.y+(y3+j)*BRAIN.ry, z:z3, ph:n.ph};
-  });
-  let base=0.10, pulse=0;
-  if(state==='listening'){ base=0.18; pulse=0.5+0.5*Math.sin(t*2.2); }
-  if(state==='thinking'){ base=0.30; pulse=0.5+0.5*Math.sin(t*7); }
-  if(state==='speaking'||energy>0.03){ base=0.22+energy*0.55; pulse=energy; }
-  if(reduce){ pulse*=0.4; }
-  const thr=105+pulse*30;
-  ctx.save();
-  ctx.lineWidth=1.2;
-  for(let i=0;i<pts.length;i++){ for(let k=i+1;k<pts.length;k++){
-    const dx=pts[i].x-pts[k].x, dy=pts[i].y-pts[k].y, d=Math.hypot(dx,dy);
-    if(d<thr){ const a=(1-d/thr)*base*(0.6+0.4*((pts[i].z+pts[k].z)/2+1)/2); ctx.strokeStyle='rgba(110,185,255,'+a+')'; ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[k].x,pts[k].y); ctx.stroke(); }
-  }}
-  pts.forEach(p=>{
-    const depth=(p.z+1)/2, flick=0.6+0.4*Math.sin(t*3+p.ph*4);
-    const a=Math.min(1,(base*2.2)*(0.4+0.6*depth)*flick), rad=1.6+depth*2.2+pulse*1.5;
-    ctx.fillStyle='rgba(170,215,255,'+a+')'; ctx.beginPath(); ctx.arc(p.x,p.y,rad,0,Math.PI*2); ctx.fill();
-    if(pulse>0.2 && depth>0.6){ glow(p.x,p.y,rad*5,a*pulse*0.35,'90,170,255'); }
-  });
-  // halo central do cérebro
-  glow(BRAIN.x,BRAIN.y,BRAIN.rx*0.9,0.05+pulse*0.12+energy*0.15,'90,170,255');
-  ctx.restore();
+// ---------- Camadas pré-calculadas a partir da foto ----------
+// cut   = só a pessoa (fundo preto removido), pra deixar as barras aparecerem atrás dela
+// glowC = só as partes ciborgue azuis + olhos + tatuagem, pra acender junto com a voz
+// bloomA/bloomB = versões desfocadas do glowC (brilho espalhado)
+const IW = 1278, IH = 1230;
+let cut = null, glowC = null, bloomA = null, bloomB = null, layersReady = false;
+const NEON = '214,255,26';
+function buildLayers(){
+  if(layersReady || !img.complete || !img.naturalWidth) return;
+  const s = document.createElement('canvas'); s.width = IW; s.height = IH;
+  const sx = s.getContext('2d', { willReadFrequently: true });
+  sx.drawImage(img, 0, 0);
+  const src = sx.getImageData(0, 0, IW, IH), d = src.data;
+
+  // 1) máscara do fundo: tudo que é quase preto e encosta nas bordas (sem invadir a armadura)
+  const sc = 4, mw = Math.ceil(IW/sc), mh = Math.ceil(IH/sc);
+  const dark = new Uint8Array(mw*mh), bg = new Uint8Array(mw*mh);
+  const allowed = (x, y)=>{ const px = x*sc, py = y*sc; return py < 880 || (py < 990 && (px < 240 || px > 1040)); };
+  for(let y=0; y<mh; y++) for(let x=0; x<mw; x++){
+    const i = ((Math.min(IH-1, y*sc+2))*IW + Math.min(IW-1, x*sc+2))*4;
+    const l = 0.3*d[i] + 0.59*d[i+1] + 0.11*d[i+2];
+    dark[y*mw+x] = (l < 18 && allowed(x, y)) ? 1 : 0;
+  }
+  const q = [];
+  const push = (x, y)=>{ const k = y*mw+x; if(dark[k] && !bg[k]){ bg[k] = 1; q.push(k); } };
+  for(let x=0; x<mw; x++) push(x, 0);
+  for(let y=0; y<mh; y++){ push(0, y); push(mw-1, y); }
+  while(q.length){ const k = q.pop(), x = k%mw, y = (k/mw)|0;
+    if(x>0) push(x-1, y); if(x<mw-1) push(x+1, y); if(y>0) push(x, y-1); if(y<mh-1) push(x, y+1); }
+  const m = document.createElement('canvas'); m.width = mw; m.height = mh;
+  const mx = m.getContext('2d'); const md = mx.createImageData(mw, mh);
+  for(let k=0; k<mw*mh; k++){ md.data[k*4+3] = bg[k] ? 0 : 255; }
+  mx.putImageData(md, 0, 0);
+  cut = document.createElement('canvas'); cut.width = IW; cut.height = IH;
+  const cx = cut.getContext('2d');
+  cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+  cx.drawImage(m, 0, 0, IW, IH);                 // máscara ampliada = borda suave
+  cx.globalCompositeOperation = 'source-in';
+  cx.drawImage(img, 0, 0);
+
+  // 2) partes que brilham: azul forte da pele ciborgue, olhos e a tatuagem "V"
+  const g = sx.createImageData(IW, IH), gd = g.data;
+  for(let y=0; y<IH; y++) for(let x=0; x<IW; x++){
+    const i = (y*IW + x)*4, r = d[i], gg = d[i+1], b = d[i+2];
+    let a = 0;
+    const blueness = b - Math.max(r, gg*0.85);
+    if(b > 110 && blueness > 30) a = Math.min(1, (blueness-30)/90) * Math.min(1, (b-110)/110);
+    if(x > 790 && x < 852 && y > 372 && y < 436){ const l = 0.3*r + 0.59*gg + 0.11*b; if(l < 70) a = Math.max(a, Math.min(1, (70-l)/35)); }
+    if(a > 0.02){ gd[i] = 120 + r*0.5; gd[i+1] = 200 + gg*0.2; gd[i+2] = 255; gd[i+3] = Math.round(a*255); }
+  }
+  glowC = document.createElement('canvas'); glowC.width = IW; glowC.height = IH;
+  glowC.getContext('2d').putImageData(g, 0, 0);
+  const blurCopy = (f)=>{
+    const sm = document.createElement('canvas'); sm.width = Math.ceil(IW/f); sm.height = Math.ceil(IH/f);
+    const smx = sm.getContext('2d'); smx.imageSmoothingQuality = 'high'; smx.drawImage(glowC, 0, 0, sm.width, sm.height);
+    const out = document.createElement('canvas'); out.width = IW; out.height = IH;
+    const ox = out.getContext('2d'); ox.imageSmoothingQuality = 'high'; ox.drawImage(sm, 0, 0, IW, IH);
+    return out;
+  };
+  bloomA = blurCopy(6); bloomB = blurCopy(16);
+  layersReady = true;
 }
-function drawDust(t, energy){
-  if(reduce) return;
-  dust.forEach(d=>{
-    d.x+=d.vx*0.016*(1+energy*2); d.y+=d.vy*0.016*(1+energy*2);
-    if(d.y<-10){ d.y=cv.height*0.75; d.x=Math.random()*cv.width; }
-    if(d.x<-10) d.x=cv.width+10; if(d.x>cv.width+10) d.x=-10;
-    const a=(0.12+0.18*(0.5+0.5*Math.sin(t*1.5+d.ph)))*(1+energy);
-    ctx.fillStyle='rgba(140,200,255,'+Math.min(0.6,a)+')'; ctx.beginPath(); ctx.arc(d.x,d.y,d.s,0,Math.PI*2); ctx.fill();
-  });
+
+// ---------- Barras amarelo-neon no fundo (equalizador da fala) ----------
+const NB = 58;
+const bars = new Array(NB).fill(0);
+function demoBands(t){
+  const v = demoVolume(t), out = [];
+  for(let i=0; i<NB; i++){ out.push(v * (0.35 + 0.65*Math.abs(Math.sin(t*7.3 + i*0.9 + Math.sin(t*2.1 + i*0.37))))); }
+  return out;
+}
+function drawBars(t, bands, energy){
+  const step = IW/NB, bw = step*0.52, cy = IH*0.46, maxH = IH*0.92;
+  for(let i=0; i<NB; i++){
+    const mirror = Math.abs(i - (NB-1)/2) / ((NB-1)/2);          // 0 no centro, 1 nas bordas
+    const bi = Math.min(NB-1, Math.floor(mirror * NB * 0.9));
+    let target = 0;
+    if(bands) target = Math.min(1, bands[bi] * 2.6) * (0.6 + 0.4*(1-mirror*0.5));
+    else if(state === 'listening') target = 0.012 + 0.01*Math.abs(Math.sin(t*2 + i*0.5));
+    else if(state === 'thinking') target = 0.04 * Math.exp(-Math.pow(mirror - ((Math.sin(t*3)+1)/2), 2) * 30);
+    bars[i] += (target - bars[i]) * (target > bars[i] ? 0.55 : 0.18);
+    const h = Math.max(6, bars[i] * maxH);
+    const a = bands ? 0.55 + Math.min(0.45, bars[i]*1.2) : 0.14;
+    const x = i*step + (step-bw)/2;
+    ctx.fillStyle = 'rgba(' + NEON + ',' + a + ')';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(x, cy - h/2, bw, h, bw/2); else ctx.rect(x, cy - h/2, bw, h);
+    ctx.fill();
+  }
 }
 
 function frame(now){
-  const t=(now-t0)/1000;
-  let vol=0;
-  if(conv && state==='speaking'){ vol = Math.min(1, conv.getOutputVolume()*2.6); }
-  if(now<demoUntil) vol=demoVolume(t);
-  const target = vol>0.06 ? vol : 0;
-  open += (target-open)*(target>open?0.4:0.2);
+  const t = (now - t0)/1000;
+  if(!layersReady) buildLayers();
+  let vol = 0, bands = null;
+  if(conv && state === 'speaking'){ vol = Math.min(1, conv.getOutputVolume()*2.6); bands = conv.getBands ? conv.getBands(NB) : null; }
+  if(now < demoUntil){ vol = demoVolume(t); bands = demoBands(t); }
+  const target = vol > 0.06 ? vol : 0;
+  open += (target - open) * (target > open ? 0.45 : 0.2);
   if(reduce) open = open*0.5;
 
-  ctx.clearRect(0,0,cv.width,cv.height);
-  if(!img.complete){ requestAnimationFrame(frame); return; }
-  const breath = reduce?0:Math.sin(t*1.1)*0.004;
-  ctx.save();
-  ctx.translate(cv.width/2, cv.height*0.62);
-  ctx.scale(1+breath, 1+breath);
-  ctx.translate(-cv.width/2, -cv.height*0.62);
-  ctx.drawImage(img,0,0);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  if(!layersReady){ if(img.complete) ctx.drawImage(img, 0, 0); requestAnimationFrame(frame); return; }
 
-  // brilho dos olhos, LEDs, cérebro e partículas (tudo no mesmo pulso)
-  ctx.globalCompositeOperation='screen';
-  drawDust(t, open);
-  drawBrain(t, open);
-  const pulse = reduce?0.5:(0.5+0.5*Math.sin(t*2.2));
-  let eyeA = 0.18, ledA = 0.10, eyeR = 46, ledR = 120;
-  if(state==='listening'){ eyeA = 0.32+0.12*pulse; ledA=0.18; }
-  if(state==='thinking'){ eyeA = 0.25; ledA = 0.15+0.35*(reduce?0.5:(0.5+0.5*Math.sin(t*6))); }
-  if(state==='speaking'||now<demoUntil){ eyeA = 0.30+open*0.55; ledA = 0.14+open*0.62; eyeR = 46+open*30; ledR = 120+open*90; }
-  EYES.forEach(([x,y])=>{ glow(x,y,eyeR,eyeA,'90,170,255'); if(open>0.05) glow(x,y,eyeR*0.45,open*0.5,'190,225,255'); });
-  glow(BROW_LED[0],BROW_LED[1],ledR,ledA,'90,170,255');
-  if(open>0.05) glow(BROW_LED[0],BROW_LED[1],ledR*0.35,open*0.55,'190,225,255');
-  ctx.globalCompositeOperation='source-over';
+  drawBars(t, bands, open);
+
+  const breath = reduce ? 0 : Math.sin(t*1.1)*0.004;
+  ctx.save();
+  ctx.translate(cv.width/2, cv.height*0.62); ctx.scale(1+breath, 1+breath); ctx.translate(-cv.width/2, -cv.height*0.62);
+  ctx.drawImage(cut, 0, 0);
+
+  // brilho ciborgue: sempre vivo, explode junto com a voz
+  const slow = reduce ? 0.5 : 0.5 + 0.5*Math.sin(t*2.2);
+  let level = 0.3 + 0.12*slow;                                   // parado
+  if(state === 'listening') level = 0.55 + 0.25*slow;
+  if(state === 'thinking') level = 0.5 + 0.45*(reduce ? 0.5 : 0.5 + 0.5*Math.sin(t*9));
+  if(state === 'speaking' || now < demoUntil) level = 0.8 + open*4;
+  ctx.globalCompositeOperation = 'lighter';
+  let L = level;
+  while(L > 0.01){ ctx.globalAlpha = Math.min(1, L); ctx.drawImage(glowC, 0, 0); L -= 1; }
+  ctx.globalAlpha = Math.min(1, level*0.9); ctx.drawImage(bloomA, 0, 0);
+  if(level > 1){ ctx.globalAlpha = Math.min(1, level - 1); ctx.drawImage(bloomA, 0, 0); }
+  ctx.globalAlpha = Math.min(1, level*0.7); ctx.drawImage(bloomB, 0, 0);
+  if(level > 1.2){ ctx.globalAlpha = Math.min(1, (level - 1.2)*0.8); ctx.drawImage(bloomB, 0, 0); }
+  ctx.globalAlpha = 1;
+  const eyeA = Math.min(1, 0.25 + level*0.35), eyeR = 40 + Math.min(1.5, level)*28;
+  EYES.forEach(([x,y])=>{ glow(x, y, eyeR, eyeA, '90,170,255'); glow(x, y, eyeR*0.4, Math.min(1, level*0.4), '210,235,255'); });
+  glow(BROW_LED[0], BROW_LED[1]+30, 90 + Math.min(1.5, level)*70, Math.min(0.8, level*0.25), '90,170,255');
+  ctx.globalCompositeOperation = 'source-over';
   ctx.restore();
   requestAnimationFrame(frame);
 }
@@ -288,7 +342,7 @@ class GeminiLive {
   }
   async startAudio(){
     this.outCtx = new (window.AudioContext||window.webkitAudioContext)({ sampleRate: 24000 });
-    this.analyser = this.outCtx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.connect(this.outCtx.destination);
+    this.analyser = this.outCtx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(this.outCtx.destination);
     this.playhead = this.outCtx.currentTime;
     this.inCtx = new (window.AudioContext||window.webkitAudioContext)();
     const src = this.inCtx.createMediaStreamSource(this.micStream);
@@ -317,6 +371,13 @@ class GeminiLive {
     this.onState('speaking');
   }
   stopPlayback(){ for(const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources=[]; if(this.outCtx) this.playhead = this.outCtx.currentTime; }
+  getBands(n){
+    if(!this.analyser || !this.sources.length) return null;
+    const a = new Uint8Array(this.analyser.frequencyBinCount); this.analyser.getByteFrequencyData(a);
+    const maxBin = Math.floor(a.length*0.45), out = new Array(n);
+    for(let i=0;i<n;i++){ const lo = Math.floor(Math.pow(i/n,1.6)*maxBin), hi = Math.max(lo+1, Math.floor(Math.pow((i+1)/n,1.6)*maxBin)); let s=0; for(let k=lo;k<hi;k++) s+=a[k]; out[i] = s/(hi-lo)/255; }
+    return out;
+  }
   getOutputVolume(){
     if(!this.analyser || !this.sources.length) return 0;
     const a = new Float32Array(this.analyser.fftSize); this.analyser.getFloatTimeDomainData(a);
