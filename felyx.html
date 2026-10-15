@@ -286,16 +286,19 @@ requestAnimationFrame(frame);
 
 /* ===================== Félix x Gemini Live ===================== */
 // A página fala direto com o Gemini Live (voz, escuta e interrupção) e o Gemini consulta o
-// cérebro do Jarvis no n8n pela função perguntar_jarvis. A chave do Gemini nunca fica aqui:
+// cérebro do Félix no n8n pela função consultar_cerebro. A chave do Gemini nunca fica aqui:
 // o n8n gera um token temporário (30 min) a cada conversa.
 const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const TOKEN_URL = N8N + '/felix/token';
 const PERGUNTA_URL = N8N + '/felix/pergunta';
 const MODEL = 'gemini-3.8-live';
 const VOICE = 'Algieba'; // escolhida pelo Leandro em 14/10/2026 (voz 10 do teste)
-const SYSTEM = `Você é o Felyx (lê-se "Félix"), o rosto e a voz do Jarvis, assistente de casa do Leandro (Rio de Janeiro). Fale SEMPRE em português do Brasil.
+const SYSTEM = `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
 Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, cheio de energia, direto e com bom humor. Frases curtas, próprias para serem ouvidas.
-Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, agenda, notícias, mercado, trabalho, 20 Automação, memória, qualquer assunto), chame a função perguntar_jarvis com a fala do Leandro e leia a resposta recebida de forma fiel, sem inventar nem acrescentar informações. Só responda por conta própria em saudações, despedidas e conversa trivial de uma frase.
+Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis" em nenhuma situação; se o usuário disser "Jarvis", entenda que está falando com você, o Félix, e não repita esse nome. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte".
+Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, bitcoin, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, palavra por palavra, sem resumir, sem inventar e sem acrescentar nada.
+Quem você é: quando perguntarem quem você é, qual é a sua história, de onde veio ou quem o criou, NUNCA responda de cabeça: chame consultar_cerebro e leia a história que vier, inteira, exatamente como veio.
+Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
 Se a função falhar ou vier vazia, diga que não conseguiu consultar o cérebro agora e peça para repetir.`;
 
 const SESSION_ID = 'web-' + Math.random().toString(36).slice(2, 8);
@@ -318,10 +321,10 @@ class GeminiLive {
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
           systemInstruction: { parts: [{ text: SYSTEM }] },
           tools: [{ functionDeclarations: [{
-            name: 'perguntar_jarvis',
-            description: 'Envia a fala do Leandro ao cérebro do Jarvis (n8n) e devolve a resposta em texto. Use para qualquer pergunta, pedido ou tarefa.',
+            name: 'consultar_cerebro',
+            description: 'Envia a fala do usuário ao cérebro do Félix e devolve a resposta em texto. Use para qualquer pergunta, pedido, tarefa, bom dia e perguntas sobre quem é o Félix.',
             behavior: 'BLOCKING',
-            parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do Leandro, completa, em português.' } }, required: ['pergunta'] }
+            parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] }
           }] }],
           outputAudioTranscription: {}
         }}));
@@ -391,7 +394,7 @@ class GeminiLive {
     const out = [];
     for(const fc of (tc.functionCalls||[])){
       let response;
-      if(fc.name==='perguntar_jarvis'){
+      if(fc.name==='consultar_cerebro'){
         this.onState('thinking');
         try{
           const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta: String((fc.args||{}).pergunta||''), sessionId: SESSION_ID }) });
@@ -417,7 +420,7 @@ class GeminiLive {
 async function start(){
   talkBtn.disabled=true; setState('thinking','Conectando…');
   const g = new GeminiLive();
-  g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking','Falando.'); else if(s==='thinking') setState('thinking','Consultando o Jarvis…'); else setState('listening','Ouvindo.'); };
+  g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking','Falando.'); else if(s==='thinking') setState('thinking','Consultando o cérebro…'); else setState('listening','Ouvindo.'); };
   g.onClose = (reason)=>{ if(conv!==g) return; conv=null; setState('idle', reason ? 'Conversa encerrada ('+reason+').' : 'Conversa encerrada.'); talkBtn.title='Falar com o Felyx'; talkBtn.dataset.on='0'; talkBtn.disabled=false; };
   try{
     await g.start();
