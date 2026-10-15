@@ -10,14 +10,14 @@
 <style>
 :root{
   --bg:#06070a; --ink:#e9eae6; --muted:#8a8d86; --line:rgba(255,255,255,.08);
-  --accent:#d6ff1a; --accent-rgb:214,255,26; --accent-ink:#000; --led:#4fa8ff;
+  --accent:#d6ff1a; --accent-rgb:214,255,26; --accent-ink:#000; --led:#4fa8ff; --down:#ff6a62; --down-rgb:255,106,98;
   --grid:rgba(255,255,255,.035);
   --mono:"Share Tech Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --sans:"Saira",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;overflow-x:hidden}
 body{
   background:var(--bg); color:var(--ink); font-family:var(--sans); overflow:hidden;
   background-image:
@@ -25,10 +25,10 @@ body{
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size:100% 100%, 44px 44px, 44px 44px;
-  background-position:0 0, 0 0, 0 0;
+  background-attachment:fixed;
 }
 body::after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,.75) 100%)}
-.hud{position:relative;z-index:1;height:100%;display:grid;grid-template-rows:auto 1fr auto;padding:max(10px,env(safe-area-inset-top)) 14px max(10px,env(safe-area-inset-bottom))}
+.hud{position:relative;z-index:1;height:100%;display:grid;grid-template-rows:auto 1fr auto;padding:max(10px,env(safe-area-inset-top)) 14px max(10px,env(safe-area-inset-bottom));gap:8px}
 
 /* ---------- topo ---------- */
 .top{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:10px;font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
@@ -41,15 +41,18 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .hud[data-state="speaking"] .stateLabel{color:var(--accent);text-shadow:0 0 14px rgba(var(--accent-rgb),.6)}
 .hud[data-state="listening"] .stateLabel{color:#dfe3dc}
 .hud[data-state="thinking"] .stateLabel{color:var(--led);text-shadow:0 0 14px rgba(79,168,255,.5)}
-.hud[data-state="error"] .stateLabel{color:#ff6a62}
+.hud[data-state="error"] .stateLabel{color:var(--down)}
 .ticks{display:flex;justify-content:center;align-items:flex-end;gap:3px;height:14px;margin-top:6px}
 .ticks i{display:block;width:2px;height:3px;background:rgba(255,255,255,.22);border-radius:1px;transition:height .08s linear,background .2s}
 .hud[data-state="speaking"] .ticks i{background:rgba(var(--accent-rgb),.85)}
 .hud[data-state="thinking"] .ticks i{background:rgba(79,168,255,.8)}
 
-/* ---------- centro ---------- */
-.center{position:relative;display:grid;place-items:center;min-height:0}
-.orbWrap{position:relative;width:min(78vmin,560px);aspect-ratio:1;display:grid;place-items:center}
+/* ---------- palco: três colunas ---------- */
+.stage{display:grid;grid-template-columns:minmax(236px,296px) minmax(0,1fr) minmax(300px,372px);gap:14px;min-height:0}
+.col{position:relative;z-index:2;display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;scrollbar-width:none;padding:2px}
+.col::-webkit-scrollbar{display:none}
+.center{position:relative;z-index:1;display:grid;place-items:center;min-height:0}
+.orbWrap{position:relative;width:min(100%,70vh,540px);aspect-ratio:1;display:grid;place-items:center}
 #rings{position:absolute;inset:-22%;width:144%;height:144%;pointer-events:none}
 .face{position:relative;width:62%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 60px rgba(var(--accent-rgb),.08),inset 0 0 40px rgba(0,0,0,.8);transition:box-shadow .5s}
 .hud[data-state="speaking"] .face{box-shadow:0 0 0 1px rgba(var(--accent-rgb),.55),0 0 90px rgba(var(--accent-rgb),.22),inset 0 0 40px rgba(0,0,0,.6)}
@@ -76,28 +79,98 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .boot .caret::after{content:"▍";color:var(--accent);animation:blink .9s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 
-/* ---------- cards ---------- */
-.deck{position:absolute;inset:0;pointer-events:none}
-.card{position:absolute;width:min(300px,42vw);padding:12px 14px 11px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(var(--accent-rgb),.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.03);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:auto;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s}
+/* ---------- painéis fixos (mercado, notícias, comandos) ---------- */
+.panel{position:relative;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(var(--accent-rgb),.22);box-shadow:0 10px 40px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.03);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;flex-direction:column;min-height:0;flex:0 0 auto}
+.panel .ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px 6px}
+.panel .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.panel .k i{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.8);flex:none}
+.panel .pr{font-family:var(--mono);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:#5e615b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel .pf{font-family:var(--mono);font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;color:#5e615b;padding:6px 12px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb{font:inherit;font-family:var(--mono);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:#b9bdb4;background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:3px 9px;cursor:pointer;transition:border-color .2s,color .2s,background .2s}
+.pb:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent)}
+.pb[data-on="1"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* mercado */
+.market .rows{display:flex;flex-direction:column;padding:0 8px 2px}
+.market .row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:9px;padding:5px 4px;border-top:1px solid rgba(255,255,255,.05);min-height:38px}
+.market .row:first-child{border-top:0}
+.market .av{width:28px;height:28px;border-radius:50%;border:1px solid rgba(var(--accent-rgb),.6);color:var(--accent);display:grid;place-items:center;font-family:var(--sans);font-weight:600;font-size:.95rem;line-height:1;background:radial-gradient(circle at 35% 30%,rgba(var(--accent-rgb),.22),rgba(var(--accent-rgb),.04));box-shadow:0 0 12px rgba(var(--accent-rgb),.18),inset 0 0 8px rgba(var(--accent-rgb),.1);text-shadow:0 0 8px rgba(var(--accent-rgb),.6);transition:box-shadow .4s}
+.market .av svg{width:15px;height:15px;fill:var(--accent);filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),.7))}
+.market .row[data-flash="1"] .av{box-shadow:0 0 18px rgba(var(--accent-rgb),.6),inset 0 0 8px rgba(var(--accent-rgb),.2)}
+.market .nm{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.market .nm b{font-weight:500;font-size:.86rem;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.market .nm small{font-family:var(--mono);font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.market .vals{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+.market .val{font-size:1.02rem;font-weight:300;letter-spacing:-.01em;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.market .val b{font-weight:300;font-size:.7rem;color:var(--muted);margin-right:3px;letter-spacing:0}
+.market .chg{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;color:var(--muted);white-space:nowrap}
+.market .chg.up{color:var(--accent)}
+.market .chg.dn{color:var(--down)}
+.market .row[data-stale="1"] .val{color:#8a8d86}
+
+/* notícias */
+.news{flex:1 1 180px;min-height:170px;overflow:hidden}
+.news .slides{position:relative;flex:1 1 auto;min-height:120px;margin:0 8px;border-radius:8px;overflow:hidden;background:#0b0d10}
+.news .slide{position:absolute;inset:0;display:block;color:inherit;text-decoration:none;opacity:0;transition:opacity .9s ease;pointer-events:none}
+.news .slide[data-on="1"]{opacity:1;pointer-events:auto}
+.news .slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 50%;filter:saturate(.9) contrast(1.05)}
+.news .slide[data-on="1"] img{animation:kb 11s linear forwards}
+@keyframes kb{0%{transform:scale(1.02)}100%{transform:scale(1.14)}}
+.news .slide .noimg{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:2.4rem;letter-spacing:.2em;color:rgba(var(--accent-rgb),.25);background:radial-gradient(ellipse at 30% 20%,rgba(var(--accent-rgb),.14),transparent 60%),linear-gradient(160deg,#101317,#07080a)}
+.news .slide .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(0,0,0,.1) 40%,rgba(0,0,0,.85) 100%)}
+.news .slide .cap{position:absolute;left:0;right:0;bottom:0;padding:9px 10px 9px}
+.news .slide .src{font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.news .slide .tt{font-size:.9rem;font-weight:500;line-height:1.22;text-shadow:0 1px 8px rgba(0,0,0,.9);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.news .bar{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.8);z-index:2}
+.news[data-run="1"] .bar{animation:bar var(--dur,9s) linear forwards}
+@keyframes bar{0%{width:0}100%{width:100%}}
+.news .tag{position:absolute;top:8px;left:8px;z-index:2;font-family:var(--mono);font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:#000;background:var(--accent);padding:2px 7px;border-radius:999px;box-shadow:0 0 12px rgba(var(--accent-rgb),.5)}
+.news .pf{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.news .dots{display:flex;gap:4px}
+.news .dots i{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .3s,transform .3s}
+.news .dots i[data-on="1"]{background:var(--accent);transform:scale(1.3);box-shadow:0 0 6px rgba(var(--accent-rgb),.8)}
+.news .empty{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:#5e615b;text-align:center;padding:12px}
+
+/* comandos (matriz 4×8) */
+.matrix .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:2px 10px 6px}
+.tile{position:relative;font:inherit;font-weight:500;font-size:.7rem;line-height:1.12;letter-spacing:.02em;color:#dfe2da;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);border-radius:8px;min-height:40px;padding:5px 5px;cursor:pointer;display:grid;place-items:center;text-align:center;overflow:hidden;transition:border-color .2s,background .2s,color .2s,transform .12s,box-shadow .3s;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.tile span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.tile:hover{border-color:rgba(var(--accent-rgb),.55);color:#fff}
+.tile:active{transform:scale(.95)}
+.tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tile[data-empty="1"]{color:#55584f;border-style:dashed;font-family:var(--mono);font-size:.8rem}
+.tile[data-busy="1"]{border-color:var(--led);color:var(--led);box-shadow:0 0 14px rgba(79,168,255,.35);animation:busy 1s ease-in-out infinite}
+@keyframes busy{50%{box-shadow:0 0 4px rgba(79,168,255,.15)}}
+.tile[data-res="ok"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:0 0 22px rgba(var(--accent-rgb),.55)}
+.tile[data-res="fail"]{border-color:var(--down);color:var(--down);box-shadow:0 0 16px rgba(var(--down-rgb),.4)}
+.matrix[data-edit="1"] .tile{border-style:dashed;border-color:rgba(var(--accent-rgb),.5);cursor:text}
+.matrix[data-edit="1"] .tile::after{content:"✎";position:absolute;right:4px;top:2px;font-size:.6rem;color:var(--accent);opacity:.8}
+.editor{margin:0 10px 10px;padding:10px 10px 8px;border-radius:8px;border:1px solid rgba(var(--accent-rgb),.45);background:rgba(0,0,0,.45)}
+.editor[hidden]{display:none}
+.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.editor input{display:block;width:100%;margin-top:3px;font:inherit;font-size:.86rem;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:6px 8px;outline:none}
+.editor input:focus{border-color:var(--accent)}
+.editor .eb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.editor .hint{font-family:var(--mono);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:#5e615b;margin-top:7px;line-height:1.5}
+
+/* ---------- cards dinâmicos (briefing, casa) ---------- */
+.deck{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;gap:10px;pointer-events:none;z-index:3}
+.card{width:min(250px,46%);padding:11px 13px 10px;border-radius:12px;background:linear-gradient(180deg,rgba(14,16,20,.9),rgba(10,11,14,.86));border:1px solid rgba(var(--accent-rgb),.28);box-shadow:0 10px 40px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.03);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:auto;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s}
 .card[data-in="1"]{opacity:1;transform:none}
-.card .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.card[data-slot="1"]{margin-left:auto}
+.card .k{font-family:var(--mono);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:5px}
 .card .k i{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.8)}
-.card .t{font-size:1.05rem;font-weight:500;letter-spacing:.01em;line-height:1.2}
-.card .v{font-size:1.9rem;font-weight:300;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;color:#fff}
-.card .v small{font-size:.85rem;color:var(--muted);font-weight:300;letter-spacing:0;margin-left:6px}
-.card .b{font-size:.84rem;font-weight:300;color:#cfd2cb;line-height:1.35;margin-top:4px}
-.card .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.card .chips span{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#d7d9d3}
+.card .t{font-size:.98rem;font-weight:500;letter-spacing:.01em;line-height:1.2}
+.card .v{font-size:1.7rem;font-weight:300;letter-spacing:-.02em;line-height:1.1;margin:6px 0 2px;color:#fff}
+.card .v small{font-size:.8rem;color:var(--muted);font-weight:300;letter-spacing:0;margin-left:6px}
+.card .b{font-size:.8rem;font-weight:300;color:#cfd2cb;line-height:1.35;margin-top:4px}
+.card .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.card .chips span{font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:#d7d9d3}
 .card .chips span.on{border-color:rgba(var(--accent-rgb),.5);color:var(--accent)}
-.card .f{font-family:var(--mono);font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:#5e615b;margin-top:9px}
-/* posições em volta do orb (desktop) */
-.card[data-slot="0"]{left:3%;top:9%}
-.card[data-slot="1"]{right:3%;top:12%}
-.card[data-slot="2"]{left:3%;bottom:11%}
-.card[data-slot="3"]{right:3%;bottom:8%}
+.card .f{font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:#5e615b;margin-top:8px}
 
 /* ---------- rodapé ---------- */
-.bottom{display:flex;align-items:center;justify-content:center;gap:14px;padding-top:8px}
+.bottom{display:flex;align-items:center;justify-content:center;gap:14px;padding-top:4px}
 .mic{width:54px;height:54px;border-radius:50%;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;display:grid;place-items:center;padding:0;flex:none;transition:background .25s,box-shadow .25s,transform .15s}
 .mic:hover{background:rgba(var(--accent-rgb),.12)}
 .mic:active{transform:scale(.96)}
@@ -106,25 +179,41 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .mic:disabled{opacity:.5;cursor:default}
 .mic svg{width:22px;height:22px;fill:currentColor}
 .status{font-family:var(--mono);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);min-height:1.2em;max-width:70vw;text-align:left}
-.hud[data-state="error"] .status{color:#ff6a62;letter-spacing:.06em;text-transform:none}
+.hud[data-state="error"] .status{color:var(--down);letter-spacing:.06em;text-transform:none}
 
-/* ---------- telefone / telas estreitas ---------- */
-@media (max-width:900px){
-  .center{grid-template-rows:auto 1fr;justify-items:center;align-content:start;gap:10px}
-  .orbWrap{width:min(88vw,48vh)}
-  .deck{position:relative;inset:auto;align-self:start;width:100%;max-width:560px;display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0;padding:4px 2px 8px;mask-image:linear-gradient(180deg,#000 85%,transparent);-webkit-mask-image:linear-gradient(180deg,#000 85%,transparent)}
-  .card{position:relative;width:100%;min-width:0;left:auto;right:auto;top:auto;bottom:auto;padding:10px 12px}
-  .card .v{font-size:1.5rem}
+/* ---------- telas médias (tablet, notebook pequeno) ---------- */
+@media (max-width:1100px){
+  html,body{height:auto;min-height:100%}
+  body{overflow-y:visible;overflow-x:hidden}
+  .hud{height:auto;min-height:100%;grid-template-rows:auto auto auto}
+  .stage{grid-template-columns:1fr 1fr;grid-template-areas:"center center" "left right"}
+  .center{grid-area:center;min-height:52vh}
+  .col{overflow:visible}
+  .col.left{grid-area:left}.col.right{grid-area:right}
+  .orbWrap{width:min(60vw,52vh,480px)}
+  .news{min-height:230px}
+  .bottom{position:sticky;bottom:0;padding:10px 0 4px;background:linear-gradient(180deg,transparent,rgba(6,7,10,.9) 40%)}
+}
+/* ---------- telefone ---------- */
+@media (max-width:700px){
+  .stage{grid-template-columns:1fr;grid-template-areas:"center" "right" "left";gap:12px}
+  .center{min-height:auto;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .orbWrap{width:min(78vw,44vh)}
+  .deck{position:relative;inset:auto;flex-direction:column;width:100%;gap:8px}
+  .card{width:100%}
+  .card[data-slot="1"]{margin-left:0}
   .boot{bottom:-9%}
   .top{grid-template-columns:auto 1fr auto;font-size:.58rem;letter-spacing:.14em}
   .top .meta.right{gap:8px}
   .stateLabel{font-size:.7rem;letter-spacing:.3em}
+  .news{min-height:240px}
+  .tile{min-height:44px;font-size:.72rem}
 }
 @media (max-width:520px){
   #dateLabel{display:none}
   .status{max-width:60vw}
 }
-@media (prefers-reduced-motion: reduce){.scan .line,.scan .ret,.boot .caret::after{animation:none}}
+@media (prefers-reduced-motion: reduce){.scan .line,.scan .ret,.boot .caret::after,.news .slide img,.news .bar,.tile[data-busy="1"]{animation:none}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -136,16 +225,50 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     <div class="meta right"><span id="dateLabel"></span><span id="clock">--:--</span></div>
   </header>
 
-  <main class="center">
-    <section class="orbWrap" aria-label="Felyx">
-      <canvas id="rings" aria-hidden="true"></canvas>
-      <div class="face">
-        <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
-        <div class="scan" id="scan" data-on="0" aria-hidden="true"><div class="line"></div><div class="ret l"></div><div class="ret r"></div></div>
-      </div>
-      <div class="boot" id="boot" data-on="0" aria-live="polite"></div>
+  <main class="stage">
+    <aside class="col left">
+      <section class="panel market" id="market" aria-label="Cotações">
+        <div class="ph"><span class="k"><i></i>mercado · usdt · real</span><span class="pr" id="marketWhen">carregando</span></div>
+        <div class="rows" id="marketRows"></div>
+        <div class="pf" id="marketFoot">binance · frankfurter · tradingview</div>
+      </section>
+      <section class="panel news" id="newsPol" aria-label="Notícias de política">
+        <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
+        <div class="slides"><div class="empty">carregando manchetes</div></div>
+        <div class="pf"><span class="src">agência brasil</span><span class="dots"></span></div>
+      </section>
+    </aside>
+
+    <section class="center">
+      <section class="orbWrap" aria-label="Felyx">
+        <canvas id="rings" aria-hidden="true"></canvas>
+        <div class="face">
+          <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
+          <div class="scan" id="scan" data-on="0" aria-hidden="true"><div class="line"></div><div class="ret l"></div><div class="ret r"></div></div>
+        </div>
+        <div class="boot" id="boot" data-on="0" aria-live="polite"></div>
+      </section>
+      <aside class="deck" id="deck" aria-live="polite"></aside>
     </section>
-    <aside class="deck" id="deck" aria-live="polite"></aside>
+
+    <aside class="col right">
+      <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
+        <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
+        <div class="grid" id="grid"></div>
+        <div class="editor" id="editor" hidden>
+          <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
+          <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
+          <datalist id="phrases"></datalist>
+          <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">esvaziar</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
+          <div class="hint">a frase é mandada ao cérebro como se você tivesse falado. fica salvo neste aparelho.</div>
+        </div>
+      </section>
+      <section class="panel news" id="newsTec" aria-label="Notícias de tecnologia">
+        <div class="ph"><span class="k"><i></i>tecnologia</span><span class="pr">automação · ia</span></div>
+        <div class="slides"><div class="empty">carregando manchetes</div></div>
+        <div class="pf"><span class="src">olhar digital · canaltech</span><span class="dots"></span></div>
+      </section>
+    </aside>
   </main>
 
   <footer class="bottom">
@@ -158,10 +281,12 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 
 <script>
 /* =====================================================================
-   Felyx — interface HUD (14/10/2026)
-   Rosto no centro, anéis de energia em volta, estado no topo, cards de
-   briefing ao redor. A voz é o Gemini Live rodando no navegador; o
-   cérebro é consultado no n8n pela função consultar_cerebro.
+   Felyx — interface HUD oficial (15/10/2026)
+   Rosto no centro com anéis de energia; à esquerda o mercado em real e as
+   notícias de política; à direita a matriz de 32 comandos e as notícias de
+   tecnologia. A voz é o Gemini Live rodando no navegador; o cérebro é
+   consultado no n8n pela função consultar_cerebro. Mercado e notícias vêm
+   do n8n (ponte): /felix/mercado e /felix/noticias.
    ===================================================================== */
 const hud = document.getElementById('hud');
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -169,7 +294,7 @@ const ringsCv = document.getElementById('rings'), rctx = ringsCv.getContext('2d'
 const stateLabel = document.getElementById('stateLabel'), statusText = document.getElementById('statusText');
 const ticksEl = document.getElementById('ticks'), bootEl = document.getElementById('boot'), scanEl = document.getElementById('scan');
 const deckEl = document.getElementById('deck'), talkBtn = document.getElementById('talk');
-const dotHouse = document.getElementById('dotHouse'), houseLabel = document.getElementById('houseLabel');
+const dotHouse = document.getElementById('dotHouse');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ACCENT = '214,255,26';
 const STATE_TXT = { idle:'aguardando', boot:'iniciando', listening:'ouvindo', thinking:'pensando', speaking:'falando', error:'falha' };
@@ -374,7 +499,13 @@ function demoVolume(t){ const syl = Math.max(0, Math.sin(t*13.5)) * (0.55+0.45*M
 function demoBands(t){ const v = demoVolume(t), out = []; for(let i=0;i<36;i++) out.push(v*(0.35+0.65*Math.abs(Math.sin(t*7.3+i*0.9+Math.sin(t*2.1+i*0.37))))); return out; }
 requestAnimationFrame(frame);
 
-/* ---------- cards ---------- */
+/* ---------- utilidades ---------- */
+const esc = (s)=>String(s||'').replace(/[&<>"]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const fmt = (n, d=0)=> Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d, maximumFractionDigits:d});
+const hhmm = (d)=> d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const sleep = (ms)=>new Promise(r=>setTimeout(r, ms));
+
+/* ---------- cards dinâmicos (briefing, casa) ---------- */
 let slot = 0;
 function addCard(o){
   const id = o.id || ('c'+Date.now());
@@ -388,44 +519,271 @@ function addCard(o){
     ${o.foot ? `<div class="f">${o.foot}</div>` : ''}`;
   if(el){ el.innerHTML = html; return el; }
   el = document.createElement('div'); el.className = 'card'; el.dataset.id = id; el.innerHTML = html;
-  el.dataset.slot = String(slot % 4); slot++;
-  // no desktop só 4 posições: o mais antigo daquela posição sai
+  el.dataset.slot = String(slot % 2); slot++;
+  // só duas posições (esquerda e direita, acima do rosto): o mais antigo daquela posição sai
   const same = [...deckEl.querySelectorAll('.card[data-slot="'+el.dataset.slot+'"]')];
   same.forEach(c=>{ c.dataset.in = '0'; setTimeout(()=>c.remove(), 450); });
-  deckEl.prepend(el);
+  if(el.dataset.slot === '0') deckEl.prepend(el); else deckEl.append(el);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.dataset.in = '1'; }));
+  if(o.ttl){ setTimeout(()=>{ if(el.isConnected){ el.dataset.in='0'; setTimeout(()=>el.remove(), 450); } }, o.ttl); }
   return el;
 }
 function clearCards(){ [...deckEl.children].forEach(c=>{ c.dataset.in='0'; setTimeout(()=>c.remove(), 450); }); slot = 0; }
-const esc = (s)=>String(s||'').replace(/[&<>]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
 const WMO = {0:'céu limpo',1:'quase limpo',2:'parcialmente nublado',3:'nublado',45:'nevoeiro',48:'nevoeiro',51:'garoa',53:'garoa',55:'garoa',61:'chuva fraca',63:'chuva',65:'chuva forte',80:'pancadas',81:'pancadas',82:'pancadas fortes',95:'trovoadas'};
-const fmt = (n, d=0)=> Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d, maximumFractionDigits:d});
 
-/* ---------- briefing do bom dia (cards buscados pela própria página) ---------- */
+/* ===================== n8n (ponte) ===================== */
+const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const TOKEN_URL = N8N + '/felix/token';
+const PERGUNTA_URL = N8N + '/felix/pergunta';
+const MERCADO_URL = N8N + '/felix/mercado';
+const NOTICIAS_URL = N8N + '/felix/noticias';
+const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
+
+/* ===================== mercado (em real) ===================== */
+const OIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c-3.2 4.3-6 7.6-6 11.3A6 6 0 0 0 18 13.8c0-3.7-2.8-7-6-11.3zm0 16.3a3 3 0 0 1-3-3c0-.5.4-.8.8-.8s.8.3.8.8a1.4 1.4 0 0 0 1.4 1.4c.5 0 .8.4.8.8s-.3.8-.8.8z"/></svg>';
+const ASSETS = [
+  { id:'usd', nome:'Dólar',   glyph:'$', dec:2, pick:(m)=> (m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, usd:null, chg:null, sub:(m.cambio.eurbrl ? 'euro R$ '+fmt(m.cambio.eurbrl,2) : 'usd / brl') } : null },
+  { id:'btc', nome:'BTC/USDT', glyph:'₿', dec:0, usdt:true, pick:(m)=> m.cripto && m.cripto.bitcoin },
+  { id:'eth', nome:'ETH/USDT', glyph:'Ξ', dec:2, usdt:true, pick:(m)=> m.cripto && m.cripto.ethereum },
+  { id:'sol', nome:'SOL/USDT', glyph:'◎', dec:2, usdt:true, pick:(m)=> m.cripto && m.cripto.solana },
+  { id:'zec', nome:'ZEC/USDT', glyph:'ⓩ', dec:2, usdt:true, pick:(m)=> m.cripto && m.cripto.zcash },
+  { id:'oil', nome:'Petróleo Brent', glyph:OIL_SVG, dec:2, pick:(m)=> m.petroleo, unitSub:'barril · usd ' },
+];
+const marketRows = document.getElementById('marketRows'), marketWhen = document.getElementById('marketWhen');
+const shown = {};   // valores atuais na tela (para animar a troca)
+(function buildMarket(){
+  marketRows.innerHTML = ASSETS.map(a=>`
+    <div class="row" data-id="${a.id}" data-stale="1">
+      <span class="av" aria-hidden="true">${a.glyph}</span>
+      <span class="nm"><b>${a.nome}</b><small data-sub>—</small></span>
+      <span class="vals"><span class="val"><b>${a.usdt ? '' : 'R$'}</b><span data-val>—</span></span><span class="chg" data-chg></span></span>
+    </div>`).join('');
+})();
+function tween(el, from, to, dec){
+  if(reduce || from == null || !isFinite(from)){ el.textContent = fmt(to, dec); return; }
+  const t0 = performance.now(), dur = 900;
+  const step = (now)=>{ const p = Math.min(1, (now - t0)/dur), e = 1 - Math.pow(1-p, 3); el.textContent = fmt(from + (to-from)*e, dec); if(p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function renderMercado(m){
+  let any = false;
+  for(const a of ASSETS){
+    const row = marketRows.querySelector('[data-id="'+a.id+'"]'); if(!row) continue;
+    const v = a.pick(m);
+    const main = a.usdt ? (v && (v.usdt ?? v.usd)) : (v && v.brl);
+    if(!v || !(main > 0)){ row.dataset.stale = '1'; continue; }
+    any = true; row.dataset.stale = '0';
+    tween(row.querySelector('[data-val]'), shown[a.id], main, a.dec); shown[a.id] = main;
+    const sub = row.querySelector('[data-sub]');
+    if(a.usdt) sub.textContent = v.brl ? 'R$ ' + fmt(v.brl, v.brl >= 1000 ? 0 : 2) : (v.fonte || '');
+    else sub.textContent = v.sub || (v.usd ? ((a.unitSub||'usd ') + fmt(v.usd, a.dec)) : '');
+    const chg = row.querySelector('[data-chg]');
+    const pct = a.usdt ? (typeof v.chgUsdt === 'number' ? v.chgUsdt : v.chg) : v.chg;
+    if(typeof pct === 'number'){ v.chg = pct; chg.textContent = (v.chg>0?'+':'') + fmt(v.chg,2) + '% 24h'; chg.className = 'chg ' + (v.chg > 0.05 ? 'up' : v.chg < -0.05 ? 'dn' : ''); }
+    else { chg.textContent = (m.cambio && m.cambio.data) ? 'ref. ' + m.cambio.data.split('-').reverse().slice(0,2).join('/') : ''; chg.className = 'chg'; }
+    row.dataset.flash = '1'; setTimeout(()=>{ row.dataset.flash = '0'; }, 1200);
+  }
+  if(any) marketWhen.textContent = hhmm(new Date());
+  return any;
+}
+async function fetchMercadoDireto(){
+  // reserva: busca direto no navegador se a ponte não responder (sem petróleo)
+  const [fx, cg] = await Promise.all([
+    fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then(r=>r.json()),
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,zcash&vs_currencies=brl,usd&include_24hr_change=true').then(r=>r.json())
+  ]);
+  const cripto = {}; for(const k of ['bitcoin','ethereum','solana','zcash']){ const c = cg[k]; if(c) cripto[k] = { brl:c.brl, usd:c.usd, usdt:c.usd, chg:c.brl_24h_change, chgUsdt:c.usd_24h_change }; }
+  return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, petroleo:null };
+}
+let mercadoAt = 0, mercadoData = null;
+async function loadMercado(force){
+  if(!force && Date.now() - mercadoAt < 14*60000) return mercadoData;
+  mercadoAt = Date.now();
+  try{
+    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
+    if(!m || !m.ok) throw new Error('ponte sem dados');
+    mercadoData = m; renderMercado(m); return m;
+  }catch(e){
+    try{ const m = await fetchMercadoDireto(); mercadoData = m; renderMercado(m); return m; }
+    catch(e2){ marketWhen.textContent = 'sem conexão'; return null; }
+  }
+}
+
+/* ===================== notícias (cards animados) ===================== */
+const SRC_SHORT = { 'agência brasil':'agência brasil', 'olhar digital':'olhar digital', 'canaltech':'canaltech' };
+function timeAgo(s){
+  const d = new Date(s); if(isNaN(d)) return '';
+  const m = Math.round((Date.now() - d.getTime())/60000);
+  if(m < 1) return 'agora'; if(m < 60) return 'há '+m+' min'; if(m < 24*60) return 'há '+Math.round(m/60)+' h';
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
+}
+class NewsPanel {
+  constructor(el, dur){ this.el = el; this.slides = el.querySelector('.slides'); this.dots = el.querySelector('.dots'); this.items = []; this.i = -1; this.dur = dur || 9000; this.timer = null; this.paused = false;
+    el.addEventListener('mouseenter', ()=>{ this.paused = true; }); el.addEventListener('mouseleave', ()=>{ this.paused = false; });
+    el.style.setProperty('--dur', (this.dur/1000)+'s');
+  }
+  set(items){
+    const list = (items||[]).filter(n=>n && n.title).slice(0, 6);
+    if(!list.length){ if(!this.items.length) this.slides.innerHTML = '<div class="empty">sem manchetes agora</div>'; return; }
+    this.items = list; this.i = -1;
+    this.slides.innerHTML = list.map((n, k)=>`
+      <a class="slide" data-k="${k}" href="${esc(n.link||'#')}" target="_blank" rel="noopener noreferrer" data-on="0" tabindex="-1">
+        ${n.image ? `<img alt="" src="${esc(n.image)}" referrerpolicy="no-referrer" loading="${k===0?'eager':'lazy'}" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'noimg',textContent:'${esc((n.source||'').slice(0,2))}'}))">` : `<div class="noimg">${esc((n.source||'nt').slice(0,2))}</div>`}
+        <div class="shade"></div>
+        <div class="cap"><div class="src">${esc(n.source||'')}${n.cat ? ' · '+esc(n.cat) : ''}${n.date ? ' · '+esc(timeAgo(n.date)) : ''}</div><div class="tt">${esc(n.title)}</div></div>
+      </a>`).join('') + '<div class="bar"></div><div class="tag" data-tag></div>';
+    this.dots.innerHTML = list.map(()=>'<i></i>').join('');
+    this.next(true);
+  }
+  next(first){
+    if(!this.items.length) return;
+    if(this.paused && !first){ this.arm(); return; }
+    this.i = (this.i + 1) % this.items.length;
+    const all = this.slides.querySelectorAll('.slide'); all.forEach(s=>{ s.dataset.on = (Number(s.dataset.k) === this.i) ? '1' : '0'; });
+    [...this.dots.children].forEach((d, k)=>{ d.dataset.on = k === this.i ? '1' : '0'; });
+    const n = this.items[this.i]; const tag = this.slides.querySelector('[data-tag]'); if(tag) tag.textContent = (n.cat || n.source || '').toString();
+    // reinicia a barra de progresso
+    this.el.dataset.run = '0'; void this.el.offsetWidth; this.el.dataset.run = '1';
+    this.arm();
+  }
+  arm(){ clearTimeout(this.timer); this.timer = setTimeout(()=>{ if(document.visibilityState === 'visible') this.next(); else this.arm(); }, this.dur); }
+}
+const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
+const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
+let noticiasAt = 0;
+async function loadNoticias(force){
+  if(!force && Date.now() - noticiasAt < 40*60000) return;
+  noticiasAt = Date.now();
+  try{
+    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
+    if(!j || !j.ok) throw new Error('ponte sem notícias');
+    newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
+  }catch(e){
+    if(!newsPol.items.length) newsPol.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
+    if(!newsTec.items.length) newsTec.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
+  }
+}
+
+/* ===================== matriz de comandos (4×8) ===================== */
+const MATRIX_KEY = 'felyx.matrix.v1';
+// Padrão: cenas e aparelhos reais da Alexa do Leandro (lista obtida pela ponte Alexa em 14/10/2026). Tudo editável no botão "editar".
+const DEFAULT_TILES = [
+  { n:'Luz Alta',       f:'ativar a cena Luz Alta' },
+  { n:'Luz Baixa',      f:'ativar a cena Luz Baixa' },
+  { n:'Sanca',          f:'ativar a cena Sanca' },
+  { n:'Sala OFF',       f:'ativar a cena OFF_Sala' },
+  { n:'TV Sala',        f:'ativar a cena TV Sala' },
+  { n:'Apple TV',       f:'ativar a cena Apple TV' },
+  { n:'PlayStation',    f:'ativar a cena PlayStation' },
+  { n:'Globo',          f:'ativar a cena Globo' },
+  { n:'Música',         f:'ativar a cena Música' },
+  { n:'Mudo',           f:'ativar a cena Mudo' },
+  { n:'Vol Z1',         f:'ativar a cena Vol Z1' },
+  { n:'Vol SM',         f:'ativar a cena Vol SM' },
+  { n:'AC Sala',        f:'ativar a cena AC Sala' },
+  { n:'AC Suíte',       f:'ativar a cena AC Suíte' },
+  { n:'AC Felipe',      f:'ativar a cena AC Felipe' },
+  { n:'Ventilador',     f:'ligar o Ventilador' },
+  { n:'Cozinha',        f:'ativar a cena Cozinha' },
+  { n:'Bancada',        f:'ativar a cena Bancada' },
+  { n:'Café',           f:'ligar o Café' },
+  { n:'Nespresso',      f:'ligar a Nespresso' },
+  { n:'Cama',           f:'ativar a cena Cama' },
+  { n:'Closet',         f:'ativar a cena Closet' },
+  { n:'TV Suíte',       f:'ativar a cena TV Suíte' },
+  { n:'Master OFF',     f:'ativar a cena Master OFF' },
+  { n:'Porta',          f:'ativar a cena Porta' },
+  { n:'Persianas',      f:'ativar a cena Persianas' },
+  { n:'Cortina dir.',   f:'ativar a cena CortDir' },
+  { n:'Varanda',        f:'ligar a Varanda' },
+  { n:'Luminárias',     f:'ativar a cena Luminárias' },
+  { n:'Mesa',           f:'ligar a Mesa' },
+  { n:'Boa Noite',      f:'ativar a cena Boa Noite' },
+  { n:'Ventilador OFF', f:'desligar o Ventilador' },
+];
+const ALEXA_CENAS = ['OffautACSala','OFF_Sala','AC Suíte','Cozinha','Cama','Mudo','MudoSM','Música','3wBM','PlayStation','TV Sala','AC Felipe','Estante Felipe','Luminárias','PW Z2','PW Net','Porta','Luz Alta','PW Z1','Luz Baixa','Mesa','Master OFF','Globo','Apple TV','CortDir','CH','AC Sala','Sanca','Closet','Vol Z1','TV Suíte','Boa Noite','Bancada','Persianas','Vol SM','ONAutACSala'];
+const ALEXA_APARELHOS = ['Ventilador','Sala','Varanda','Suíte','Cozinha','Mesa','Lustre','Abajur','Nespresso','Café','Indireta','Estante','Muxarabi','Painel','Fita Pia','Fita 2','Porta','Entrada','Corredor','Lavabo','Banheiro','Closet','Área','Área Serviço','Armário','Led','Luz Baixa','Luminárias','Luminária Varanda','Tomada Adega','Quarto do Felipe','Mesa do Felipe','Ar da Sala','Ar da Suíte','Ar do Felipe','TV da Sala','TV da Suíte','TV do Felipe','Smart Cort','CortDir','Bancada','Casal Cama','Cab Leandro','Cab Joana','Banho Master','Blackout do Felipe'];
+(function fillDatalist(){
+  const dl = document.getElementById('phrases'); const opts = [];
+  ALEXA_CENAS.forEach(c=>opts.push('ativar a cena '+c));
+  ALEXA_APARELHOS.forEach(a=>{ opts.push('ligar '+a); opts.push('desligar '+a); });
+  dl.innerHTML = opts.map(o=>`<option value="${esc(o)}">`).join('');
+})();
+const gridEl = document.getElementById('grid'), matrixEl = document.getElementById('matrix'), editBtn = document.getElementById('editBtn');
+const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase');
+let tiles = loadTiles(), editMode = false, editing = -1;
+function loadTiles(){
+  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||'') })); } }catch(e){}
+  return DEFAULT_TILES.map(t=>({ ...t }));
+}
+function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
+function renderMatrix(){
+  gridEl.innerHTML = tiles.map((t, i)=>`<button class="tile" type="button" data-i="${i}" ${t.n ? '' : 'data-empty="1"'} title="${esc(t.f||'vazio')}"><span>${t.n ? esc(t.n) : '+'}</span></button>`).join('');
+}
+renderMatrix();
+gridEl.addEventListener('click', (e)=>{
+  const b = e.target.closest('.tile'); if(!b) return;
+  const i = Number(b.dataset.i);
+  if(editMode){ openEditor(i); return; }
+  if(!tiles[i].n || !tiles[i].f){ openEditor(i, true); return; }
+  runTile(i, b);
+});
+// pressionar e segurar (toque) abre o editor do botão
+let pressTimer = null;
+gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
+['pointerup','pointercancel','pointerleave'].forEach(ev=>gridEl.addEventListener(ev, ()=>{ clearTimeout(pressTimer); }));
+function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on) closeEditor(); }
+editBtn.addEventListener('click', ()=>setEdit(!editMode));
+function openEditor(i, temp){
+  editing = i; if(temp && !editMode){ matrixEl.dataset.edit = '1'; }
+  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || '';
+  editorEl.hidden = false; edName.focus();
+  editorEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
+document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim() }; saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'' }; saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edCancel').addEventListener('click', closeEditor);
+document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); saveTiles(); renderMatrix(); closeEditor(); } });
+edPhrase.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') document.getElementById('edSave').click(); });
+const FAIL_RX = /não consegui|não foi poss|falhou|\berro\b|indispon|não encontrei|não achei/i;
+async function runTile(i, btn){
+  const t = tiles[i]; if(!t || !t.f || btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1'; btn.dataset.res = '';
+  if(!conv) setState('thinking', t.n.toLowerCase());
+  let texto = '';
+  try{
+    const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta: t.f, sessionId: SESSION_ID, origem:'hud-toque' }) });
+    const j = await r.json(); texto = String(j.text || '');
+  }catch(e){ texto = ''; }
+  btn.dataset.busy = '0';
+  const ok = !!texto && !FAIL_RX.test(texto);
+  btn.dataset.res = ok ? 'ok' : 'fail'; setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
+  dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
+  const first = (texto || 'Sem resposta do cérebro.').split(/(?<=[.!?])\s/)[0];
+  addCard({ id:'toque', kicker:'casa · toque', title: esc(t.n), body: esc(first), chips:[{t: ok ? 'executado' : 'falhou', on: ok}], foot:'ponte alexa · '+esc(t.f), ttl: 12000 });
+  if(!conv) setState('idle', '');
+}
+
+/* ---------- briefing do bom dia (clima + cards já na tela) ---------- */
 let briefingAt = 0;
 async function briefing(){
   if(Date.now() - briefingAt < 60000) return; briefingAt = Date.now();
-  addCard({ id:'brief', kicker:'briefing · triagem', title:'Revisando o que está consolidado', chips:[{t:'clima'},{t:'câmbio'},{t:'bitcoin'},{t:'casa'}], foot:'somente itens verificados' });
+  addCard({ id:'brief', kicker:'briefing · triagem', title:'Revisando o que está consolidado', chips:[{t:'clima'},{t:'mercado'},{t:'notícias'},{t:'casa'}], foot:'somente itens verificados' });
   const tasks = [
     fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json()).then(j=>{
       const c = j.current, d = j.daily;
       addCard({ id:'clima', kicker:'panorama · clima', title:'Rio de Janeiro', value: fmt(c.temperature_2m,1)+'°', unit:(WMO[c.weather_code]||''),
-        chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(d.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(d.temperature_2m_max[0],0)+'°'},{t:'chuva '+d.precipitation_probability_max[0]+'%', on:d.precipitation_probability_max[0]>=50}] });
+        chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(d.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(d.temperature_2m_max[0],0)+'°'},{t:'chuva '+d.precipitation_probability_max[0]+'%', on:d.precipitation_probability_max[0]>=50}], ttl: 90000 });
     }).catch(()=>{}),
-    fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then(r=>r.json()).then(j=>{
-      const brl = j.rates.BRL, eur = j.rates.EUR;
-      addCard({ id:'cambio', kicker:'mercado · câmbio', title:'Dólar', value:'R$ '+fmt(brl,2), chips:[{t:'euro R$ '+fmt(brl/eur,2)},{t:'cotação '+j.date.split('-').reverse().slice(0,2).join('/')}] });
-    }).catch(()=>{}),
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd').then(r=>r.json()).then(j=>{
-      addCard({ id:'btc', kicker:'mercado · bitcoin', title:'Bitcoin', value:'US$ '+fmt(j.bitcoin.usd,0) });
-    }).catch(()=>{})
+    loadMercado(true).catch(()=>{}),
+    loadNoticias(true).catch(()=>{})
   ];
   await Promise.allSettled(tasks);
-  addCard({ id:'brief', kicker:'briefing · triagem', title:'Nada exige interromper o seu dia', body:'Clima, câmbio e bitcoin atualizados. A casa está pronta para comandos.', chips:[{t:'clima', on:true},{t:'câmbio', on:true},{t:'bitcoin', on:true},{t:'casa', on:true}], foot:'somente itens verificados' });
+  addCard({ id:'brief', kicker:'briefing · triagem', title:'Nada exige interromper o seu dia', body:'Clima, mercado e manchetes atualizados. A casa está pronta para comandos.', chips:[{t:'clima', on:true},{t:'mercado', on:true},{t:'notícias', on:true},{t:'casa', on:true}], foot:'somente itens verificados', ttl: 90000 });
 }
 
 /* ---------- sequência de abertura (íris) ---------- */
-const sleep = (ms)=>new Promise(r=>setTimeout(r, ms));
 async function bootSequence(){
   bootEl.innerHTML = ''; bootEl.dataset.on = '1'; setState('boot', '');
   const lines = [
@@ -449,9 +807,6 @@ async function bootSequence(){
 }
 
 /* ===================== Félix x Gemini Live ===================== */
-const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
-const TOKEN_URL = N8N + '/felix/token';
-const PERGUNTA_URL = N8N + '/felix/pergunta';
 const MODEL = 'gemini-3.8-live';
 const VOICE = 'Algieba';
 const SYSTEM = `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
@@ -462,7 +817,6 @@ Quem você é: quando perguntarem quem você é, qual é a sua história, de ond
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
 Se a função falhar ou vier vazia, diga que não conseguiu consultar o cérebro agora e peça para repetir.`;
 const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Às suas ordens. Félix em linha." e nada mais. Não chame nenhuma função agora.';
-const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
 class GeminiLive {
   constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; }
@@ -590,15 +944,15 @@ class GeminiLive {
 
 /* ---------- reação da interface ao que o cérebro respondeu ---------- */
 const GREETING = /\b(bom\s*dia|boa\s*tarde|boa\s*noite)\b/i;
-const HOUSE = /\b(lig|deslig|acend|apag|abr|fech|ativ|aument|diminu|cena|rotina|cortina|ar[- ]condicionado|ventilador|luz|luzes|tv|lâmpada|tomada)/i;
+const HOUSE = /\b(lig|deslig|acend|apag|abr|fech|ativ|aument|diminu|cena|rotina|cortina|persiana|ar[- ]condicionado|ventilador|luz|luzes|tv|lâmpada|tomada|luminária)/i;
 function onBrain(pergunta, resposta){
   if(GREETING.test(pergunta)) briefing();
-  if(!resposta) { addCard({ kicker:'sistema', title:'Cérebro indisponível', body:'A pergunta não chegou ao cérebro. Tente de novo.', foot:'falha de comunicação' }); return; }
+  if(!resposta) { addCard({ kicker:'sistema', title:'Cérebro indisponível', body:'A pergunta não chegou ao cérebro. Tente de novo.', foot:'falha de comunicação', ttl: 15000 }); return; }
   if(HOUSE.test(pergunta) && !GREETING.test(pergunta)){
-    const ok = !/não consegui|falhou|erro|não foi poss/i.test(resposta);
+    const ok = !FAIL_RX.test(resposta);
     dotHouse.dataset.on = ok ? '1' : '0';
     const p = pergunta.trim(); const first = resposta.split(/(?<=[.!?])\s/)[0];
-    addCard({ kicker:'casa · alexa', title: p.charAt(0).toUpperCase()+p.slice(1).replace(/[.!?]+$/,''), body: esc(first), chips:[{t: ok ? 'executado' : 'falhou', on: ok}], foot:'ponte alexa' });
+    addCard({ kicker:'casa · alexa', title: esc(p.charAt(0).toUpperCase()+p.slice(1).replace(/[.!?]+$/,'')), body: esc(first), chips:[{t: ok ? 'executado' : 'falhou', on: ok}], foot:'ponte alexa', ttl: 20000 });
   }
 }
 
@@ -607,7 +961,7 @@ async function start(){
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; dotHouse.dataset.on='0'; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   try{
     const boot = bootSequence();
@@ -627,12 +981,19 @@ async function start(){
 }
 function stop(){ if(conv){ conv.end(); } }
 talkBtn.addEventListener('click', ()=> conv ? stop() : start());
-// tecla D: demonstra a animação da fala por 6 s sem conectar; tecla B: mostra os cards do briefing
+// tecla D: demonstra a animação da fala por 6 s sem conectar; B: briefing; I: abertura (íris); M: recarrega mercado e notícias
 document.addEventListener('keydown', (e)=>{
+  if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   if(e.key==='d' && !conv){ demoUntil = performance.now()+6000; setState('speaking',''); setTimeout(()=>{ if(!conv && performance.now()>=demoUntil) setState('idle',''); }, 6050); }
   if(e.key==='b' && !conv){ briefing(); }
   if(e.key==='i' && !conv){ bootSequence().then(()=>setState('idle','')); }
+  if(e.key==='m'){ loadMercado(true); loadNoticias(true); }
 });
+
+/* ---------- carga inicial e atualização periódica ---------- */
+loadMercado(true); loadNoticias(true);
+setInterval(()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } }, 60000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } });
 </script>
 </body>
 </html>
