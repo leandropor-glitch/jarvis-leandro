@@ -189,7 +189,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   html,body{height:auto;min-height:100%}
   body{overflow-y:visible;overflow-x:hidden}
   .hud{height:auto;min-height:100%;grid-template-rows:auto auto auto}
-  .stage{grid-template-columns:1fr 1fr;grid-template-areas:"center center" "left right"}
+  .stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"center center" "left right"}
   .center{grid-area:center;min-height:52vh}
   .col{overflow:visible}
   .col.left{grid-area:left}.col.right{grid-area:right}
@@ -199,7 +199,10 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 }
 /* ---------- telefone ---------- */
 @media (max-width:700px){
-  .stage{grid-template-columns:1fr;grid-template-areas:"center" "right" "left";gap:12px}
+  .stage{grid-template-columns:minmax(0,1fr);grid-template-areas:"center" "right" "left";gap:12px}
+  .col,.center,.panel{min-width:0}
+  .top .state{min-width:0;overflow:hidden}
+  .ticks{gap:2px}
   .center{min-height:auto;display:flex;flex-direction:column;align-items:center;gap:10px}
   .orbWrap{width:min(78vw,44vh)}
   .deck{position:relative;inset:auto;flex-direction:column;width:100%;gap:8px}
