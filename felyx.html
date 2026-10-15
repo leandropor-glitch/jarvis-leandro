@@ -221,9 +221,26 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 }
 @media (prefers-reduced-motion: reduce){.scan .line,.scan .ret,.boot .caret::after,.news .slide img,.news .bar,.tile[data-busy="1"]{animation:none}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* destaque do card que o Felyx está apresentando */
+.panel{transition:box-shadow .5s,border-color .5s,transform .5s}
+.panel[data-focus="1"]{border-color:rgba(var(--accent-rgb),.85);box-shadow:0 0 0 1px rgba(var(--accent-rgb),.5),0 0 38px rgba(var(--accent-rgb),.28),0 10px 40px rgba(0,0,0,.45);transform:scale(1.015)}
+/* tela de desbloqueio (quando o navegador exige um toque para liberar som e microfone) */
+.unlock{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 45%,rgba(var(--accent-rgb),.08),rgba(6,7,10,.94) 60%);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;transition:opacity .5s}
+.unlock[hidden]{display:none}
+.unlock .box{display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;padding:24px}
+.unlock .eye{position:relative;width:132px;height:132px;border-radius:50%;border:1.5px solid rgba(var(--accent-rgb),.85);box-shadow:0 0 40px rgba(var(--accent-rgb),.35),inset 0 0 30px rgba(var(--accent-rgb),.15)}
+.unlock .eye::before{content:"";position:absolute;inset:26%;border-radius:50%;border:1px solid rgba(var(--accent-rgb),.7);animation:ret 1.6s ease-in-out infinite}
+.unlock .eye::after{content:"";position:absolute;left:8%;right:8%;height:2px;top:0;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.95),transparent);box-shadow:0 0 14px rgba(var(--accent-rgb),.9);animation:eyeScan 1.8s ease-in-out infinite}
+@keyframes eyeScan{0%{top:12%}50%{top:86%}100%{top:12%}}
+.unlock .t1{font-family:var(--mono);font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--accent)}
+.unlock .t2{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
 </style>
 </head>
 <body>
+<div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
+  <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
+</div>
 <div class="hud" id="hud" data-state="idle">
   <header class="top">
     <div class="meta left"><span class="dot" id="dotHouse"></span><span id="houseLabel">felyx · vinci ai</span></div>
@@ -656,6 +673,7 @@ class NewsPanel {
     this.el.dataset.run = '0'; void this.el.offsetWidth; this.el.dataset.run = '1';
     this.arm();
   }
+  show(idx){ if(!this.items.length) return; const k = Math.max(0, Math.min(this.items.length-1, Number(idx)||0)); this.i = k - 1; this.next(true); }
   arm(){ clearTimeout(this.timer); this.timer = setTimeout(()=>{ if(document.visibilityState === 'visible') this.next(); else this.arm(); }, this.dur); }
 }
 const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
@@ -798,28 +816,150 @@ async function briefing(){
   addCard({ id:'brief', kicker:'briefing · triagem', title:'Nada exige interromper o seu dia', body:'Clima, mercado e manchetes atualizados. A casa está pronta para comandos.', chips:[{t:'clima', on:true},{t:'mercado', on:true},{t:'notícias', on:true},{t:'casa', on:true}], foot:'somente itens verificados', ttl: 90000 });
 }
 
+/* ---------- áudio: liberação, som do leitor de íris e voz robótica ---------- */
+let fxCtx = null;
+function primeAudio(){
+  // Precisa rodar dentro de um toque/clique: libera som e voz no Safari e no Chrome.
+  const AC = window.AudioContext || window.webkitAudioContext;
+  try{ if(!fxCtx || fxCtx.state === 'closed') fxCtx = new AC(); if(fxCtx.state === 'suspended') fxCtx.resume(); }catch(e){}
+  try{ if(!window.__felyxOut || window.__felyxOut.state === 'closed') window.__felyxOut = new AC({ sampleRate: 24000 }); window.__felyxOut.resume(); }catch(e){}
+  try{ if(!window.__felyxIn || window.__felyxIn.state === 'closed') window.__felyxIn = new AC(); window.__felyxIn.resume(); }catch(e){}
+  try{ if(window.speechSynthesis){ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } }catch(e){}
+}
+function tone(ctx, t, f0, f1, dur, vol, type){
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f0, t); if(f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+function irisScanSound(seconds){
+  const ctx = fxCtx; if(!ctx || ctx.state !== 'running') return;
+  const t = ctx.currentTime + 0.05;
+  // varredura: zumbido que sobe e desce, com pulsos de leitura
+  const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain(), f = ctx.createBiquadFilter();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(180, t); o.frequency.linearRampToValueAtTime(420, t + seconds*0.5); o.frequency.linearRampToValueAtTime(240, t + seconds);
+  f.type = 'bandpass'; f.frequency.value = 1200; f.Q.value = 6;
+  lfo.frequency.value = 11; lg.gain.value = 0.025; lfo.connect(lg); lg.connect(g.gain);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 0.15); g.gain.setValueAtTime(0.05, t + seconds - 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
+  o.connect(f); f.connect(g); g.connect(ctx.destination); o.start(t); lfo.start(t); o.stop(t + seconds + 0.1); lfo.stop(t + seconds + 0.1);
+  for(let i=0;i<Math.floor(seconds*5);i++) tone(ctx, t + 0.1 + i*0.2, 2400 + (i%3)*300, 0, 0.05, 0.035, 'square');
+}
+function irisOkSound(){
+  const ctx = fxCtx; if(!ctx || ctx.state !== 'running') return;
+  const t = ctx.currentTime + 0.03;
+  tone(ctx, t, 880, 0, 0.14, 0.08, 'triangle'); tone(ctx, t + 0.15, 1320, 0, 0.14, 0.08, 'triangle'); tone(ctx, t + 0.3, 1760, 0, 0.35, 0.07, 'triangle');
+}
+function robotVoice(){
+  if(!window.speechSynthesis) return null;
+  const vs = speechSynthesis.getVoices() || [];
+  return vs.find(v=>/pt[-_]BR/i.test(v.lang) && /male|daniel|felipe|ricardo|antonio|google/i.test(v.name)) || vs.find(v=>/pt[-_]BR/i.test(v.lang)) || vs.find(v=>/^pt/i.test(v.lang)) || null;
+}
+function speakRobot(text){
+  return new Promise((done)=>{
+    if(!window.speechSynthesis){ done(); return; }
+    let finished = false; const end = ()=>{ if(!finished){ finished = true; done(); } };
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      const v = robotVoice(); if(v) u.voice = v;
+      u.lang = 'pt-BR'; u.pitch = 0.35; u.rate = 0.92; u.volume = 1;
+      u.onend = end; u.onerror = end;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+      setTimeout(end, 1500 + text.length * 95);
+    }catch(e){ end(); }
+  });
+}
+try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = ()=>{}; }catch(e){}
+
 /* ---------- sequência de abertura (íris) ---------- */
 async function bootSequence(){
   bootEl.innerHTML = ''; bootEl.dataset.on = '1'; setState('boot', '');
-  const lines = [
-    ['iniciando sistema', 600],
-    ['verificando a sua íris', 2300, 'scan'],
-    ['íris confirmada · acesso liberado', 700, 'ok'],
-    ['sincronizando a casa', 900],
-    ['casa sincronizada · alexa', 500, 'ok'],
-  ];
-  for(const [txt, ms, mode] of lines){
-    const d = document.createElement('div'); d.className = 'caret'; d.textContent = txt; bootEl.appendChild(d);
-    if(mode === 'scan') scanEl.dataset.on = '1';
-    await sleep(ms);
-    d.classList.remove('caret');
-    if(mode === 'ok'){ d.classList.add('ok'); d.innerHTML = '<b>✓</b> ' + esc(txt); }
-    if(mode === 'scan'){ scanEl.dataset.on = '0'; }
-    if(mode === 'ok' && txt.indexOf('casa') === 0){ dotHouse.dataset.on = '1'; }
-  }
-  await sleep(500);
+  const line = (txt)=>{ const d = document.createElement('div'); d.className = 'caret'; d.textContent = txt; bootEl.appendChild(d); return d; };
+  const ok = (d, txt)=>{ d.classList.remove('caret'); d.classList.add('ok'); d.innerHTML = '<b>✓</b> ' + esc(txt); };
+  let d = line('iniciando sistema'); await sleep(500); d.classList.remove('caret');
+  d = line('efetuando a leitura da sua íris'); scanEl.dataset.on = '1';
+  irisScanSound(3.2);
+  await speakRobot('Efetuando a leitura da sua íris.');
+  await sleep(2000);
+  scanEl.dataset.on = '0'; irisOkSound(); ok(d, 'íris confirmada · leandro');
+  d = line('felyx desbloqueado');
+  await speakRobot('Parabéns, Leandro. Seu Felyx foi desbloqueado com sucesso.');
+  ok(d, 'felyx desbloqueado');
+  d = line('sincronizando a casa'); await sleep(500); ok(d, 'casa sincronizada · alexa'); dotHouse.dataset.on = '1';
+  await sleep(400);
   bootEl.dataset.on = '0';
 }
+
+/* ---------- boas-vindas (texto escrito pelo Claude no n8n, lido pelo Felyx) ---------- */
+const BOASVINDAS_URL = N8N + '/felix/boasvindas';
+function saudacaoAgora(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'); }
+async function climaAgora(){
+  try{
+    const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+    const c = j.current, dd = j.daily;
+    addCard({ id:'clima', kicker:'panorama · clima', title:'Rio de Janeiro', value: fmt(c.temperature_2m,1)+'°', unit:(WMO[c.weather_code]||''),
+      chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(dd.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(dd.temperature_2m_max[0],0)+'°'},{t:'chuva '+dd.precipitation_probability_max[0]+'%', on:dd.precipitation_probability_max[0]>=50}], ttl: 120000 });
+    return { temperatura: c.temperature_2m, sensacao: c.apparent_temperature, descricao: WMO[c.weather_code] || '', max: dd.temperature_2m_max[0], min: dd.temperature_2m_min[0], chuva: dd.precipitation_probability_max[0] };
+  }catch(e){ return null; }
+}
+function mercadoResumo(m){
+  if(!m) return null;
+  const pct = (x)=> (typeof x === 'number') ? ((x>0?'+':'') + fmt(x,2) + '%') : '';
+  const out = {};
+  if(m.usdtbrl) out['USDT/BRL (dólar em real)'] = 'R$ ' + fmt(m.usdtbrl.preco, 4) + ' ' + pct(m.usdtbrl.chg);
+  const c = m.cripto || {};
+  [['bitcoin','BTC/USDT'],['ethereum','ETH/USDT'],['solana','SOL/USDT'],['zcash','ZEC/USDT']].forEach(([k, n])=>{ const v = c[k]; if(v && (v.usdt || v.usd)) out[n] = fmt(v.usdt || v.usd, 2) + ' ' + pct(typeof v.chgUsdt === 'number' ? v.chgUsdt : v.chg); });
+  if(m.clusdt) out['CLUSDT (petróleo WTI)'] = fmt(m.clusdt.usdt, 2) + ' ' + pct(m.clusdt.chg);
+  return out;
+}
+function boasVindasLocal(sd){
+  return [
+    { alvo:'abertura', noticia:null, texto: sd + ', Leandro. O Rio continua no lugar de sempre, o que já é uma vitória.' },
+    { alvo:'mercado', noticia:null, texto: 'À esquerda, o mercado: o dólar segue fingindo que não se importa com a gente.' },
+    { alvo:'politica', noticia:0, texto: 'Na política, a manchete do momento promete muito e, como de costume, explica pouco.' },
+    { alvo:'tecnologia', noticia:0, texto: 'Em tecnologia, as máquinas seguem evoluindo. Eu, modestamente, incluído.' },
+    { alvo:'comandos', noticia:null, texto: 'Os trinta e dois comandos da casa estão à direita, a um toque de distância.' },
+    { alvo:'fecho', noticia:null, texto: 'Em que posso ser útil?' }
+  ];
+}
+async function pedirBoasVindas(){
+  const sd = saudacaoAgora();
+  try{
+    await Promise.allSettled([ mercadoData ? null : loadMercado(true), (newsPol.items.length && newsTec.items.length) ? null : loadNoticias(true) ]);
+    const clima = await climaAgora();
+    const body = { saudacao: sd, hora: hhmm(new Date()), clima, mercado: mercadoResumo(mercadoData),
+      politica: newsPol.items.map(n=>n.title), tecnologia: newsTec.items.map(n=>n.title) };
+    const ctrl = new AbortController(); const tm = setTimeout(()=>ctrl.abort(), 25000);
+    const r = await fetch(BOASVINDAS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctrl.signal });
+    clearTimeout(tm);
+    const j = await r.json();
+    if(j && Array.isArray(j.segmentos) && j.segmentos.length) return j.segmentos;
+  }catch(e){}
+  return boasVindasLocal(sd);
+}
+const PANELS = { mercado:'market', politica:'newsPol', tecnologia:'newsTec', comandos:'matrix' };
+function focar(seg){
+  Object.values(PANELS).forEach(id=>{ const el = document.getElementById(id); if(el) el.dataset.focus = '0'; });
+  if(!seg) return;
+  const id = PANELS[seg.alvo]; const el = id && document.getElementById(id);
+  if(el){ el.dataset.focus = '1'; if(matchMedia('(max-width:1100px)').matches) el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  if(seg.alvo === 'politica' && seg.noticia != null) newsPol.show(seg.noticia);
+  if(seg.alvo === 'tecnologia' && seg.noticia != null) newsTec.show(seg.noticia);
+}
+// acompanha a fala do Felyx (transcrição do áudio) e acende o card do trecho que ele está lendo
+const welcome = { segs:null, starts:[], total:0, heard:0, active:false, cur:-1 };
+function iniciarAcompanhamento(segs){
+  welcome.segs = segs; welcome.starts = []; let acc = 0;
+  segs.forEach(s=>{ welcome.starts.push(acc); acc += s.texto.length + 1; });
+  welcome.total = acc; welcome.heard = 0; welcome.active = true; welcome.cur = -1;
+  focar(segs[0]); welcome.cur = 0;
+}
+function aoOuvirTranscricao(t){
+  if(!welcome.active || !welcome.segs) return;
+  welcome.heard += t.length;
+  let k = 0; for(let i=0;i<welcome.starts.length;i++){ if(welcome.heard + 6 >= welcome.starts[i]) k = i; }
+  if(k !== welcome.cur){ welcome.cur = k; focar(welcome.segs[k]); }
+}
+function encerrarAcompanhamento(){ if(!welcome.active) return; welcome.active = false; setTimeout(()=>focar(null), 2500); }
 
 /* ===================== Félix x Gemini Live ===================== */
 const MODEL = 'gemini-3.8-live';
@@ -830,11 +970,12 @@ Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palav
 Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, bitcoin, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, palavra por palavra, sem resumir, sem inventar e sem acrescentar nada.
 Quem você é: quando perguntarem quem você é, qual é a sua história, de onde veio ou quem o criou, NUNCA responda de cabeça: chame consultar_cerebro e leia a história que vier, inteira, exatamente como veio.
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
-Se a função falhar ou vier vazia, diga que não conseguiu consultar o cérebro agora e peça para repetir.`;
+Se a função falhar ou vier vazia, diga que não conseguiu consultar o cérebro agora e peça para repetir.
+Mensagens que começam com "Mensagem automática do sistema" são instruções da própria página: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Às suas ordens. Félix em linha." e nada mais. Não chame nenhuma função agora.';
 
 class GeminiLive {
-  constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; }
+  constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; this.onTranscript=()=>{}; this.micOpen=true; }
   async start(){
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
     const r = await fetch(TOKEN_URL, { cache:'no-store' });
@@ -867,6 +1008,7 @@ class GeminiLive {
         const sc = m.serverContent;
         if(sc){
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); }
+          if(sc.outputTranscription && sc.outputTranscription.text){ try{ this.onTranscript(sc.outputTranscription.text); }catch(e){} }
           if(sc.modelTurn && sc.modelTurn.parts){
             for(const p of sc.modelTurn.parts){ if(p.inlineData && p.inlineData.data){ this.playChunk(p.inlineData.data); } }
           }
@@ -876,15 +1018,22 @@ class GeminiLive {
       this.ws.onclose = (e)=>{ if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
     });
   }
+  sayText(texto){
+    if(!this.ws || this.ws.readyState!==1) return;
+    const msg = 'Mensagem automática do sistema: a sessão acabou de abrir. Leia em voz alta o texto abaixo exatamente como está escrito, palavra por palavra, com energia e com o timing de quem conta uma piada, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto;
+    this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
+  }
   sayOpening(){
     if(!this.ws || this.ws.readyState!==1) return;
     this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: OPENING }] }], turnComplete: true } }));
   }
   async startAudio(){
-    this.outCtx = new (window.AudioContext||window.webkitAudioContext)({ sampleRate: 24000 });
+    this.outCtx = (window.__felyxOut && window.__felyxOut.state !== 'closed') ? window.__felyxOut : new (window.AudioContext||window.webkitAudioContext)({ sampleRate: 24000 });
+    try{ if(this.outCtx.state === 'suspended') await this.outCtx.resume(); }catch(e){}
     this.analyser = this.outCtx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(this.outCtx.destination);
     this.playhead = this.outCtx.currentTime;
-    this.inCtx = new (window.AudioContext||window.webkitAudioContext)();
+    this.inCtx = (window.__felyxIn && window.__felyxIn.state !== 'closed') ? window.__felyxIn : new (window.AudioContext||window.webkitAudioContext)();
+    try{ if(this.inCtx.state === 'suspended') await this.inCtx.resume(); }catch(e){}
     const src = this.inCtx.createMediaStreamSource(this.micStream);
     const code = `class Cap extends AudioWorkletProcessor{constructor(){super();this.buf=[];this.n=0;}process(inputs){const ch=inputs[0]&&inputs[0][0];if(!ch)return true;this.buf.push(ch.slice(0));this.n+=ch.length;if(this.n>=2048){const all=new Float32Array(this.n);let o=0;for(const b of this.buf){all.set(b,o);o+=b.length;}this.buf=[];this.n=0;this.port.postMessage(all,[all.buffer]);}return true;}}registerProcessor('cap',Cap);`;
     const url = URL.createObjectURL(new Blob([code], {type:'application/javascript'}));
@@ -894,7 +1043,7 @@ class GeminiLive {
     this.worklet.port.onmessage = (ev)=>{
       const f = ev.data;
       let s2=0; for(let i=0;i<f.length;i+=4) s2+=f[i]*f[i]; this.inLevel = Math.sqrt(s2/(f.length/4));
-      if(!this.ws || this.ws.readyState!==1) return;
+      if(!this.ws || this.ws.readyState!==1 || !this.micOpen) return;
       const n = Math.floor(f.length/ratio); const pcm = new Int16Array(n);
       for(let i=0;i<n;i++){ const s = Math.max(-1, Math.min(1, f[Math.floor(i*ratio)])); pcm[i] = s<0 ? s*0x8000 : s*0x7FFF; }
       let bin=''; const bytes = new Uint8Array(pcm.buffer); for(let i=0;i<bytes.length;i+=0x8000){ bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000)); }
@@ -978,13 +1127,24 @@ async function start(){
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
   g.onClose = (reason)=>{ if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
+  g.onTranscript = aoOuvirTranscricao;
+  g.micOpen = false;   // microfone só abre depois das boas-vindas (o Felyx não ouve a própria abertura)
   try{
     const boot = bootSequence();
+    const textoBV = pedirBoasVindas();
     await g.start();
     await boot;
     conv = g;
     setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=false;
-    g.sayOpening();
+    const segs = await textoBV;
+    if(conv !== g) return;
+    iniciarAcompanhamento(segs);
+    g.sayText(segs.map(s=>s.texto).join(' '));
+    // quando o Felyx terminar de falar, abre o microfone e apaga os destaques
+    let falou = false;
+    const prev = g.onState;
+    g.onState = (s)=>{ prev(s); if(s === 'speaking') falou = true; if(falou && s === 'listening' && !g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); statusText.textContent = 'pode falar'; setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 4000); } };
+    setTimeout(()=>{ if(!g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); } }, 120000);
   }catch(e){
     g.teardown('');
     bootEl.dataset.on='0'; scanEl.dataset.on='0';
@@ -995,7 +1155,22 @@ async function start(){
   }
 }
 function stop(){ if(conv){ conv.end(); } }
-talkBtn.addEventListener('click', ()=> conv ? stop() : start());
+talkBtn.addEventListener('click', ()=>{ if(conv){ stop(); return; } primeAudio(); start(); });
+
+/* ---------- abertura automática ---------- */
+// Ao abrir a página o Felyx já tenta começar sozinho. Se o navegador exigir um toque para liberar som e microfone,
+// aparece a tela da íris: um toque em qualquer lugar e a abertura segue.
+const unlockEl = document.getElementById('unlock');
+function liberarEComecar(){ if(unlockEl.hidden) return; unlockEl.hidden = true; primeAudio(); if(!conv) start(); }
+unlockEl.addEventListener('pointerdown', liberarEComecar);
+unlockEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') liberarEComecar(); });
+(function autoAbrir(){
+  let podeTocar = false;
+  try{ if(navigator.userActivation && navigator.userActivation.hasBeenActive) podeTocar = true; }catch(e){}
+  try{ const AC = window.AudioContext || window.webkitAudioContext; const t = new AC(); podeTocar = podeTocar || t.state === 'running'; if(podeTocar){ fxCtx = t; } else t.close(); }catch(e){}
+  if(podeTocar){ primeAudio(); setTimeout(()=>{ if(!conv) start(); }, 300); }
+  else { unlockEl.hidden = false; setTimeout(()=>{ try{ unlockEl.focus(); }catch(e){} }, 50); }
+})();
 // tecla D: demonstra a animação da fala por 6 s sem conectar; B: briefing; I: abertura (íris); M: recarrega mercado e notícias
 document.addEventListener('keydown', (e)=>{
   if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
