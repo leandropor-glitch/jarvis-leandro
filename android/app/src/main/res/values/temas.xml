@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="fundo">#06070A</color>
+    <color name="fundo_icone">#000000</color>
     <color name="acento">#D6FF1A</color>
     <style name="Tema.Felyx" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/fundo</item>
