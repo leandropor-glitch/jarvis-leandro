@@ -187,6 +187,35 @@ body.vision #app{background:transparent}
 body.vision .card,body.vision .tile,body.vision .newsItem,body.vision .devs{background:rgba(28,29,33,.62);border-color:rgba(255,255,255,.18);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
 body.vision .tile,body.vision .chip{border-radius:28px}
 
+
+/* ===== iPhone Duo fechado (tela larga e baixa): rosto e microfone lado a lado ===== */
+#app.l-phone.duo-f #vFelyx{display:none}
+#app.l-phone.duo-f #vFelyx[data-on="1"]{display:grid;grid-template-columns:206px minmax(0,1fr);column-gap:16px;align-content:start;padding-top:calc(var(--safe-t) + 12px)}
+#app.l-phone.duo-f #vFelyx > *{grid-column:1 / -1}
+#app.l-phone.duo-f #vFelyx .stage{grid-column:1;height:236px;margin:12px 0 0;border-radius:22px;background:#000}
+#app.l-phone.duo-f #vFelyx .stage img{-webkit-mask-image:none;mask-image:none}
+#app.l-phone.duo-f #vFelyx .bars{left:14px;right:14px;bottom:12px;height:54px}
+#app.l-phone.duo-f #vFelyx .ctl{grid-column:2;align-self:center;align-items:flex-start!important;margin:12px 0 0!important}
+#app.l-phone.duo-f #vFelyx .mic{width:68px;height:68px}
+#app.l-phone.duo-f #vFelyx .destaque{margin-top:16px}
+#app.l-phone.duo-f #vFelyx .favs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-top:12px}
+#app.l-phone.duo-f .saud{display:block}
+.saud{display:none;font-size:22px;line-height:27px;font-weight:500}
+
+/* ===== iPhone Duo aberto: duas metades, Felyx à esquerda e a seção escolhida à direita ===== */
+#app.l-duo{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto}
+#app.l-duo .side,#app.l-duo #aside,#app.l-duo .fab,#app.l-duo .afab{display:none!important}
+#app.l-duo .view{display:none;grid-row:1;min-height:0;overflow:auto;padding:calc(var(--safe-t) + 14px) 22px 20px}
+#app.l-duo #vFelyx{display:flex;flex-direction:column;gap:14px;grid-column:1}
+#app.l-duo .view.direita{display:flex;flex-direction:column;grid-column:2;border-left:1px solid #15171c}
+#app.l-duo .tabbar{grid-column:1 / -1;grid-row:2}
+#app.l-duo #vFelyx .stage{height:min(380px,42vh);margin:0 -22px;flex:none}
+#app.l-duo #vFelyx .mic{width:76px;height:76px}
+#app.l-duo #vFelyx .chat,#app.l-duo #vFelyx .ask,#app.l-duo #vFelyx .favs{display:none}
+#app.l-duo #vFelyx.conversa .chat{display:flex;flex:1;min-height:120px}
+#app.l-duo #vFelyx.conversa .ask{display:flex}
+#app.l-duo #vFelyx.conversa .destaque{display:none}
+
 @media (prefers-reduced-motion: reduce){ .mic[data-on="1"]::after{animation:none} .bars i{transition:none} }
 </style>
 </head>
@@ -254,6 +283,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
     </div>
     <div class="ctl" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:6px">
       <span class="state" id="estado" aria-live="polite"></span>
+      <span class="saud" id="saud"></span>
       <button class="mic" id="mic" type="button" aria-label="Falar com o Felyx" data-on="0">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
       </button>
@@ -474,14 +504,30 @@ $('#bSair').addEventListener('click', sair);
 let atual = store.get('felyx.aba', 'vFelyx');
 function layout(){
   const w = innerWidth;
-  const l = PLAT === 'vision' ? 'l-tablet' : (w >= 1200 || PLAT === 'mac') && PLAT !== 'ipad' ? 'l-desk' : (w >= 760 ? 'l-tablet' : 'l-phone');
-  const app = $('#app'); app.classList.remove('l-phone', 'l-tablet', 'l-desk'); app.classList.add(l);
+  const h = innerHeight;
+  // iPhone Duo aberto: 600–759 pt de largura em pé vira "livro" (duas metades); fechado: tela larga e baixa
+  const l = PLAT === 'vision' ? 'l-tablet' : (w >= 1200 || PLAT === 'mac') && PLAT !== 'ipad' ? 'l-desk' : (w >= 760 ? 'l-tablet' : (w >= 600 ? 'l-duo' : 'l-phone'));
+  const app = $('#app'); app.classList.remove('l-phone', 'l-tablet', 'l-desk', 'l-duo'); app.classList.add(l);
+  app.classList.toggle('duo-f', l === 'l-phone' && w >= 430 && h / w < 1.75);
   $$('.phoneOnly').forEach((el) => { el.hidden = l !== 'l-phone'; });
   $('#askIn').placeholder = l === 'l-desk' ? 'Escreva ou aperte espaço para falar' : 'Escreva para o Felyx';
   ir(atual, true);
 }
+let direita = store.get('felyx.direita', 'vCasa');
 function ir(id, quieto){
   const l = $('#app').className;
+  if (l.includes('l-duo')){
+    // Duo aberto: o Felyx fica sempre à esquerda; a aba Felyx alterna entre destaque e conversa
+    if (id === 'vFelyx') $('#vFelyx').classList.toggle('conversa', quieto ? $('#vFelyx').classList.contains('conversa') : !$('#vFelyx').classList.contains('conversa'));
+    else direita = id;
+    atual = id;
+    $$('.view').forEach((v) => { v.classList.toggle('direita', v.id === direita); v.dataset.on = (v.id === direita || v.id === 'vFelyx') ? '1' : '0'; });
+    $$('[data-go]').forEach((b) => { if (b.closest('.tabbar,.side')) b.setAttribute('aria-current', (b.dataset.go === direita || (b.dataset.go === 'vFelyx' && $('#vFelyx').classList.contains('conversa'))) ? 'page' : 'false'); });
+    if (!quieto) store.set('felyx.direita', direita);
+    if (direita === 'vCasa') carregarCasa();
+    return;
+  }
+  $$('.view').forEach((v) => v.classList.remove('direita'));
   if (l.includes('l-tablet') && id !== 'vAjustes'){ $('#vAjustes').dataset.on = '0'; atual = 'vFelyx'; }
   else atual = id;
   $$('.view').forEach((v) => { v.dataset.on = v.id === atual ? '1' : '0'; });
@@ -848,6 +894,7 @@ async function abrirApp(){
   $('#versao').textContent = 'Felyx AI Vinci · versão ' + VERSAO + (PLAT ? ' · ' + PLAT : '');
   avisarNativo('login', { nome: sessao.nome, token: sessao.token });
   layout(); estado('idle', primeiroNome() ? saudacao().toUpperCase() + ', ' + primeiroNome().toUpperCase() : '');
+  $('#saud').textContent = saudacao() + (primeiroNome() ? ', ' + primeiroNome() : '') + '.';
   carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
   // confere a sessão no servidor (expirou ou foi encerrada em outro lugar)
   try{ const j = await api('sessao', { token: sessao.token }); if (j.ok){ sessao.nome = j.nome || sessao.nome; store.set('felyx.sessao', sessao); $('#ajNome').textContent = sessao.nome; } else if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); } }catch(e){}
