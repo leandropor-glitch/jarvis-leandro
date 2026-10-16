@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06070a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Felyx AI Vinci</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Share+Tech+Mono&display=swap">
+<style>
+:root{
+  --bg:#06070a; --bg2:#0a0b0e; --card:#111317; --card2:#0d0f13; --line:#1f2228; --line2:#1a1d22; --line3:#2a2e35;
+  --ink:#e9eae6; --mute:#8a8d86; --soft:#c9cbc5; --acc:#d6ff1a; --acc-ink:#06070a; --up:#7fd88a; --dn:#ff8a82;
+  --mono:'Share Tech Mono', ui-monospace, monospace; --sans:'Saira', system-ui, sans-serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{overflow:hidden}
+button,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--acc)}
+.mono{font-family:var(--mono)}
+.kick{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--mute);text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ---------- login ---------- */
+#login{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:calc(var(--safe-t) + 28px) 22px calc(var(--safe-b) + 28px)}
+#login .face{width:min(520px,100%);height:300px;object-fit:cover;object-position:50% 30%;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+#login .box{width:min(380px,100%);display:flex;flex-direction:column;gap:14px;margin-top:4px}
+#login h1{margin:0;font-size:28px;font-weight:500}
+#login p{margin:0;color:var(--soft);font-size:15px;line-height:21px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--mute)}
+.field input{height:52px;border-radius:14px;border:1px solid var(--line3);background:var(--card);padding:0 16px;font-size:18px;outline:none}
+.field input:focus{border-color:var(--acc)}
+.btn{height:52px;border-radius:26px;border:0;background:var(--acc);color:var(--acc-ink);font-size:16px;font-weight:600}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line3);font-weight:500}
+.link{background:none;border:0;color:var(--acc);font-size:14px;padding:6px 0;text-align:left}
+.msg{min-height:20px;font-size:14px;line-height:20px;color:var(--dn)}
+.msg.ok{color:var(--up)}
+.code{letter-spacing:10px;text-align:center;font-family:var(--mono)!important;font-size:26px!important}
+
+/* ---------- app (estrutura) ---------- */
+#app{position:fixed;inset:0;display:grid}
+.panel{min-width:0;min-height:0}
+.top{display:flex;justify-content:space-between;align-items:center}
+.dot{width:8px;height:8px;border-radius:4px;background:var(--acc);display:inline-block}
+.dot[data-on="0"]{background:var(--dn)}
+
+/* Felyx (rosto + barras + microfone) */
+.stage{position:relative;display:flex;justify-content:center;align-items:flex-end;overflow:hidden}
+.stage img{position:relative;width:100%;height:100%;object-fit:cover;object-position:50% 30%;z-index:1;-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
+.bars{position:absolute;left:22px;right:22px;bottom:26px;height:120px;display:flex;align-items:flex-end;justify-content:space-between;z-index:2;pointer-events:none;mix-blend-mode:screen}
+.bars i{width:5px;border-radius:2px;background:var(--acc);opacity:.85;height:6%;transition:height .08s linear}
+.mic{border-radius:50%;border:0;background:var(--acc);display:flex;align-items:center;justify-content:center;position:relative}
+.mic svg{stroke:var(--acc-ink)}
+.mic[data-on="1"]::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--acc);animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.25)}}
+.state{font-family:var(--mono);font-size:13px;letter-spacing:2px;color:var(--acc);text-transform:uppercase;min-height:18px;text-align:center}
+
+/* cartões e listas */
+.card{border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.news a,.newsItem{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--ink);text-align:left;width:100%;font-size:15px;line-height:20px}
+.newsItem .tag{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--mute);text-transform:uppercase}
+.newsItem:active{transform:scale(.99)}
+.mkt .row{display:flex;justify-content:space-between;align-items:center;height:48px;padding:0 16px;border-bottom:1px solid var(--line2);font-size:15px}
+.mkt .row:last-child{border-bottom:0}
+.mkt .v{font-family:var(--mono)}
+.up{color:var(--up)} .dn{color:var(--dn)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line3);background:var(--card2);font-size:14px}
+.chip[data-on="1"],.tile[data-on="1"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{min-height:64px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;font-weight:500;padding:10px 12px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.tile small{font-family:var(--mono);font-size:11px;letter-spacing:1px;opacity:.8;font-weight:400}
+.tile[data-busy="1"]{opacity:.55}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;border-radius:12px;background:var(--card)}
+.seg button{height:36px;border:0;border-radius:9px;background:transparent;color:var(--mute);font-size:14px}
+.seg button[aria-selected="true"]{background:#23262d;color:var(--ink)}
+.devs{border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.dev{display:flex;justify-content:space-between;align-items:center;min-height:54px;padding:0 10px 0 16px;border-bottom:1px solid var(--line2);font-size:16px;gap:10px}
+.dev:last-child{border-bottom:0}
+.dev .acts{display:flex;gap:6px;flex:none}
+.dev .acts button{height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--line3);background:var(--card2);font-size:13px}
+.dev .acts button.on{border-color:var(--acc);color:var(--acc)}
+.dev small{display:block;font-family:var(--mono);font-size:10px;color:var(--mute);letter-spacing:1px}
+.search{height:44px;border-radius:12px;border:1px solid var(--line3);background:var(--card);padding:0 14px;font-size:15px;outline:none;width:100%}
+
+/* conversa */
+.chat{display:flex;flex-direction:column;gap:14px;overflow:auto;padding:4px 2px}
+.bub{max-width:78%;padding:12px 16px;border-radius:16px;font-size:15px;line-height:21px;white-space:pre-wrap;word-wrap:break-word}
+.bub.me{align-self:flex-end;background:#23262d}
+.bub.fx{align-self:flex-start;background:var(--card)}
+.bub.wait{color:var(--mute);font-family:var(--mono);font-size:13px}
+.ask{display:flex;gap:10px;align-items:center;padding:6px 6px 6px 18px;border-radius:26px;background:var(--card);border:1px solid #23262d}
+.ask input{flex:1;height:40px;border:0;background:transparent;font-size:15px;outline:none;min-width:0}
+.ask button{width:44px;height:44px;border-radius:22px;border:0;background:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
+
+/* navegação */
+.tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line2);background:var(--bg2);padding:8px 0 calc(var(--safe-b) + 6px)}
+.tabbar button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--mute);font-size:11px}
+.tabbar button[aria-current="page"]{color:var(--acc)}
+.side{background:var(--card2);border-right:1px solid var(--line2);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.side button{display:flex;align-items:center;height:36px;padding:0 12px;border-radius:8px;border:0;background:transparent;color:var(--mute);font-size:14px;text-align:left}
+.side button[aria-current="page"]{background:#23262d;color:var(--ink)}
+.wa{display:flex;align-items:center;gap:10px;justify-content:center;height:48px;border-radius:24px;border:1px solid var(--line3);background:var(--card2);color:var(--ink);text-decoration:none;font-size:15px}
+.wa svg{flex:none}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 104px);background:#1b1e24;border:1px solid var(--line3);color:var(--ink);padding:12px 18px;border-radius:14px;font-size:14px;z-index:50;max-width:min(92vw,520px);box-shadow:0 10px 30px #0008;transition:opacity .3s}
+.toast[data-show="0"]{opacity:0;pointer-events:none}
+.destaque{margin-top:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:left;color:var(--ink)}
+.askMic{display:none!important}
+.scroll{overflow:auto;-webkit-overflow-scrolling:touch}
+
+/* ===== telefone (iPhone / Android) ===== */
+#app.l-phone{grid-template-rows:minmax(0,1fr) auto}
+#app.l-phone .view{grid-row:1;grid-column:1}
+#app.l-phone .tabbar{grid-row:2;grid-column:1}
+#app.l-phone .view{display:none;overflow:auto;padding:calc(var(--safe-t) + 14px) 16px 24px}
+#app.l-phone .view[data-on="1"]{display:flex;flex-direction:column}
+#app.l-phone .side,#app.l-phone #aside{display:none}
+#app.l-phone #vFelyx{padding-top:calc(var(--safe-t) + 14px)}
+#app.l-phone #vFelyx .stage{height:min(352px,44vh);margin:6px -16px 0}
+#app.l-phone #vFelyx .chat,#app.l-phone #vFelyx .ask{display:none}
+#app.l-phone #vFelyx.conversa .chat{display:flex;max-height:30vh}
+#app.l-phone #vFelyx .mic{width:76px;height:76px}
+#app.l-phone .fab{display:none}
+#app.l-phone #vCasa .fab{display:flex;position:fixed;right:20px;bottom:calc(var(--safe-b) + 96px);width:60px;height:60px;z-index:5}
+/* Android: cabeçalho, botão estendido e barra pílula (Material) */
+body.android #app.l-phone #vFelyx .mic{display:none}
+body.android #app.l-phone .afab{display:flex}
+.afab{display:none;position:fixed;right:16px;bottom:calc(var(--safe-b) + 100px);height:56px;padding:0 20px 0 16px;border-radius:16px;border:0;background:var(--acc);color:var(--acc-ink);align-items:center;gap:10px;font-size:16px;font-weight:600;z-index:5}
+body.android .tabbar{background:var(--card2);border-top:0;padding-top:12px}
+body.android .tabbar button[aria-current="page"]{color:var(--ink)}
+body.android .tabbar button[aria-current="page"] .ico{background:var(--line3);color:var(--acc)}
+body.android .tabbar .ico{width:64px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center}
+
+/* ===== tablet (iPad / Vision) ===== */
+#app.l-tablet{grid-template-columns:300px minmax(0,1fr) 320px;gap:20px;padding:calc(var(--safe-t) + 24px) 28px calc(var(--safe-b) + 24px)}
+#app.l-tablet .tabbar,#app.l-tablet .side,#app.l-tablet #aside{display:none}
+#app.l-tablet .view{display:flex;flex-direction:column;min-height:0;overflow:auto}
+#app.l-tablet #vFelyx{grid-column:2;grid-row:1}
+#app.l-tablet #vNoticias{grid-column:1;grid-row:1}
+#app.l-tablet #vCasa{grid-column:3;grid-row:1}
+#app.l-tablet #vAjustes{position:fixed;inset:0;z-index:20;background:#06070aee;padding:60px max(28px,calc(50vw - 260px));display:none}
+#app.l-tablet #vAjustes[data-on="1"]{display:flex}
+#app.l-tablet #vFelyx .stage{flex:1;min-height:300px}
+#app.l-tablet #vFelyx .mic{width:84px;height:84px}
+#app.l-tablet #vFelyx .chat{max-height:24vh}
+#app.l-tablet #vFelyx .ask,#app.l-tablet #vFelyx .destaque,#app.l-tablet #vFelyx .favs,#app.l-tablet .fab{display:none}
+#app.l-tablet #vCasa .casaHead h1{display:none}
+#app.l-tablet .gear{display:flex}
+.gear{display:none;background:none;border:0;color:var(--mute);align-items:center;gap:6px;font-family:var(--mono);font-size:12px;letter-spacing:2px}
+
+/* ===== computador (Mac / navegador largo) ===== */
+#app.l-desk{grid-template-columns:230px minmax(0,1fr) 300px}
+#app.l-desk .tabbar{display:none}
+#app.l-desk .side{grid-column:1;grid-row:1}
+#app.l-desk #aside{grid-column:3;grid-row:1}
+#app.l-desk #vFelyx{position:relative}
+#app.l-desk .view{display:none;grid-column:2;grid-row:1;min-height:0;overflow:auto;padding:22px 32px 24px}
+#app.l-desk .view[data-on="1"]{display:flex;flex-direction:column}
+#app.l-desk #vFelyx{padding:0}
+#app.l-desk #vFelyx .stage{height:300px;flex:none;border-bottom:1px solid var(--line2)}
+#app.l-desk #vFelyx .stage img{-webkit-mask-image:none;mask-image:none}
+#app.l-desk #vFelyx .ctl{position:absolute;left:24px;top:20px;z-index:3;margin:0!important;align-items:flex-start!important}
+#app.l-desk #vFelyx .ctl .mic{display:none}
+#app.l-desk #vFelyx .ctl .state::before{content:"FELYX · VINCI AI   ";color:var(--mute);white-space:pre}
+#app.l-desk .askMic{display:flex!important}
+#app.l-desk .askMic[data-on="1"]{outline:2px solid var(--acc);outline-offset:3px}
+#app.l-desk #vFelyx .chat{flex:1;padding:22px 32px}
+#app.l-desk #vFelyx .ask{margin:0 32px 24px}
+#app.l-desk #vFelyx .destaque,#app.l-desk #vFelyx .favs,#app.l-desk #vFelyx .head,#app.l-desk .fab{display:none}
+#app.l-desk #aside{border-left:1px solid var(--line2);padding:22px 18px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+
+/* ===== Vision Pro: vidro ===== */
+body.vision{background:transparent}
+body.vision #app{background:transparent}
+body.vision .card,body.vision .tile,body.vision .newsItem,body.vision .devs{background:rgba(28,29,33,.62);border-color:rgba(255,255,255,.18);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+body.vision .tile,body.vision .chip{border-radius:28px}
+
+@media (prefers-reduced-motion: reduce){ .mic[data-on="1"]::after{animation:none} .bars i{transition:none} }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="login" hidden aria-label="Entrar">
+  <img class="face" src="../rosto.jpg" alt="Rosto do Felyx">
+  <div class="box">
+    <span class="kick">Felyx · Vinci AI</span>
+
+    <form id="fTel" class="box" style="margin:0" autocomplete="on">
+      <h1>Entrar</h1>
+      <p>Use o número de WhatsApp autorizado a falar com o Felyx.</p>
+      <div class="field"><label for="tel">WHATSAPP</label><input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" required></div>
+      <div class="field"><label for="senha">SENHA</label><input id="senha" type="password" autocomplete="current-password" placeholder="sua senha"></div>
+      <div class="msg" id="mTel" role="status"></div>
+      <button class="btn" id="bEntrar" type="submit">Entrar</button>
+      <button class="link" id="bPrimeiro" type="button">Primeiro acesso ou esqueci a senha: receber código no WhatsApp</button>
+    </form>
+
+    <form id="fCod" class="box" style="margin:0" hidden>
+      <h1>Código</h1>
+      <p id="pCod">Mandei um código de 6 dígitos no seu WhatsApp.</p>
+      <div class="field"><label for="cod">CÓDIGO</label><input id="cod" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" required></div>
+      <div class="msg" id="mCod" role="status"></div>
+      <button class="btn" type="submit">Confirmar</button>
+      <button class="link" id="bReenviar" type="button">Reenviar o código</button>
+      <a class="wa" id="waLogin" href="https://wa.me/5521967789150?text=oi" target="_blank" rel="noopener">Abrir o Felyx no WhatsApp</a>
+      <button class="link" id="bVoltar1" type="button">Voltar</button>
+    </form>
+
+    <form id="fSenha" class="box" style="margin:0" hidden>
+      <h1 id="hSenha">Crie sua senha</h1>
+      <p>Ela vale só para você, neste número. Mínimo de 6 caracteres.</p>
+      <div class="field"><label for="s1">NOVA SENHA</label><input id="s1" type="password" autocomplete="new-password" minlength="6" required></div>
+      <div class="field"><label for="s2">REPITA A SENHA</label><input id="s2" type="password" autocomplete="new-password" minlength="6" required></div>
+      <div class="msg" id="mSenha" role="status"></div>
+      <button class="btn" type="submit">Salvar e entrar</button>
+    </form>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<main id="app" hidden>
+  <nav class="side panel" aria-label="Navegação">
+    <div style="display:flex;gap:8px;padding:0 6px 22px" aria-hidden="true" id="semaforo" hidden><span class="dot" style="background:#ff5f57;width:12px;height:12px;border-radius:6px"></span><span class="dot" style="background:#febc2e;width:12px;height:12px;border-radius:6px"></span><span class="dot" style="background:#28c840;width:12px;height:12px;border-radius:6px"></span></div>
+    <button data-go="vFelyx">Felyx</button>
+    <button data-go="vCasa">Casa</button>
+    <button data-go="vNoticias">Notícias</button>
+    <button data-go="vAjustes">Ajustes</button>
+    <div style="margin-top:auto;padding:12px;font-size:11px" class="kick" id="sideCasa">CASA · VINCI ONLINE</div>
+  </nav>
+
+  <!-- Felyx -->
+  <section class="view panel" id="vFelyx" aria-label="Felyx">
+    <div class="top head">
+      <span class="kick" style="font-size:13px;letter-spacing:3px">Felyx · Vinci AI</span>
+      <span class="kick" style="letter-spacing:0;display:flex;align-items:center;gap:8px"><span class="dot" id="dotCasa"></span><span id="txtCasa">casa online</span></span>
+      <button class="gear" data-go="vAjustes" aria-label="Ajustes">AJUSTES</button>
+    </div>
+    <div class="stage">
+      <div class="bars" id="bars" aria-hidden="true"></div>
+      <img src="../rosto.jpg" alt="Rosto do Felyx">
+    </div>
+    <div class="ctl" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:6px">
+      <span class="state" id="estado" aria-live="polite"></span>
+      <button class="mic" id="mic" type="button" aria-label="Falar com o Felyx" data-on="0">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+      </button>
+    </div>
+    <button class="card destaque" id="destaque" type="button">
+      <span class="top mono" style="font-size:12px;color:var(--mute);width:100%"><span id="dClima">RIO · —</span><span id="dDolar">DÓLAR —</span></span>
+      <span style="font-size:16px;line-height:22px;font-weight:500" id="dTitulo">Carregando as notícias…</span>
+      <span style="font-size:13px;line-height:18px;color:var(--mute)">Toque para o Felyx explicar a notícia.</span>
+    </button>
+    <div class="chips favs" id="favs" style="padding-top:14px"></div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <form class="ask" id="ask">
+      <label for="askIn" class="sr">Mensagem para o Felyx</label>
+      <input id="askIn" type="text" placeholder="Escreva para o Felyx" autocomplete="off">
+      <button type="button" class="askMic mic" data-falar aria-label="Falar com o Felyx" style="background:transparent;border:1px solid var(--line3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:#e9eae6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
+      <button type="submit" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <button class="afab" type="button" data-falar><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>Falar com o Felyx</button>
+  </section>
+
+  <!-- Casa -->
+  <section class="view panel" id="vCasa" aria-label="Casa" style="gap:16px">
+    <div class="top casaHead"><h1 style="margin:0;font-size:30px;font-weight:600">Casa</h1><span class="kick" id="casaConta" style="letter-spacing:0">VINCI</span></div>
+        <div class="seg" role="tablist" aria-label="Filtro">
+      <button role="tab" aria-selected="true" data-f="cenas">Cenas</button>
+      <button role="tab" aria-selected="false" data-f="aparelhos">Aparelhos</button>
+      <button role="tab" aria-selected="false" data-f="favoritos">Favoritos</button>
+    </div>
+    <input class="search" id="busca" type="search" placeholder="Procurar" aria-label="Procurar na casa">
+    <div class="tiles" id="tiles"></div>
+    <div class="devs" id="devs" hidden></div>
+    <p class="kick" style="letter-spacing:0;text-transform:none;font-size:12px;margin:0">Toque e segure uma cena ou aparelho para marcar como favorito.</p>
+    <button class="mic fab" type="button" aria-label="Falar com o Felyx" data-falar><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
+  </section>
+
+  <!-- Notícias e mercado -->
+  <section class="view panel" id="vNoticias" aria-label="Notícias e mercado" style="gap:14px">
+    <h1 class="phoneOnly" style="margin:0;font-size:30px;font-weight:600">Notícias</h1>
+    <span class="kick">Mercado <span id="mktQuando" style="float:right;letter-spacing:0"></span></span>
+    <div class="card mkt" id="mkt"></div>
+    <span class="kick" style="margin-top:6px">Notícias</span>
+    <div class="seg" role="tablist" aria-label="Editoria" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <button role="tab" aria-selected="true" data-n="tecnologia">Tecnologia</button>
+      <button role="tab" aria-selected="false" data-n="politica">Política</button>
+    </div>
+    <div id="news" style="display:flex;flex-direction:column;gap:10px"></div>
+  </section>
+
+  <!-- Ajustes -->
+  <section class="view panel" id="vAjustes" aria-label="Ajustes" style="gap:16px">
+    <div class="top"><h1 style="margin:0;font-size:30px;font-weight:600">Ajustes</h1><button class="gear" data-go="vFelyx" style="display:flex">FECHAR</button></div>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:4px">
+      <span class="kick">Conectado como</span>
+      <span style="font-size:22px;font-weight:500" id="ajNome">—</span>
+      <span class="mono" style="color:var(--mute)" id="ajTel">—</span>
+    </div>
+    <a class="wa" href="https://wa.me/5521967789150" target="_blank" rel="noopener">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+      Falar com o Felyx no WhatsApp
+    </a>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <span class="kick">Voz</span>
+      <label style="display:flex;justify-content:space-between;align-items:center;font-size:15px">Boas-vindas faladas ao abrir <input type="checkbox" id="ajBV" style="width:22px;height:22px;accent-color:var(--acc)"></label>
+    </div>
+    <button class="btn ghost" id="bSair" type="button">Sair deste aparelho</button>
+    <span class="kick" style="letter-spacing:0;text-transform:none" id="versao">Felyx AI Vinci</span>
+  </section>
+
+  <!-- coluna direita do computador -->
+  <aside class="panel" id="aside" aria-label="Painel">
+    <span class="kick">Agora</span>
+    <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:28px;font-weight:300" id="aTemp">—°</span>
+      <span class="mono" style="font-size:13px;color:var(--mute)" id="aDolar">DÓLAR —</span>
+    </div>
+    <span class="kick" style="margin-top:8px">Cenas</span>
+    <div class="tiles" id="aCenas"></div>
+    <span class="kick" style="margin-top:8px">Destaques</span>
+    <div id="aNews" style="display:flex;flex-direction:column;gap:8px"></div>
+  </aside>
+
+  <nav class="tabbar panel" aria-label="Seções">
+    <button data-go="vFelyx"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Felyx</button>
+    <button data-go="vCasa"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>Casa</button>
+    <button data-go="vNoticias"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span>Notícias</button>
+    <button data-go="vAjustes"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span>Ajustes</button>
+  </nav>
+</main>
+
+<div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ===================== configuração ===================== */
+const VERSAO = '1.0.0';
+const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const APP_URL = N8N + '/felix/app';
+const TOKEN_URL = N8N + '/felix/token';
+const PERGUNTA_URL = N8N + '/felix/pergunta';
+const MERCADO_URL = N8N + '/felix/mercado';
+const NOTICIAS_URL = N8N + '/felix/noticias';
+const WHATSAPP = '5521967789150';
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const fmt = (n, d) => Number(n).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* plataforma: o app nativo abre esta página com ?p=ios|ipad|mac|vision|android */
+const params = new URLSearchParams(location.search);
+const PLAT = params.get('p') || (/android/i.test(navigator.userAgent) ? 'android' : '');
+if (PLAT) document.body.classList.add(PLAT);
+const NATIVO = !!params.get('p');
+
+/* ===================== utilidades ===================== */
+let toastT = null;
+function toast(t, ms){ const el = $('#toast'); el.textContent = t; el.dataset.show = '1'; clearTimeout(toastT); toastT = setTimeout(() => { el.dataset.show = '0'; }, ms || 3500); }
+async function api(acao, dados){
+  const r = await fetch(APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
+  if (!r.ok) throw new Error('n8n ' + r.status);
+  return r.json();
+}
+const digitos = (s) => String(s || '').replace(/\D/g, '');
+function aparelhoNome(){ return (PLAT || 'web') + ' · ' + (navigator.platform || '').slice(0, 20); }
+function abrirExterno(url){
+  // no app nativo a ponte abre fora (WhatsApp, Safari); no navegador, nova aba
+  try{ if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.felyx){ window.webkit.messageHandlers.felyx.postMessage({ tipo: 'abrir', url }); return; } }catch(e){}
+  try{ if (window.FelyxAndroid && window.FelyxAndroid.abrir){ window.FelyxAndroid.abrir(url); return; } }catch(e){}
+  window.open(url, '_blank', 'noopener');
+}
+document.addEventListener('click', (e) => { const a = e.target.closest('a[target="_blank"]'); if (a && NATIVO){ e.preventDefault(); abrirExterno(a.href); } });
+
+/* ===================== sessão ===================== */
+let sessao = store.get('felyx.sessao', null);   // { token, nome, telefone }
+function primeiroNome(){ return (sessao && sessao.nome) ? sessao.nome.split(' ')[0] : ''; }
+
+/* ===================== login ===================== */
+const L = { tel: '', ticket: '' };
+function mostraForm(id){ ['fTel', 'fCod', 'fSenha'].forEach((f) => { $('#' + f).hidden = f !== id; }); const first = $('#' + id + ' input'); if (first) setTimeout(() => first.focus(), 50); }
+function msg(id, t, ok){ const el = $('#' + id); el.textContent = t || ''; el.classList.toggle('ok', !!ok); }
+async function pedirCodigo(){
+  L.tel = digitos($('#tel').value);
+  if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
+  msg('mTel', 'Mandando o código…', true);
+  try{
+    const j = await api('codigo', { telefone: L.tel });
+    if (j.ok){
+      $('#pCod').textContent = (j.nome ? j.nome.split(' ')[0] + ', mandei' : 'Mandei') + ' um código de 6 dígitos no seu WhatsApp. Vale por 10 minutos.';
+      $('#hSenha').textContent = j.temSenha ? 'Nova senha' : 'Crie sua senha';
+      msg('mCod', ''); mostraForm('fCod'); msg('mTel', '');
+    } else if (j.erro === 'janela'){
+      mostraForm('fCod'); msg('mCod', j.mensagem);
+      $('#pCod').textContent = 'Primeiro mande um "oi" para o Felyx no WhatsApp. Depois toque em reenviar o código.';
+    } else msg('mTel', j.mensagem || 'Não deu certo.');
+  }catch(e){ msg('mTel', 'Sem conexão com o Felyx. Tente de novo.'); }
+}
+$('#bPrimeiro').addEventListener('click', pedirCodigo);
+$('#bReenviar').addEventListener('click', async () => { msg('mCod', 'Reenviando…', true); try{ const j = await api('codigo', { telefone: L.tel }); msg('mCod', j.ok ? 'Código reenviado.' : (j.mensagem || 'Não deu certo.'), j.ok); }catch(e){ msg('mCod', 'Sem conexão.'); } });
+$('#bVoltar1').addEventListener('click', () => mostraForm('fTel'));
+$('#fTel').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  L.tel = digitos($('#tel').value);
+  const senha = $('#senha').value;
+  if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
+  if (!senha){ pedirCodigo(); return; }
+  $('#bEntrar').disabled = true; msg('mTel', '');
+  try{
+    const j = await api('entrar', { telefone: L.tel, senha, aparelho: aparelhoNome() });
+    if (j.ok) entrou(j);
+    else if (j.erro === 'sem_senha'){ msg('mTel', j.mensagem, true); await sleep(900); pedirCodigo(); }
+    else msg('mTel', j.mensagem || 'Não deu certo.');
+  }catch(err){ msg('mTel', 'Sem conexão com o Felyx. Tente de novo.'); }
+  $('#bEntrar').disabled = false;
+});
+$('#cod').addEventListener('input', (e) => { e.target.value = digitos(e.target.value).slice(0, 6); if (e.target.value.length === 6) $('#fCod').requestSubmit(); });
+$('#fCod').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try{
+    const j = await api('verificar', { telefone: L.tel, codigo: $('#cod').value });
+    if (j.ok){ L.ticket = j.ticket; mostraForm('fSenha'); }
+    else { msg('mCod', j.mensagem || 'Código incorreto.'); $('#cod').value = ''; }
+  }catch(err){ msg('mCod', 'Sem conexão.'); }
+});
+$('#fSenha').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const a = $('#s1').value, b = $('#s2').value;
+  if (a.length < 6){ msg('mSenha', 'Mínimo de 6 caracteres.'); return; }
+  if (a !== b){ msg('mSenha', 'As senhas não são iguais.'); return; }
+  try{
+    const j = await api('senha', { telefone: L.tel, ticket: L.ticket, senha: a, aparelho: aparelhoNome() });
+    if (j.ok) entrou(j); else msg('mSenha', j.mensagem || 'Não deu certo.');
+  }catch(err){ msg('mSenha', 'Sem conexão.'); }
+});
+function entrou(j){
+  sessao = { token: j.token, nome: j.nome || '', telefone: L.tel };
+  store.set('felyx.sessao', sessao);
+  avisarNativo('login', { nome: sessao.nome });
+  abrirApp();
+}
+function avisarNativo(tipo, dados){
+  try{ window.webkit.messageHandlers.felyx.postMessage({ tipo, ...dados }); }catch(e){}
+  try{ window.FelyxAndroid && window.FelyxAndroid.evento && window.FelyxAndroid.evento(JSON.stringify({ tipo, ...dados })); }catch(e){}
+}
+async function sair(){
+  try{ await api('sair', { token: sessao && sessao.token }); }catch(e){}
+  if (conv) conv.end();
+  sessao = null; store.del('felyx.sessao'); avisarNativo('logout', {});
+  $('#app').hidden = true; $('#login').hidden = false; mostraForm('fTel'); $('#senha').value = '';
+}
+$('#bSair').addEventListener('click', sair);
+
+/* ===================== layout e navegação ===================== */
+let atual = store.get('felyx.aba', 'vFelyx');
+function layout(){
+  const w = innerWidth;
+  const l = PLAT === 'vision' ? 'l-tablet' : (w >= 1200 || PLAT === 'mac') && PLAT !== 'ipad' ? 'l-desk' : (w >= 760 ? 'l-tablet' : 'l-phone');
+  const app = $('#app'); app.classList.remove('l-phone', 'l-tablet', 'l-desk'); app.classList.add(l);
+  $$('.phoneOnly').forEach((el) => { el.hidden = l !== 'l-phone'; });
+  $('#askIn').placeholder = l === 'l-desk' ? 'Escreva ou aperte espaço para falar' : 'Escreva para o Felyx';
+  ir(atual, true);
+}
+function ir(id, quieto){
+  const l = $('#app').className;
+  if (l.includes('l-tablet') && id !== 'vAjustes'){ $('#vAjustes').dataset.on = '0'; atual = 'vFelyx'; }
+  else atual = id;
+  $$('.view').forEach((v) => { v.dataset.on = v.id === atual ? '1' : '0'; });
+  if (l.includes('l-tablet') && id === 'vAjustes') $('#vAjustes').dataset.on = '1';
+  $$('[data-go]').forEach((b) => { if (b.closest('.tabbar,.side')) b.setAttribute('aria-current', b.dataset.go === atual ? 'page' : 'false'); });
+  if (!quieto) store.set('felyx.aba', atual);
+  if (atual === 'vCasa') carregarCasa();
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b){ ir(b.dataset.go); } });
+addEventListener('resize', () => { clearTimeout(layout.t); layout.t = setTimeout(layout, 120); });
+
+/* ===================== barras (ondas da voz) ===================== */
+const NB = 26; const barsEl = $('#bars');
+barsEl.innerHTML = Array.from({ length: NB }, () => '<i></i>').join('');
+const barEls = [...barsEl.children];
+function animarBarras(){
+  const g = conv;
+  let bands = g ? g.getBands(NB) : null;
+  if (!bands && g && g.micOpen){ const v = Math.min(1, g.getInputLevel() * 6); bands = barEls.map((_, i) => v * (0.4 + 0.6 * Math.abs(Math.sin(performance.now() / 180 + i)))); }
+  barEls.forEach((b, i) => { const v = bands ? bands[i] : 0; b.style.height = Math.max(4, Math.round(v * 100)) + '%'; });
+  requestAnimationFrame(animarBarras);
+}
+
+/* ===================== mercado ===================== */
+const ATIVOS = [
+  { id: 'usd', nome: 'Dólar', pick: (m) => m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null) },
+  { id: 'btc', nome: 'Bitcoin', pick: (m) => m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: m.cripto.bitcoin.chgUsdt ?? m.cripto.bitcoin.chg } : null },
+  { id: 'eth', nome: 'Ethereum', pick: (m) => m.cripto && m.cripto.ethereum ? { v: 'US$ ' + fmt(m.cripto.ethereum.usdt || m.cripto.ethereum.usd, 0), c: m.cripto.ethereum.chgUsdt ?? m.cripto.ethereum.chg } : null },
+  { id: 'sol', nome: 'Solana', pick: (m) => m.cripto && m.cripto.solana ? { v: 'US$ ' + fmt(m.cripto.solana.usdt || m.cripto.solana.usd, 2), c: m.cripto.solana.chgUsdt ?? m.cripto.solana.chg } : null },
+  { id: 'zec', nome: 'Zcash', pick: (m) => m.cripto && m.cripto.zcash ? { v: 'US$ ' + fmt(m.cripto.zcash.usdt || m.cripto.zcash.usd, 2), c: m.cripto.zcash.chgUsdt ?? m.cripto.zcash.chg } : null },
+  { id: 'oil', nome: 'Petróleo', pick: (m) => m.clusdt ? { v: 'US$ ' + fmt(m.clusdt.usdt, 2), c: m.clusdt.chg } : null }
+];
+let mercado = null;
+function pct(c){ return typeof c === 'number' ? ((c > 0 ? '+' : '') + fmt(c, 1) + '%') : ''; }
+function cls(c){ return typeof c === 'number' ? (c > 0.05 ? 'up' : c < -0.05 ? 'dn' : '') : ''; }
+async function carregarMercado(){
+  try{
+    const m = await fetch(MERCADO_URL, { cache: 'no-store' }).then((r) => r.json());
+    if (!m || !m.ok) throw 0;
+    mercado = m;
+    $('#mkt').innerHTML = ATIVOS.map((a) => { const x = a.pick(m); return x ? `<div class="row"><span>${a.nome}</span><span class="v">${esc(x.v)} <span class="${cls(x.c)}">${pct(x.c)}</span></span></div>` : ''; }).join('');
+    $('#mktQuando').textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const d = ATIVOS[0].pick(m);
+    if (d){ $('#dDolar').textContent = 'DÓLAR ' + d.v; $('#aDolar').textContent = 'DÓLAR ' + d.v + (typeof d.c === 'number' ? ' · ' + pct(d.c) : ''); }
+  }catch(e){ if (!mercado) $('#mkt').innerHTML = '<div class="row"><span style="color:var(--mute)">mercado indisponível</span></div>'; }
+}
+
+/* ===================== clima ===================== */
+const WMO = { 0: 'céu limpo', 1: 'quase limpo', 2: 'parcialmente nublado', 3: 'nublado', 45: 'nevoeiro', 48: 'nevoeiro', 51: 'garoa', 53: 'garoa', 55: 'garoa', 61: 'chuva fraca', 63: 'chuva', 65: 'chuva forte', 80: 'pancadas', 81: 'pancadas', 82: 'pancadas fortes', 95: 'trovoadas' };
+async function carregarClima(){
+  try{
+    const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,weather_code&timezone=America/Sao_Paulo').then((r) => r.json());
+    const t = Math.round(j.current.temperature_2m), d = WMO[j.current.weather_code] || '';
+    $('#dClima').textContent = 'RIO · ' + t + '° ' + d.toUpperCase();
+    $('#aTemp').innerHTML = t + '° <span style="font-size:15px;color:var(--mute)">' + esc(d) + ' · Rio</span>';
+  }catch(e){}
+}
+
+/* ===================== notícias ===================== */
+let noticias = { politica: [], tecnologia: [] }, editoria = 'tecnologia';
+function tagDe(n, ed){ return (ed === 'politica' ? 'Política' : 'Tecnologia') + (n.source ? ' · ' + n.source : ''); }
+function renderNoticias(){
+  const lista = noticias[editoria] || [];
+  $('#news').innerHTML = lista.length ? lista.map((n, k) => `<button class="newsItem" type="button" data-ed="${editoria}" data-k="${k}"><span class="tag">${esc(tagDe(n, editoria))}</span><span>${esc(n.title)}</span></button>`).join('') : '<p class="kick" style="letter-spacing:0">sem manchetes agora</p>';
+  const tops = [noticias.tecnologia[0] && ['tecnologia', 0], noticias.politica[0] && ['politica', 0], noticias.tecnologia[1] && ['tecnologia', 1]].filter(Boolean);
+  $('#aNews').innerHTML = tops.map(([ed, k]) => { const n = noticias[ed][k]; return `<button class="newsItem" type="button" data-ed="${ed}" data-k="${k}" style="font-size:14px;line-height:19px"><span class="tag">${esc(tagDe(n, ed))}</span><span>${esc(n.title)}</span></button>`; }).join('');
+  const d = noticias.tecnologia[0] || noticias.politica[0];
+  if (d){ $('#dTitulo').textContent = d.title; $('#destaque').dataset.ed = noticias.tecnologia[0] ? 'tecnologia' : 'politica'; $('#destaque').dataset.k = '0'; }
+}
+async function carregarNoticias(){
+  try{
+    const j = await fetch(NOTICIAS_URL, { cache: 'no-store' }).then((r) => r.json());
+    if (!j || !j.ok) throw 0;
+    noticias = { politica: (j.politica || []).slice(0, 6), tecnologia: (j.tecnologia || []).slice(0, 6) };
+    renderNoticias();
+  }catch(e){ if (!noticias.tecnologia.length) $('#news').innerHTML = '<p class="kick" style="letter-spacing:0">notícias indisponíveis</p>'; }
+}
+$$('[data-n]').forEach((b) => b.addEventListener('click', () => { editoria = b.dataset.n; $$('[data-n]').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); renderNoticias(); }));
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-ed][data-k]'); if (!b) return;
+  const n = (noticias[b.dataset.ed] || [])[Number(b.dataset.k)]; if (!n) return;
+  explicarNoticia(n);
+});
+function explicarNoticia(n){
+  const pedido = 'Abra e resuma esta notícia do painel: "' + n.title + '"' + (n.source ? ' (' + n.source + ')' : '') + (n.link ? ' — ' + n.link : '');
+  if ($('#app').classList.contains('l-phone')) ir('vFelyx');
+  if (conv && conv.micOpen) conv.pedir(pedido);
+  else perguntarPorTexto(pedido, 'Explique: ' + n.title);
+}
+
+/* ===================== casa ===================== */
+let casa = store.get('felyx.casa', null), filtro = 'cenas';
+let favoritos = store.get('felyx.favoritos', ['Luz Alta', 'Sanca', 'TV Sala', 'Boa Noite']);
+let ligado = store.get('felyx.ligado', {});
+let casaAt = 0;
+const TIPO = { SWITCH: 'interruptor', LIGHT: 'luz', SMARTPLUG: 'tomada', THERMOSTAT: 'ar', OTHER: 'aparelho' };
+async function carregarCasa(force){
+  if (!sessao) return;
+  if (!force && casa && Date.now() - casaAt < 5 * 60e3){ renderCasa(); return; }
+  if (casa) renderCasa();
+  try{
+    const j = await api('casa', { token: sessao.token });
+    if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); return; }
+    if (j.ok){ casa = { cenas: j.cenas || [], aparelhos: j.aparelhos || [] }; casaAt = Date.now(); store.set('felyx.casa', casa); renderCasa(); }
+  }catch(e){ if (!casa) $('#tiles').innerHTML = '<p class="kick" style="letter-spacing:0">casa indisponível</p>'; }
+}
+function renderCasa(){
+  const c = casa || { cenas: [], aparelhos: [] };
+  const q = ($('#busca').value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const bate = (s) => !q || s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q);
+  $('#casaConta').textContent = (c.cenas.length + c.aparelhos.length) + ' ITENS · VINCI';
+  const tile = (nome, tag, tipo) => `<button class="tile" type="button" data-cena="${tipo === 'cena' ? esc(nome) : ''}" data-dev="${tipo === 'cena' ? '' : esc(nome)}" data-on="${ligado[nome] ? '1' : '0'}"><small>${esc(tag)}</small><span>${esc(nome)}</span></button>`;
+  if (filtro === 'aparelhos'){
+    $('#tiles').hidden = true; $('#devs').hidden = false;
+    $('#devs').innerHTML = c.aparelhos.filter((a) => bate(a.nome)).map((a) => `<div class="dev" data-nome="${esc(a.nome)}"><span>${esc(a.nome)}<small>${esc(TIPO[a.tipo] || a.tipo || '')}</small></span><span class="acts"><button type="button" data-liga="${esc(a.nome)}" class="${ligado[a.nome] === true ? 'on' : ''}">Ligar</button><button type="button" data-desliga="${esc(a.nome)}" class="${ligado[a.nome] === false ? 'on' : ''}">Desligar</button></span></div>`).join('') || '<div class="dev"><span style="color:var(--mute)">nada encontrado</span></div>';
+  } else {
+    $('#tiles').hidden = false; $('#devs').hidden = true;
+    const itens = filtro === 'favoritos'
+      ? favoritos.filter(bate).map((n) => c.cenas.includes(n) ? tile(n, 'CENA', 'cena') : tile(n, (TIPO[(c.aparelhos.find((a) => a.nome === n) || {}).tipo] || 'aparelho').toUpperCase(), 'dev'))
+      : c.cenas.filter(bate).map((n) => tile(n, favoritos.includes(n) ? 'CENA · FAVORITA' : 'CENA', 'cena'));
+    $('#tiles').innerHTML = itens.join('') || '<p class="kick" style="letter-spacing:0">nada aqui ainda</p>';
+  }
+  const cenasFav = favoritos.filter((n) => c.cenas.includes(n));
+  $('#favs').innerHTML = cenasFav.slice(0, 4).map((n) => `<button class="chip" type="button" data-cena="${esc(n)}">${esc(n)}</button>`).join('');
+  $('#aCenas').innerHTML = (cenasFav.length ? cenasFav : c.cenas).slice(0, 8).map((n) => `<button class="tile" type="button" data-cena="${esc(n)}" style="min-height:48px;font-size:14px">${esc(n)}</button>`).join('');
+}
+$$('[data-f]').forEach((b) => b.addEventListener('click', () => { filtro = b.dataset.f; $$('[data-f]').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); renderCasa(); }));
+$('#busca').addEventListener('input', renderCasa);
+async function comandar(texto, el, nome, estado){
+  if (!sessao) return;
+  if (el){ el.dataset.busy = '1'; el.disabled = true; }
+  try{
+    const j = await api('comando', { token: sessao.token, texto });
+    if (j.erro === 'sessao'){ sair(); return; }
+    if (j.ok){
+      toast(j.text || 'Feito.');
+      if (nome != null){ ligado[nome] = estado; store.set('felyx.ligado', ligado); }
+      $('#dotCasa').dataset.on = '1'; $('#txtCasa').textContent = 'casa online';
+    } else if (!j.atalho){
+      // não foi comando simples: o cérebro resolve
+      const r = await perguntar(texto); toast(r || 'Não consegui agora.');
+    } else { toast(j.text || 'A central da Vinci não confirmou.'); $('#dotCasa').dataset.on = '0'; $('#txtCasa').textContent = 'casa sem resposta'; }
+  }catch(e){ toast('Sem conexão com a casa.'); }
+  if (el){ el.dataset.busy = '0'; el.disabled = false; }
+  renderCasa();
+}
+let segurou = false, segT = null;
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('[data-cena],[data-dev]'); if (!b) return;
+  segurou = false; clearTimeout(segT);
+  segT = setTimeout(() => {
+    segurou = true; const nome = b.dataset.cena || b.dataset.dev;
+    favoritos = favoritos.includes(nome) ? favoritos.filter((x) => x !== nome) : [...favoritos, nome];
+    store.set('felyx.favoritos', favoritos); toast(favoritos.includes(nome) ? nome + ' nos favoritos.' : nome + ' saiu dos favoritos.'); renderCasa();
+    try{ navigator.vibrate && navigator.vibrate(20); }catch(err){}
+  }, 600);
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => document.addEventListener(ev, () => clearTimeout(segT)));
+document.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-cena],[data-dev]')) e.preventDefault(); });
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('[data-cena]'), d = e.target.closest('[data-dev]');
+  const liga = e.target.closest('[data-liga]'), desl = e.target.closest('[data-desliga]');
+  if (segurou){ segurou = false; return; }
+  if (liga) return comandar('liga o ' + liga.dataset.liga, liga, liga.dataset.liga, true);
+  if (desl) return comandar('desliga o ' + desl.dataset.desliga, desl, desl.dataset.desliga, false);
+  if (c && c.dataset.cena) return comandar('ativa a cena ' + c.dataset.cena, c);
+  if (d && d.dataset.dev){ const n = d.dataset.dev, on = !ligado[n]; return comandar((on ? 'liga o ' : 'desliga o ') + n, d, n, on); }
+});
+
+/* ===================== conversa por texto ===================== */
+const SESSION_ID = 'app-' + Math.random().toString(36).slice(2, 8);
+function quemFala(p){
+  // o cérebro conhece o Leandro; para as outras pessoas da casa, avisa quem está falando
+  const n = primeiroNome();
+  return (n && !/^leandro$/i.test(n)) ? '(' + n + ' falando pelo app) ' + p : p;
+}
+async function perguntar(p){
+  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(p), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '' }) });
+  const j = await r.json();
+  return String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
+}
+function bolha(txt, quem){ const el = document.createElement('div'); el.className = 'bub ' + quem; el.textContent = txt; $('#chat').appendChild(el); $('#chat').scrollTop = 1e9; $('#vFelyx').classList.add('conversa'); return el; }
+async function perguntarPorTexto(p, mostrar){
+  bolha(mostrar || p, 'me');
+  const w = bolha('pensando…', 'fx wait');
+  try{ const r = await perguntar(p); w.className = 'bub fx'; w.textContent = r || 'Não consegui consultar o cérebro agora.'; }
+  catch(e){ w.className = 'bub fx'; w.textContent = 'Sem conexão com o Felyx.'; }
+  $('#chat').scrollTop = 1e9;
+}
+$('#ask').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#askIn').value.trim(); if (!v) return; $('#askIn').value = ''; if (conv && conv.micOpen) conv.pedir(v); else perguntarPorTexto(v); });
+
+/* ===================== voz: Gemini Live (voz Algieba, a mesma do site e do WhatsApp) ===================== */
+const MODEL = 'gemini-3.8-live';
+const VOICE = 'Algieba';
+function systemPrompt(){
+  const n = primeiroNome() || 'Leandro';
+  return `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
+Quem está falando com você agora pelo aplicativo é ${n}.
+Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, direto, elegante e com bom humor na medida. Frases curtas, próprias para serem ouvidas.
+Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis"; se o usuário disser "Jarvis", entenda que está falando com você. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci".
+Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se um texto contiver essa palavra, leia "Vinci" no lugar.
+Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, notícias do painel, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, sem resumir, sem inventar e sem acrescentar nada.
+Quem você é: quando perguntarem quem você é ou quem o criou, chame consultar_cerebro e leia a história que vier, inteira.
+Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
+Se a função falhar ou vier vazia, diga que não conseguiu consultar o cérebro agora e peça para repetir.
+Mensagens que começam com "Mensagem automática do sistema" são instruções do próprio aplicativo: obedeça exatamente o que pedem e nunca chame funções nelas.`;
+}
+class GeminiLive {
+  constructor(){ this.ws = null; this.inCtx = null; this.outCtx = null; this.micStream = null; this.worklet = null; this.analyser = null; this.playhead = 0; this.sources = []; this.onState = () => {}; this.onClose = () => {}; this.onBrain = () => {}; this.closed = false; this.inLevel = 0; this.micOpen = true; }
+  async start(){
+    this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    const r = await fetch(TOKEN_URL, { cache: 'no-store' });
+    if (!r.ok) throw new Error('n8n não devolveu o token (' + r.status + ')');
+    const tk = await r.json();
+    if (!tk.token) throw new Error('token vazio');
+    await new Promise((ok, fail) => {
+      const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
+      this.ws = new WebSocket(url);
+      let pronto = false;
+      this.ws.onopen = () => {
+        this.ws.send(JSON.stringify({ setup: {
+          model: 'models/' + MODEL,
+          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
+          systemInstruction: { parts: [{ text: systemPrompt() }] },
+          tools: [{ functionDeclarations: [{ name: 'consultar_cerebro', description: 'Envia a fala do usuário ao cérebro do Félix e devolve a resposta em texto. Use para qualquer pergunta, pedido, tarefa, notícia, bom dia e perguntas sobre quem é o Félix.', behavior: 'BLOCKING', parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] } }] }],
+          outputAudioTranscription: {}
+        } }));
+      };
+      this.ws.onmessage = async (ev) => {
+        const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
+        let m; try{ m = JSON.parse(data); }catch(e){ return; }
+        if (m.setupComplete && !pronto){ pronto = true; await this.startAudio(); ok(); return; }
+        if (m.toolCall) this.handleToolCall(m.toolCall);
+        const sc = m.serverContent;
+        if (sc){
+          if (sc.interrupted){ this.stopPlayback(); this.onState('listening'); }
+          if (sc.modelTurn && sc.modelTurn.parts) for (const p of sc.modelTurn.parts){ if (p.inlineData && p.inlineData.data) this.playChunk(p.inlineData.data); }
+        }
+      };
+      this.ws.onerror = () => { if (!pronto) fail(new Error('conexão de voz falhou')); };
+      this.ws.onclose = (e) => { if (!pronto) fail(new Error('a voz fechou a conexão: ' + (e.reason || e.code))); this.teardown(e.reason || ''); };
+    });
+  }
+  enviar(texto){ if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: texto }] }], turnComplete: true } })); }
+  pedir(texto){ this.enviar(texto); }
+  ler(texto){ this.enviar('Mensagem automática do sistema: leia em voz alta o texto abaixo exatamente como está escrito, sem chamar nenhuma função e sem acrescentar nada.\n\n' + texto); }
+  async startAudio(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.outCtx = new AC({ sampleRate: 24000 });
+    try{ if (this.outCtx.state === 'suspended') await this.outCtx.resume(); }catch(e){}
+    this.analyser = this.outCtx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(this.outCtx.destination);
+    this.playhead = this.outCtx.currentTime;
+    this.inCtx = new AC();
+    try{ if (this.inCtx.state === 'suspended') await this.inCtx.resume(); }catch(e){}
+    const src = this.inCtx.createMediaStreamSource(this.micStream);
+    const code = `class Cap extends AudioWorkletProcessor{constructor(){super();this.buf=[];this.n=0;}process(inputs){const ch=inputs[0]&&inputs[0][0];if(!ch)return true;this.buf.push(ch.slice(0));this.n+=ch.length;if(this.n>=2048){const all=new Float32Array(this.n);let o=0;for(const b of this.buf){all.set(b,o);o+=b.length;}this.buf=[];this.n=0;this.port.postMessage(all,[all.buffer]);}return true;}}registerProcessor('cap',Cap);`;
+    await this.inCtx.audioWorklet.addModule(URL.createObjectURL(new Blob([code], { type: 'application/javascript' })));
+    this.worklet = new AudioWorkletNode(this.inCtx, 'cap');
+    const ratio = this.inCtx.sampleRate / 16000;
+    this.worklet.port.onmessage = (ev) => {
+      const f = ev.data;
+      let s2 = 0; for (let i = 0; i < f.length; i += 4) s2 += f[i] * f[i]; this.inLevel = Math.sqrt(s2 / (f.length / 4));
+      if (!this.ws || this.ws.readyState !== 1 || !this.micOpen) return;
+      const n = Math.floor(f.length / ratio); const pcm = new Int16Array(n);
+      for (let i = 0; i < n; i++){ const s = Math.max(-1, Math.min(1, f[Math.floor(i * ratio)])); pcm[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; }
+      let bin = ''; const bytes = new Uint8Array(pcm.buffer); for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      this.ws.send(JSON.stringify({ realtimeInput: { audio: { data: btoa(bin), mimeType: 'audio/pcm;rate=16000' } } }));
+    };
+    src.connect(this.worklet);
+    this.onState('listening');
+  }
+  playChunk(b64){
+    const bin = atob(b64); const n = bin.length >> 1; const f = new Float32Array(n);
+    for (let i = 0; i < n; i++){ let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; f[i] = v / 0x8000; }
+    const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
+    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.analyser);
+    const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
+    this.sources.push(s); s.onended = () => { this.sources = this.sources.filter((x) => x !== s); if (!this.sources.length) this.onState('listening'); };
+    this.onState('speaking');
+  }
+  stopPlayback(){ for (const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources = []; if (this.outCtx) this.playhead = this.outCtx.currentTime; }
+  getBands(n){
+    if (!this.analyser || !this.sources.length) return null;
+    const a = new Uint8Array(this.analyser.frequencyBinCount); this.analyser.getByteFrequencyData(a);
+    const maxBin = Math.floor(a.length * 0.45), out = new Array(n);
+    for (let i = 0; i < n; i++){ const lo = Math.floor(Math.pow(i / n, 1.6) * maxBin), hi = Math.max(lo + 1, Math.floor(Math.pow((i + 1) / n, 1.6) * maxBin)); let s = 0; for (let k = lo; k < hi; k++) s += a[k]; out[i] = s / (hi - lo) / 255; }
+    return out;
+  }
+  getInputLevel(){ return this.inLevel || 0; }
+  async handleToolCall(tc){
+    const out = [];
+    for (const fc of (tc.functionCalls || [])){
+      let response;
+      if (fc.name === 'consultar_cerebro'){
+        const pergunta = String((fc.args || {}).pergunta || '');
+        this.onState('thinking');
+        let texto = '';
+        try{ texto = await perguntar(pergunta); }catch(e){ texto = ''; }
+        response = { resposta: texto || 'Desculpe, não consegui consultar o cérebro agora. Pode repetir?' };
+        try{ this.onBrain(pergunta, texto); }catch(e){}
+      } else response = { erro: 'função desconhecida' };
+      out.push({ id: fc.id, name: fc.name, response });
+    }
+    if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: out } }));
+  }
+  teardown(reason){
+    if (this.closed) return; this.closed = true;
+    this.stopPlayback();
+    try{ this.worklet && this.worklet.disconnect(); }catch(e){}
+    try{ this.micStream && this.micStream.getTracks().forEach((t) => t.stop()); }catch(e){}
+    try{ this.inCtx && this.inCtx.close(); }catch(e){}
+    try{ this.outCtx && this.outCtx.close(); }catch(e){}
+    this.onClose(reason);
+  }
+  end(){ try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
+}
+
+let conv = null;
+const ESTADO = { listening: 'ouvindo · pode falar', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
+function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Felyx'); }); }
+function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
+async function iniciarVoz(){
+  if (conv) return;
+  const g = new GeminiLive();
+  estado('boot');
+  g.onState = (s) => { if (conv === g) estado(s); };
+  g.onClose = (reason) => { if (conv !== g) return; conv = null; estado('idle', reason ? 'conversa encerrada' : ''); };
+  g.onBrain = (p, r) => { bolha(p, 'me'); bolha(r || 'Não consegui consultar o cérebro agora.', 'fx'); };
+  try{
+    await g.start();
+    conv = g; estado('listening');
+    const bv = store.get('felyx.bv', false), hoje = new Date().toDateString();
+    if (bv && store.get('felyx.bvDia', '') !== hoje){ store.set('felyx.bvDia', hoje); g.pedir(saudacao() + ', Félix.'); }
+    else g.ler('Às suas ordens' + (primeiroNome() ? ', ' + primeiroNome() : '') + '.');
+  }catch(e){
+    g.teardown('');
+    estado('idle', (e && e.name === 'NotAllowedError') ? 'microfone bloqueado: libere nas permissões' : 'não consegui conectar a voz');
+  }
+}
+function alternarVoz(){ if (conv){ conv.end(); return; } iniciarVoz(); }
+$('#mic').addEventListener('click', alternarVoz);
+document.addEventListener('click', (e) => { if (e.target.closest('[data-falar]')){ if ($('#app').classList.contains('l-phone')) ir('vFelyx'); alternarVoz(); } });
+document.addEventListener('keydown', (e) => {
+  // no computador: barra de espaço fora de campos de texto liga/desliga a conversa
+  if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test((e.target && e.target.tagName) || '') && !$('#app').hidden){ e.preventDefault(); alternarVoz(); }
+});
+$('#ajBV').checked = store.get('felyx.bv', false);
+$('#ajBV').addEventListener('change', (e) => store.set('felyx.bv', e.target.checked));
+
+/* o app nativo pode pedir ações (atalhos do ícone, Siri, notificações) */
+window.felyxNativo = function(acao, dado){
+  if (acao === 'falar'){ ir('vFelyx'); iniciarVoz(); }
+  else if (acao === 'cena' && dado) comandar('ativa a cena ' + dado);
+  else if (acao === 'comando' && dado) comandar(String(dado));
+  else if (acao === 'aba' && dado) ir(dado);
+  else if (acao === 'perguntar' && dado){ ir('vFelyx'); perguntarPorTexto(String(dado)); }
+};
+
+/* ===================== abertura ===================== */
+async function abrirApp(){
+  $('#login').hidden = true; $('#app').hidden = false;
+  $('#ajNome').textContent = sessao.nome || '—';
+  const t = digitos(sessao.telefone); $('#ajTel').textContent = t ? '+' + t.slice(0, 2) + ' ' + t.slice(2, 4) + ' ' + t.slice(4, -4) + '-' + t.slice(-4) : '';
+  $('#versao').textContent = 'Felyx AI Vinci · versão ' + VERSAO + (PLAT ? ' · ' + PLAT : '');
+  layout(); estado('idle', primeiroNome() ? saudacao().toUpperCase() + ', ' + primeiroNome().toUpperCase() : '');
+  carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
+  // confere a sessão no servidor (expirou ou foi encerrada em outro lugar)
+  try{ const j = await api('sessao', { token: sessao.token }); if (j.ok){ sessao.nome = j.nome || sessao.nome; store.set('felyx.sessao', sessao); $('#ajNome').textContent = sessao.nome; } else if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); } }catch(e){}
+}
+setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarMercado(); } }, 5 * 60e3);
+setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarNoticias(); } }, 30 * 60e3);
+requestAnimationFrame(animarBarras);
+if (sessao && sessao.token) abrirApp(); else { $('#login').hidden = false; mostraForm('fTel'); }
+</script>
+</body>
+</html>
