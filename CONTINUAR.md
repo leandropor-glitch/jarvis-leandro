@@ -72,3 +72,8 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 2. **Meta:** conferir se o modelo `codigo_app_felyx` foi aprovado (rodar o workflow 1dMldhWsMsgbizqT); quando aprovar, o código passa a chegar mesmo fora da janela de 24 h.
 3. **Backup da `chave-android`** (keystore da Play Store): ainda falta.
 4. **Lista de pendências:** está na memória, em /areas/pendencias.md. O Leandro vai dividir os itens entre Claude, Gemini e ChatGPT.
+
+## Versão 1.0.1 (16/10/2026, 18h20)
+- Ícone oficial (marca/icone-oficial.png) e retrato novo do Felyx dentro do app (app/felyx-retrato.jpg, sem ciborgue, do cabelo ao V da camisa).
+- Apple: 1.0.1 (2) enviada nas 4 plataformas com `apple/enviar-lojas.sh` (lista padrão de plataformas corrigida).
+- Android: 1.0.1 (versionCode 2) publicada no teste interno da Play Console.
