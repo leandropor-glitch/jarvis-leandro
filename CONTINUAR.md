@@ -1,4 +1,4 @@
-# Felyx — ponto de continuação (16/10/2026, 16h30)
+# Felyx — ponto de continuação (16/10/2026, 17h10)
 
 Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterior com o Claude.
 
@@ -32,7 +32,8 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 | Felyx — ler notícia | HlIQSF1sptp6ACzJ | Abre a matéria e extrai o texto (sub-workflow do cérebro) |
 | Felyx — WhatsApp | G4bV9cRAkRaGscBN | Meta Cloud API (+55 21 96778-9150, Phone ID 1379919548538322). Proteção contra duplicidade de transcritores. Comando da casa vai pelo atalho, sem IA |
 | Felyx — atalho da casa | RwyNr64qIkjDe4QS | Comando simples vai direto para a ponte /acao ou /comando (cerca de 3 s) |
-| **Felyx — app (login e casa)** | hsy4DwI0zHn5UYQD | POST /felix/app {acao}: codigo, verificar, senha, entrar, sessao, sair, casa, comando |
+| **Felyx — app (login e casa)** | hsy4DwI0zHn5UYQD | POST /felix/app {acao}: codigo, verificar, senha, entrar, sessao, sair, casa, comando. O código vai primeiro pelo modelo de autenticação da Meta (`codigo_app_felyx`); se a Meta recusar, vai em texto simples |
+| Felyx — utilitário Meta (modelo de autenticação) | 1dMldhWsMsgbizqT | Rodar à mão: cria/consulta o modelo `codigo_app_felyx` na WABA 1591473832732583. Pode ser arquivado quando o modelo estiver aprovado |
 
 ### Data Tables
 | Tabela | ID | Conteúdo |
@@ -56,16 +57,18 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
     - Siri: Falar, Ativar cena, Comando da casa, Perguntar.
   - Alvo FelyxAI-TV: SwiftUI nativo (a TV não tem WebView). Respostas só em texto.
   - Bundle com.vinci.felyx, time **J3WX42F6Y7** (conta Individual).
-  - Os 4 alvos compilam. O .ipa está assinado para distribuição (exportado com `-allowProvisioningUpdates`).
+  - Envio às lojas: `apple/enviar-lojas.sh` (archive + upload das 4 plataformas). iOS/visionOS/tvOS: archive sem assinatura (`CODE_SIGNING_ALLOWED=NO`); macOS: assinatura ad-hoc, senão o entitlement de sandbox não entra e a App Store recusa.
 - **Android** (`android/`): WebView, atalhos do ícone (Falar, Casa, WhatsApp). O .aab de release está assinado.
 
+## Feito em 16/10/2026 (tarde)
+- **App Store Connect:** app **Felyx AI Vinci** criado (Apple ID 6823749242; iOS, macOS, tvOS, visionOS; pt-BR; SKU felyx-ai-vinci). Os 4 builds 1.0.0 (1) foram enviados e o iOS já aparece como "Pronta para envio" no TestFlight. https://appstoreconnect.apple.com/apps/6823749242
+- **Play Console:** app **Felyx AI Vinci** criado na conta Vinci Lab (id 4972361764809538063, pacote com.vinci.felyx). `FelyxAI-1.0.0.aab` publicado no **teste interno**, com a lista "Teste EU" (leandropor@gmail.com). Link para o testador entrar: https://play.google.com/apps/internaltest/4700990083462037162
+- **Meta:** modelo de autenticação `codigo_app_felyx` (pt_BR, botão copiar código, expira em 10 min) criado na WABA; estava **PENDING** no fim da sessão. O login já tenta o modelo e cai para texto enquanto não aprovar.
+- **Cérebro:** reconhece Joana e Felipinho pelo aviso "(Nome falando pelo app)" / "(Nome falando pelo WhatsApp)"; o workflow do WhatsApp agora manda esse aviso também. Testado: "Oi, Joana!".
+- **Login real:** testado pelo GitHub Pages com o número do Leandro: o código chegou no WhatsApp (pelo caminho de texto). Falta só ele digitar o código e criar a senha.
+
 ## Próximos passos
-1. **App Store Connect:** o Leandro cria o app com estes dados:
-   - Nome: Felyx AI Vinci. Idioma: pt-BR. Bundle: com.vinci.felyx. SKU: felyx-ai-vinci.
-   - Plataformas: iOS, macOS, visionOS e tvOS.
-   - Depois o Claude envia, no Mac: `xcodebuild -exportArchive ... -exportOptionsPlist apple/ExportOptions.plist -allowProvisioningUpdates`. O archive precisa ser gerado com `CODE_SIGNING_ALLOWED=NO`, porque a conta não tem aparelho cadastrado para perfil de desenvolvimento. Faltam ainda os archives de Mac, visionOS e tvOS.
-2. **Play Console:** criar o app e subir `entregas/FelyxAI-1.0.0.aab`.
-3. **Testar o login real:** pelo link https://leandropor-glitch.github.io/jarvis-leandro/app/
-4. **Meta:** modelo de mensagem de autenticação. Sem ele, o código só chega a quem falou com o Felyx nas últimas 24 h.
-5. **Cérebro:** ajustar para reconhecer Joana e Felipinho. O app já manda "(Nome falando pelo app)".
-6. **Lista de pendências:** está na memória, em /areas/pendencias.md. O Leandro vai dividir os itens entre Claude, Gemini e ChatGPT.
+1. **Lojas (parte do Leandro):** no App Store Connect, aceitar o acordo atualizado (Paid Applications Schedule, em Business, mesmo o app sendo grátis a tela pede) e preencher a ficha do app (capturas, descrição, privacidade) antes de enviar para revisão. No Play Console, concluir o painel "Começar a configuração do app" (classificação, política de privacidade, segurança de dados, público) antes de ir para produção.
+2. **Meta:** conferir se o modelo `codigo_app_felyx` foi aprovado (rodar o workflow 1dMldhWsMsgbizqT); quando aprovar, o código passa a chegar mesmo fora da janela de 24 h.
+3. **Backup da `chave-android`** (keystore da Play Store): ainda falta.
+4. **Lista de pendências:** está na memória, em /areas/pendencias.md. O Leandro vai dividir os itens entre Claude, Gemini e ChatGPT.
