@@ -455,7 +455,7 @@ $('#fSenha').addEventListener('submit', async (e) => {
 function entrou(j){
   sessao = { token: j.token, nome: j.nome || '', telefone: L.tel };
   store.set('felyx.sessao', sessao);
-  avisarNativo('login', { nome: sessao.nome });
+  avisarNativo('login', { nome: sessao.nome, token: sessao.token });
   abrirApp();
 }
 function avisarNativo(tipo, dados){
@@ -846,6 +846,7 @@ async function abrirApp(){
   $('#ajNome').textContent = sessao.nome || '—';
   const t = digitos(sessao.telefone); $('#ajTel').textContent = t ? '+' + t.slice(0, 2) + ' ' + t.slice(2, 4) + ' ' + t.slice(4, -4) + '-' + t.slice(-4) : '';
   $('#versao').textContent = 'Felyx AI Vinci · versão ' + VERSAO + (PLAT ? ' · ' + PLAT : '');
+  avisarNativo('login', { nome: sessao.nome, token: sessao.token });
   layout(); estado('idle', primeiroNome() ? saudacao().toUpperCase() + ', ' + primeiroNome().toUpperCase() : '');
   carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
   // confere a sessão no servidor (expirou ou foi encerrada em outro lugar)

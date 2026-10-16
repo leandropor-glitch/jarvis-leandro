@@ -1,0 +1,77 @@
+name: FelyxAI
+options:
+  bundleIdPrefix: com.vinci
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+    visionOS: "1.0"
+    tvOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: "${FELYX_TEAM}"
+targets:
+  FelyxAI:
+    type: application
+    supportedDestinations: [iOS, macOS, visionOS]
+    sources:
+      - path: Shared
+      - path: Recursos/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vinci.felyx
+        PRODUCT_NAME: Felyx
+        INFOPLIST_KEY_CFBundleDisplayName: Felyx
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "O Felyx usa o microfone para ouvir o que você fala com ele."
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.lifestyle
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        TARGETED_DEVICE_FAMILY: "1,2,7"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        "ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xros*]": AppIconVision
+        "ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xrsimulator*]": AppIconVision
+        ENABLE_HARDENED_RUNTIME: YES
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Mac/Felyx.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
+        ENABLE_RESOURCE_ACCESS_AUDIO_INPUT: YES
+  FelyxAI-TV:
+    type: application
+    platform: tvOS
+    sources:
+      - path: TV
+      - path: Shared/FelyxAPI.swift
+      - path: Recursos/TV.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.vinci.felyx
+        PRODUCT_NAME: Felyx
+        INFOPLIST_KEY_CFBundleDisplayName: Felyx
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
+        TARGETED_DEVICE_FAMILY: "3"
+schemes:
+  FelyxAI:
+    build:
+      targets:
+        FelyxAI: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  FelyxAI-TV:
+    build:
+      targets:
+        FelyxAI-TV: all
+    archive:
+      config: Release
