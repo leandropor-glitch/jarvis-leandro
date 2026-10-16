@@ -622,9 +622,16 @@ async function fetchMercadoDireto(){
   try{ const c = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
   return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, usdtbrl, clusdt, petroleo:null };
 }
-let mercadoAt = 0, mercadoData = null;
-async function loadMercado(force){
-  if(!force && Date.now() - mercadoAt < 14*60000) return mercadoData;
+let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
+// uma busca por vez: quem chega enquanto outra está em andamento recebe a mesma resposta (evita chamadas duplicadas ao n8n)
+function loadMercado(force){
+  if(mercadoVoo) return mercadoVoo;
+  if(!force && Date.now() - mercadoAt < 14*60000) return Promise.resolve(mercadoData);
+  if(force && mercadoData && Date.now() - mercadoAt < 20000) return Promise.resolve(mercadoData);
+  mercadoVoo = buscarMercado().finally(()=>{ mercadoVoo = null; });
+  return mercadoVoo;
+}
+async function buscarMercado(){
   mercadoAt = Date.now();
   try{
     const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
@@ -678,14 +685,20 @@ class NewsPanel {
 }
 const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
 const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
-let noticiasAt = 0;
-async function loadNoticias(force){
-  if(!force && Date.now() - noticiasAt < 40*60000) return;
+let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
+function loadNoticias(force){
+  if(noticiasVoo) return noticiasVoo;
+  if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
+  if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
+  noticiasVoo = buscarNoticias().finally(()=>{ noticiasVoo = null; });
+  return noticiasVoo;
+}
+async function buscarNoticias(){
   noticiasAt = Date.now();
   try{
     const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
     if(!j || !j.ok) throw new Error('ponte sem notícias');
-    newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
+    ultimasNoticias = j; newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
   }catch(e){
     if(!newsPol.items.length) newsPol.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
     if(!newsTec.items.length) newsTec.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
@@ -952,7 +965,8 @@ async function pedirBoasVindas(){
     await Promise.allSettled([ mercadoData ? null : loadMercado(true), (newsPol.items.length && newsTec.items.length) ? null : loadNoticias(true) ]);
     const clima = await climaAgora();
     const body = { saudacao: sd, hora: hhmm(new Date()), clima, dolar: dolarResumo(mercadoData),
-      politica: newsPol.items.map(n=>n.title), tecnologia: newsTec.items.map(n=>n.title) };
+      politica: (newsPol.items.length ? newsPol.items : ((ultimasNoticias && ultimasNoticias.politica) || []).slice(0,6)).map(n=>n.title),
+      tecnologia: (newsTec.items.length ? newsTec.items : ((ultimasNoticias && ultimasNoticias.tecnologia) || []).slice(0,6)).map(n=>n.title) };
     const ctrl = new AbortController(); const tm = setTimeout(()=>ctrl.abort(), 25000);
     const r = await fetch(BOASVINDAS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctrl.signal });
     clearTimeout(tm);
