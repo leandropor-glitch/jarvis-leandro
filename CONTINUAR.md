@@ -77,3 +77,10 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 - Ícone oficial (marca/icone-oficial.png) e retrato novo do Felyx dentro do app (app/felyx-retrato.jpg, sem ciborgue, do cabelo ao V da camisa).
 - Apple: 1.0.1 (2) enviada nas 4 plataformas com `apple/enviar-lojas.sh` (lista padrão de plataformas corrigida).
 - Android: 1.0.1 (versionCode 2) publicada no teste interno da Play Console.
+
+## Publicação em produção (em andamento, 16/10/2026 19h)
+- Conta de demonstração para revisores: número **0000000000**, senha **Felyx2026Revisao** (linha 550000000000 em felyx_app_usuarios; comandos da casa simulados; o cérebro recebe aviso de modo demonstração).
+- Páginas: app/privacidade.html, app/suporte.html, app/excluir-conta.html. Capturas e banner em lojas/capturas.
+- Play Console — feito: política de privacidade, detalhes do login (conta demo), anúncios (não), classificação (Livre), público-alvo (18+), ID de publicidade (não), app governamental (não), recursos financeiros (nenhum), saúde (nenhum).
+- Play Console — falta: Segurança dos dados (parei na etapa Tipos de dados: marcado Número de telefone; falta Áudio > gravações de voz e Atividade no app > outro conteúdo gerado; depois uso/tratamento), ficha da loja (descrição, ícone, banner, capturas, categoria Casa e decoração / Estilo de vida, contato), criar versão de produção com o .aab 1.0.1 e enviar para revisão.
+- App Store Connect — falta tudo da ficha: capturas (lojas/capturas), descrição, palavras-chave, URL de suporte e privacidade, privacidade do app, classificação etária, dados de revisão (conta demo), escolher build 1.0.1 (2) e enviar para revisão; o mesmo para macOS, visionOS e tvOS.
