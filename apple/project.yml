@@ -13,7 +13,7 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.0"
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: "${FELYX_TEAM}"
+    DEVELOPMENT_TEAM: J3WX42F6Y7
 targets:
   FelyxAI:
     type: application
