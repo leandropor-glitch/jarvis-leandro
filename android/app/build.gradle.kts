@@ -1,7 +1,12 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// chave de envio da Play Store: fica só no Mac (keystore.properties fora do Git)
+val chave = Properties().apply { rootProject.file("keystore.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) } }
 
 android {
     namespace = "com.vinci.felyx"
@@ -13,10 +18,18 @@ android {
         versionCode = 1
         versionName = "1.0.0"
     }
+    signingConfigs {
+        if (chave.getProperty("storeFile") != null) create("envio") {
+            storeFile = file(chave.getProperty("storeFile"))
+            storePassword = chave.getProperty("storePassword")
+            keyAlias = chave.getProperty("keyAlias")
+            keyPassword = chave.getProperty("keyPassword")
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
-            // assinatura de release: configurada no Android Studio (Build > Generate Signed App Bundle)
+            signingConfigs.findByName("envio")?.let { signingConfig = it }
         }
     }
     compileOptions {
