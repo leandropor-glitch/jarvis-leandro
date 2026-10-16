@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fundo">#06070A</color>
+    <color name="acento">#D6FF1A</color>
+    <style name="Tema.Felyx" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/fundo</item>
+        <item name="android:statusBarColor">@color/fundo</item>
+        <item name="android:navigationBarColor">@color/fundo</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <string name="atalho_falar">Falar com o Felyx</string>
+    <string name="atalho_casa">Casa</string>
+    <string name="atalho_whatsapp">WhatsApp do Felyx</string>
+</resources>

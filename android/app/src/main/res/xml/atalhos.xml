@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="falar" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/atalho_falar">
+        <intent android:action="com.vinci.felyx.FALAR" android:targetPackage="com.vinci.felyx" android:targetClass="com.vinci.felyx.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="casa" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/atalho_casa">
+        <intent android:action="com.vinci.felyx.CASA" android:targetPackage="com.vinci.felyx" android:targetClass="com.vinci.felyx.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="whatsapp" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/atalho_whatsapp">
+        <intent android:action="android.intent.action.VIEW" android:data="https://wa.me/5521967789150" />
+    </shortcut>
+</shortcuts>
