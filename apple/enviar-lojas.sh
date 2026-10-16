@@ -13,7 +13,7 @@ set -e
 cd "$(dirname "$0")"
 export PATH="$HOME/FelyxApp/bin:$PATH"
 
-plataformas=(${@:-iOS macOS visionOS tvOS})
+plataformas=("$@"); (( ${#plataformas} )) || plataformas=(iOS macOS visionOS tvOS)
 
 for p in $plataformas; do
   echo "=== $p: archive ==="
