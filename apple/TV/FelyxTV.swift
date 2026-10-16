@@ -120,7 +120,10 @@ struct InicioTV: View {
 
 struct LoginTV: View {
     @EnvironmentObject var m: ModeloTV
-    @State private var tel = "", senha = "", codigo = "", nova = ""
+    @State private var tel = ""
+    @State private var senha = ""
+    @State private var codigo = ""
+    @State private var nova = ""
     @State private var etapa = 0   // 0 telefone e senha, 1 código, 2 nova senha
     @State private var ticket = ""
     @State private var msg = ""
