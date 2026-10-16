@@ -484,7 +484,7 @@ $('#fSenha').addEventListener('submit', async (e) => {
   }catch(err){ msg('mSenha', 'Sem conexão.'); }
 });
 function entrou(j){
-  sessao = { token: j.token, nome: j.nome || '', telefone: L.tel };
+  sessao = { token: j.token, nome: j.nome || '', telefone: L.tel, demo: !!j.demo };
   store.set('felyx.sessao', sessao);
   avisarNativo('login', { nome: sessao.nome, token: sessao.token });
   abrirApp();
@@ -700,7 +700,9 @@ document.addEventListener('click', (e) => {
 
 /* ===================== conversa por texto ===================== */
 const SESSION_ID = 'app-' + Math.random().toString(36).slice(2, 8);
+const AVISO_DEMO = '(MODO DEMONSTRAÇÃO para revisão da loja de apps: não execute nenhum comando na casa nem use ferramentas que acionem aparelhos; se pedirem algo da casa, diga em uma frase o que faria. Responda normalmente às demais perguntas.) ';
 function quemFala(p){
+  if (sessao && sessao.demo) return AVISO_DEMO + p;
   // o cérebro conhece o Leandro; para as outras pessoas da casa, avisa quem está falando
   const n = primeiroNome();
   return (n && !/^leandro$/i.test(n)) ? '(' + n + ' falando pelo app) ' + p : p;
@@ -726,7 +728,7 @@ const VOICE = 'Algieba';
 function systemPrompt(){
   const n = primeiroNome() || 'Leandro';
   return `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
-Quem está falando com você agora pelo aplicativo é ${n}.
+Quem está falando com você agora pelo aplicativo é ${n}.${sessao && sessao.demo ? ' Esta é uma sessão de DEMONSTRAÇÃO para a revisão da loja de aplicativos: o cérebro já recebe esse aviso e não aciona a casa.' : ''}
 Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, direto, elegante e com bom humor na medida. Frases curtas, próprias para serem ouvidas.
 Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis"; se o usuário disser "Jarvis", entenda que está falando com você. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci".
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se um texto contiver essa palavra, leia "Vinci" no lugar.
@@ -890,7 +892,7 @@ window.felyxNativo = function(acao, dado){
 /* ===================== abertura ===================== */
 async function abrirApp(){
   $('#login').hidden = true; $('#app').hidden = false;
-  $('#ajNome').textContent = sessao.nome || '—';
+  $('#ajNome').textContent = (sessao.nome || '—') + (sessao.demo ? ' · demonstração' : '');
   const t = digitos(sessao.telefone); $('#ajTel').textContent = t ? '+' + t.slice(0, 2) + ' ' + t.slice(2, 4) + ' ' + t.slice(4, -4) + '-' + t.slice(-4) : '';
   $('#versao').textContent = 'Felyx AI Vinci · versão ' + VERSAO + (PLAT ? ' · ' + PLAT : '');
   avisarNativo('login', { nome: sessao.nome, token: sessao.token });
@@ -898,7 +900,7 @@ async function abrirApp(){
   $('#saud').textContent = saudacao() + (primeiroNome() ? ', ' + primeiroNome() : '') + '.';
   carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
   // confere a sessão no servidor (expirou ou foi encerrada em outro lugar)
-  try{ const j = await api('sessao', { token: sessao.token }); if (j.ok){ sessao.nome = j.nome || sessao.nome; store.set('felyx.sessao', sessao); $('#ajNome').textContent = sessao.nome; } else if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); } }catch(e){}
+  try{ const j = await api('sessao', { token: sessao.token }); if (j.ok){ sessao.nome = j.nome || sessao.nome; sessao.demo = !!j.demo; store.set('felyx.sessao', sessao); $('#ajNome').textContent = sessao.nome; } else if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); } }catch(e){}
 }
 setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarMercado(); } }, 5 * 60e3);
 setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarNoticias(); } }, 30 * 60e3);
