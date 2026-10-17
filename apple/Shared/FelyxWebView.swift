@@ -39,7 +39,8 @@ struct FelyxWebView: Representavel {
         web.scrollView.bounces = false
         #endif
         c.web = web
-        web.load(URLRequest(url: url))
+        // Sempre confere no GitHub Pages se a página mudou (ETag): correções chegam na hora, sem esperar o cache de 10 min.
+        web.load(URLRequest(url: url, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 30))
         return web
     }
 
@@ -79,6 +80,14 @@ struct FelyxWebView: Representavel {
             carregou = true
             let fila = pendentes; pendentes = []
             fila.forEach { chamarPagina($0.0, $0.1) }
+        }
+
+        // Sem rede na abertura: usa a última cópia da página guardada no aparelho (uma vez só, para não entrar em laço).
+        private var usouCache = false
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            guard !usouCache else { return }
+            usouCache = true
+            webView.load(URLRequest(url: FelyxTela.endereco(), cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 30))
         }
 
         // microfone: a própria página pede; o sistema mostra o aviso uma vez

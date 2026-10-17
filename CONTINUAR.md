@@ -91,6 +91,10 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 - **App:** indicador "casa online" passou a vir do n8n (`casa` devolve `ponte.online` = Mac avisou o endereço nos últimos 25 min; o aviso só sai com túnel saudável); começa como "casa…" e atualiza a cada 10 min. Cartão de cena não finge estado ligado/desligado. Resposta `recusado` vira aviso, não "casa sem resposta". Painel `aparelhos` agora traz `desativavel`.
 - **Pendente de decisão (para a build 4):** como mostrar cenas que invertem (Cama) — hoje o cartão só dispara; se ele quiser ver o estado, a saída é ligar o cartão ao aparelho da cena (ex.: "Casal Cama") ou criar cenas pares na Smart Life.
 
+## Versão 1.0.3 (4) — 17/10/2026, 13h30
+- Única mudança nativa: a WKWebView abre a página com `reloadRevalidatingCacheData` (confere o ETag no GitHub Pages a cada abertura → correções da página chegam na hora) e, se não houver rede na abertura, cai uma vez para a cópia em cache. Página também em 1.0.3 (Ajustes mostra "versão 1.0.3").
+- Enviada nas 4 plataformas Apple com `apple/enviar-lojas.sh`. Android não gerado (sem mudança).
+
 ## Versão 1.0.2 (3) — enviada em 17/10/2026, 12h44–12h49
 - Apple: 4 plataformas (iOS, macOS, visionOS, tvOS) enviadas com `apple/enviar-lojas.sh`; todas com "Upload succeeded". Logs em `apple/build/envio-iOS-1.0.2.log` e `apple/build/envio-outras-1.0.2.log`. O xcodegen fica em `~/FelyxApp/bin/xcodegen/bin/xcodegen` (o script já aponta para lá).
 - Android: NÃO foi gerada 1.0.2 — nada mudou no app Android (só WebView da página, que já é 1.0.2 no GitHub Pages). Se for subir, lembrar de versionCode 3.
