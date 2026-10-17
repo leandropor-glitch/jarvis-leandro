@@ -275,7 +275,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
   <section class="view panel" id="vFelyx" aria-label="Felyx">
     <div class="top head">
       <span class="kick" style="font-size:13px;letter-spacing:3px">Felyx · Vinci AI</span>
-      <span class="kick" style="letter-spacing:0;display:flex;align-items:center;gap:8px"><span class="dot" id="dotCasa"></span><span id="txtCasa">casa online</span></span>
+      <span class="kick" style="letter-spacing:0;display:flex;align-items:center;gap:8px"><span class="dot" id="dotCasa" data-on="0"></span><span id="txtCasa">casa…</span></span>
       <button class="gear" data-go="vAjustes" aria-label="Ajustes">AJUSTES</button>
     </div>
     <div class="stage">
@@ -632,15 +632,20 @@ async function carregarCasa(force){
   try{
     const j = await api('casa', { token: sessao.token });
     if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); return; }
-    if (j.ok){ casa = { cenas: j.cenas || [], aparelhos: j.aparelhos || [] }; casaAt = Date.now(); store.set('felyx.casa', casa); renderCasa(); }
-  }catch(e){ if (!casa) $('#tiles').innerHTML = '<p class="kick" style="letter-spacing:0">casa indisponível</p>'; }
+    if (j.ok){
+      casa = { cenas: j.cenas || [], aparelhos: j.aparelhos || [], desativaveis: j.desativaveis || [] }; casaAt = Date.now(); store.set('felyx.casa', casa); renderCasa();
+      // a ponte da casa (Mac) só avisa o endereço quando o túnel responde de verdade; sem aviso recente = casa fora do ar
+      if (j.ponte) estadoCasa(j.ponte.online !== false, j.ponte.online === false ? 'casa fora do ar' : 'casa online');
+    }
+  }catch(e){ if (!casa) $('#tiles').innerHTML = '<p class="kick" style="letter-spacing:0">casa indisponível</p>'; estadoCasa(false, 'casa sem resposta'); }
 }
+function estadoCasa(on, txt){ $('#dotCasa').dataset.on = on ? '1' : '0'; $('#txtCasa').textContent = txt; }
 function renderCasa(){
   const c = casa || { cenas: [], aparelhos: [] };
   const q = ($('#busca').value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const bate = (s) => !q || s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q);
   $('#casaConta').textContent = (c.cenas.length + c.aparelhos.length) + ' ITENS · VINCI';
-  const tile = (nome, tag, tipo) => `<button class="tile" type="button" data-cena="${tipo === 'cena' ? esc(nome) : ''}" data-dev="${tipo === 'cena' ? '' : esc(nome)}" data-on="${ligado[nome] ? '1' : '0'}"><small>${esc(tag)}</small><span>${esc(nome)}</span></button>`;
+  const tile = (nome, tag, tipo) => `<button class="tile" type="button" data-cena="${tipo === 'cena' ? esc(nome) : ''}" data-dev="${tipo === 'cena' ? '' : esc(nome)}" data-on="${tipo !== 'cena' && ligado[nome] ? '1' : '0'}"><small>${esc(tag)}</small><span>${esc(nome)}</span></button>`;
   if (filtro === 'aparelhos'){
     $('#tiles').hidden = true; $('#devs').hidden = false;
     $('#devs').innerHTML = c.aparelhos.filter((a) => bate(a.nome)).map((a) => `<div class="dev" data-nome="${esc(a.nome)}"><span>${esc(a.nome)}<small>${esc(TIPO[a.tipo] || a.tipo || '')}</small></span><span class="acts"><button type="button" data-liga="${esc(a.nome)}" class="${ligado[a.nome] === true ? 'on' : ''}">Ligar</button><button type="button" data-desliga="${esc(a.nome)}" class="${ligado[a.nome] === false ? 'on' : ''}">Desligar</button></span></div>`).join('') || '<div class="dev"><span style="color:var(--mute)">nada encontrado</span></div>';
@@ -666,11 +671,14 @@ async function comandar(texto, el, nome, estado){
     if (j.ok){
       toast(j.text || 'Feito.');
       if (nome != null){ ligado[nome] = estado; store.set('felyx.ligado', ligado); }
-      $('#dotCasa').dataset.on = '1'; $('#txtCasa').textContent = 'casa online';
+      estadoCasa(true, 'casa online');
+    } else if (j.recusado){
+      // o atalho entendeu, mas a Amazon não permite (ex.: desativar uma cena que só tem "ativar"): não é falha da casa
+      toast(j.text || 'A Vinci não permite esse comando.');
     } else if (!j.atalho){
       // não foi comando simples: o cérebro resolve
       const r = await perguntar(texto); toast(r || 'Não consegui agora.');
-    } else { toast(j.text || 'A central da Vinci não confirmou.'); $('#dotCasa').dataset.on = '0'; $('#txtCasa').textContent = 'casa sem resposta'; }
+    } else { toast(j.text || 'A central da Vinci não confirmou.'); estadoCasa(false, 'casa sem resposta'); }
   }catch(e){ toast('Sem conexão com a casa.'); }
   if (el){ el.dataset.busy = '0'; el.disabled = false; }
   renderCasa();
@@ -913,6 +921,7 @@ async function abrirApp(){
 }
 setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarMercado(); } }, 5 * 60e3);
 setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarNoticias(); } }, 30 * 60e3);
+setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarCasa(true); } }, 10 * 60e3);   // mantém o indicador da casa honesto
 requestAnimationFrame(animarBarras);
 if (sessao && sessao.token) abrirApp(); else { $('#login').hidden = false; mostraForm('fTel'); }
 </script>
