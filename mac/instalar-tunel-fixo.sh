@@ -87,10 +87,24 @@ avisar() {
 }
 until avisar; do sleep 15; kill -0 \$CFPID 2>/dev/null || exit 1; done
 echo "\$(date '+%d/%m %H:%M') endereço avisado: \$URL" >> "$PONTE_DIR/logs/enderecos.log"
-# Reavisa a cada 15 min (se o n8n perder o endereço, volta sozinho) enquanto o túnel estiver vivo
+# Vigia o túnel de verdade: a cada 2 min pede a raiz pelo endereço público. Qualquer resposta HTTP (200, 401, 404…)
+# prova que edge → cloudflared → ponte está funcionando; 000 (DNS/conexão) ou 5xx é túnel morto. Duas falhas seguidas:
+# derruba o cloudflared e sai — o launchd religa este script, que abre um túnel novo e avisa o endereço novo ao n8n.
+# (Antes só se olhava se o processo estava vivo; o túnel rápido da Cloudflare morre por fora e o processo fica de pé.)
+FALHAS=0; RODADAS=0
 while kill -0 \$CFPID 2>/dev/null; do
-  for i in \$(seq 1 90); do sleep 10; kill -0 \$CFPID 2>/dev/null || exit 1; done
-  avisar
+  for i in \$(seq 1 12); do sleep 10; kill -0 \$CFPID 2>/dev/null || exit 1; done
+  COD="\$(curl -s -o /dev/null -w '%{http_code}' -m 15 "\$URL/")"
+  if [ "\$COD" = "000" ] || [ "\${COD:0:1}" = "5" ]; then
+    FALHAS=\$((FALHAS+1)); echo "\$(date '+%d/%m %H:%M') túnel não respondeu (HTTP \$COD), falha \$FALHAS" >> "$PONTE_DIR/logs/enderecos.log"
+  else
+    FALHAS=0
+  fi
+  if [ \$FALHAS -ge 2 ]; then
+    echo "\$(date '+%d/%m %H:%M') túnel caiu; reiniciando para pegar endereço novo" >> "$PONTE_DIR/logs/enderecos.log"
+    kill \$CFPID 2>/dev/null; exit 1
+  fi
+  RODADAS=\$((RODADAS+1)); [ \$((RODADAS % 5)) -eq 0 ] && avisar   # reavisa a cada ~10 min, só com o túnel saudável
 done
 exit 1
 EOF
