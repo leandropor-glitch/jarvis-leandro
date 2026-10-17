@@ -78,6 +78,11 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 - Apple: 1.0.1 (2) enviada nas 4 plataformas com `apple/enviar-lojas.sh` (lista padrão de plataformas corrigida).
 - Android: 1.0.1 (versionCode 2) publicada no teste interno da Play Console.
 
+## 17/10/2026 (manhã) — app no TestFlight "não consegui conectar a voz"
+- **Causa:** na noite de 16/10 o site felyx.html ganhou login (telefone + senha da casa; workflow `Felyx — login e acesso` Hh7SMvhAhGmYzjrn, tabelas felyx_acesso, felyx_config e felyx_sessoes) e a ponte Gemini Live passou a exigir sessão em `/felix/token`, `/felix/pergunta` e `/felix/boasvindas`. O app tem login próprio (hsy4DwI0zHn5UYQD, hash em felyx_app_usuarios) e não mandava sessão nenhuma → 401 → voz e chat do app pararam.
+- **Correção:** sub-workflow novo **`Felyx — sessão válida?`** (fM6kN2wSnKzKIVjO): recebe `token`, aceita a sessão do site (felyx_sessoes) **ou** a do app (SHA-256 em felyx_app_usuarios.sessoes) e devolve { token, telefone, nome, expira, origem }. Os três nós "Verificar sessão" da ponte chamam esse sub-workflow; "Sessão ok?" e "Negar" ficaram iguais. A página `app/index.html` (versão 1.0.2) passou a mandar `?s=<token>` em /felix/token e `sessao` no corpo de /felix/pergunta, e volta para o login quando recebe 401/relogar. `FelyxAPI.perguntar` (Siri "Perguntar" e Apple TV) também manda `sessao` — isso só vale na próxima build nativa (project.yml já está em 1.0.2 (3)).
+- Nada mudou no site felyx.html nem no login dele. Nenhuma build nova é necessária para iPhone/iPad/Mac/Android: a página é carregada do GitHub Pages.
+
 ## Publicação em produção (em andamento, 16/10/2026 19h)
 - Conta de demonstração para revisores: número **0000000000**, senha **Felyx2026Revisao** (linha 550000000000 em felyx_app_usuarios; comandos da casa simulados; o cérebro recebe aviso de modo demonstração).
 - Páginas: app/privacidade.html, app/suporte.html, app/excluir-conta.html. Capturas e banner em lojas/capturas.

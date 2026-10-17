@@ -62,13 +62,16 @@ enum FelyxAPI {
         } catch { return "Sem conexão com a casa agora." }
     }
 
+    /// Pergunta ao cérebro pela ponte. A ponte exige a sessão do app (`sessao`); sem ela devolve 401 / relogar.
     static func perguntar(_ pergunta: String) async -> String {
-        struct R: Decodable { var text: String? }
+        struct R: Decodable { var text: String?; var relogar: Bool? }
+        guard let token = Sessao.token else { return "Abra o Felyx e entre com seu número primeiro." }
         let nome = Sessao.nome ?? ""
         let primeiro = nome.split(separator: " ").first.map(String.init) ?? ""
         let fala = (!primeiro.isEmpty && primeiro.lowercased() != "leandro") ? "(\(primeiro) falando pelo app) \(pergunta)" : pergunta
         do {
-            let r = try await post("felix/pergunta", ["pergunta": fala, "sessionId": "app-nativo", "origem": "app-nativo", "usuario": nome], como: R.self)
+            let r = try await post("felix/pergunta", ["pergunta": fala, "sessionId": "app-nativo", "origem": "app-nativo", "usuario": nome, "sessao": token], como: R.self)
+            if r.relogar == true { Sessao.limpar(); return "Sua sessão expirou. Abra o Felyx e entre de novo." }
             let t = (r.text ?? "").replacingOccurrences(of: "alexa", with: "Vinci", options: [.caseInsensitive])
             return t.isEmpty ? "Não consegui consultar o cérebro agora." : t
         } catch { return "Sem conexão com o Felyx agora." }

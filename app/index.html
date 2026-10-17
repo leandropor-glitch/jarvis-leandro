@@ -379,7 +379,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 <script>
 'use strict';
 /* ===================== configuração ===================== */
-const VERSAO = '1.0.1';
+const VERSAO = '1.0.2';
 const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const APP_URL = N8N + '/felix/app';
 const TOKEN_URL = N8N + '/felix/token';
@@ -707,9 +707,16 @@ function quemFala(p){
   const n = primeiroNome();
   return (n && !/^leandro$/i.test(n)) ? '(' + n + ' falando pelo app) ' + p : p;
 }
+// a ponte do Felyx exige a sessão do app em cada pedido de voz e de cérebro (401 = entrar de novo)
+function tokenSessao(){ return (sessao && sessao.token) ? sessao.token : ''; }
+function sessaoCaiu(r, j){
+  if ((r && r.status === 401) || (j && j.relogar)){ toast('Sua sessão expirou. Entre de novo.'); sair(); return true; }
+  return false;
+}
 async function perguntar(p){
-  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(p), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '' }) });
-  const j = await r.json();
+  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(p), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
+  const j = await r.json().catch(() => ({}));
+  if (sessaoCaiu(r, j)) throw new Error('sessao');
   return String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
 }
 function bolha(txt, quem){ const el = document.createElement('div'); el.className = 'bub ' + quem; el.textContent = txt; $('#chat').appendChild(el); $('#chat').scrollTop = 1e9; $('#vFelyx').classList.add('conversa'); return el; }
@@ -717,7 +724,7 @@ async function perguntarPorTexto(p, mostrar){
   bolha(mostrar || p, 'me');
   const w = bolha('pensando…', 'fx wait');
   try{ const r = await perguntar(p); w.className = 'bub fx'; w.textContent = r || 'Não consegui consultar o cérebro agora.'; }
-  catch(e){ w.className = 'bub fx'; w.textContent = 'Sem conexão com o Felyx.'; }
+  catch(e){ w.className = 'bub fx'; w.textContent = (e && e.message === 'sessao') ? 'Entre de novo para continuar.' : 'Sem conexão com o Felyx.'; }
   $('#chat').scrollTop = 1e9;
 }
 $('#ask').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#askIn').value.trim(); if (!v) return; $('#askIn').value = ''; if (conv && conv.micOpen) conv.pedir(v); else perguntarPorTexto(v); });
@@ -742,7 +749,8 @@ class GeminiLive {
   constructor(){ this.ws = null; this.inCtx = null; this.outCtx = null; this.micStream = null; this.worklet = null; this.analyser = null; this.playhead = 0; this.sources = []; this.onState = () => {}; this.onClose = () => {}; this.onBrain = () => {}; this.closed = false; this.inLevel = 0; this.micOpen = true; }
   async start(){
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-    const r = await fetch(TOKEN_URL, { cache: 'no-store' });
+    const r = await fetch(TOKEN_URL + '?s=' + encodeURIComponent(tokenSessao()), { cache: 'no-store' });
+    if (r.status === 401){ const e = new Error('sessao'); e.sessao = true; throw e; }
     if (!r.ok) throw new Error('n8n não devolveu o token (' + r.status + ')');
     const tk = await r.json();
     if (!tk.token) throw new Error('token vazio');
@@ -867,6 +875,7 @@ async function iniciarVoz(){
     else g.ler('Às suas ordens' + (primeiroNome() ? ', ' + primeiroNome() : '') + '.');
   }catch(e){
     g.teardown('');
+    if (e && e.sessao){ estado('idle', 'sessão expirada: entre de novo'); sessaoCaiu({ status: 401 }, null); return; }
     estado('idle', (e && e.name === 'NotAllowedError') ? 'microfone bloqueado: libere nas permissões' : 'não consegui conectar a voz');
   }
 }
