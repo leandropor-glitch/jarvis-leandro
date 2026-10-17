@@ -83,6 +83,11 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 - **Correção:** sub-workflow novo **`Felyx — sessão válida?`** (fM6kN2wSnKzKIVjO): recebe `token`, aceita a sessão do site (felyx_sessoes) **ou** a do app (SHA-256 em felyx_app_usuarios.sessoes) e devolve { token, telefone, nome, expira, origem }. Os três nós "Verificar sessão" da ponte chamam esse sub-workflow; "Sessão ok?" e "Negar" ficaram iguais. A página `app/index.html` (versão 1.0.2) passou a mandar `?s=<token>` em /felix/token e `sessao` no corpo de /felix/pergunta, e volta para o login quando recebe 401/relogar. `FelyxAPI.perguntar` (Siri "Perguntar" e Apple TV) também manda `sessao` — isso só vale na próxima build nativa (project.yml já está em 1.0.2 (3)).
 - Nada mudou no site felyx.html nem no login dele. Nenhuma build nova é necessária para iPhone/iPad/Mac/Android: a página é carregada do GitHub Pages.
 
+## Versão 1.0.2 (3) — enviada em 17/10/2026, 12h44–12h49
+- Apple: 4 plataformas (iOS, macOS, visionOS, tvOS) enviadas com `apple/enviar-lojas.sh`; todas com "Upload succeeded". Logs em `apple/build/envio-iOS-1.0.2.log` e `apple/build/envio-outras-1.0.2.log`. O xcodegen fica em `~/FelyxApp/bin/xcodegen/bin/xcodegen` (o script já aponta para lá).
+- Android: NÃO foi gerada 1.0.2 — nada mudou no app Android (só WebView da página, que já é 1.0.2 no GitHub Pages). Se for subir, lembrar de versionCode 3.
+- A sessão do App Store Connect no Chrome do Mac Mini tinha expirado (login pede Apple ID + 2FA), então a conferência do TestFlight ficou para o Leandro.
+
 ## Publicação em produção (em andamento, 16/10/2026 19h)
 - Conta de demonstração para revisores: número **0000000000**, senha **Felyx2026Revisao** (linha 550000000000 em felyx_app_usuarios; comandos da casa simulados; o cérebro recebe aviso de modo demonstração).
 - Páginas: app/privacidade.html, app/suporte.html, app/excluir-conta.html. Capturas e banner em lojas/capturas.

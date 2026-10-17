@@ -2,7 +2,7 @@
 # Felyx AI Vinci — gera os archives das 4 plataformas Apple e envia ao App Store Connect.
 # Uso: cd apple && ./enviar-lojas.sh            (todas)  |  ./enviar-lojas.sh iOS   (uma só)
 # Antes de mudar a versão: edite MARKETING_VERSION / CURRENT_PROJECT_VERSION no project.yml
-# e rode "xcodegen generate" (xcodegen fica em ~/FelyxApp/bin).
+# e rode "xcodegen generate" (o binário fica em ~/FelyxApp/bin/xcodegen/bin/xcodegen).
 #
 # Por que cada plataforma é assinada de um jeito:
 # - iOS, visionOS e tvOS: archive SEM assinatura (CODE_SIGNING_ALLOWED=NO), porque a conta não
@@ -11,7 +11,7 @@
 #   com.apple.security.app-sandbox e ele só entra no archive quando o codesign roda.
 set -e
 cd "$(dirname "$0")"
-export PATH="$HOME/FelyxApp/bin:$PATH"
+export PATH="$HOME/FelyxApp/bin:$HOME/FelyxApp/bin/xcodegen/bin:$PATH"
 
 plataformas=("$@"); (( ${#plataformas} )) || plataformas=(iOS macOS visionOS tvOS)
 
