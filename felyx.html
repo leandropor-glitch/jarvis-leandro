@@ -563,6 +563,43 @@ const MERCADO_URL = N8N + '/felix/mercado';
 const NOTICIAS_URL = N8N + '/felix/noticias';
 const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
+/* ===================== acesso (login) ===================== */
+const LOGIN_URL = N8N + '/felix/login';
+let SESSAO = '';
+try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
+function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
+function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
+function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
+(function montarLogin(){
+  const st = document.createElement('style');
+  st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#d6ff1a}#felyxLogin button{width:100%;margin-top:14px;background:#d6ff1a;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
+  document.head.appendChild(st);
+  const el = document.createElement('div'); el.id = 'felyxLogin';
+  el.innerHTML = '<div class="cx"><h1>FELYX</h1><p>vinci ai</p>'
+    + '<input id="flTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="telefone com DDD">'
+    + '<input id="flSenha" type="password" autocomplete="current-password" placeholder="senha da casa">'
+    + '<button id="flEntrar">Entrar</button><div class="er" id="flErro"></div></div>';
+  document.body.appendChild(el);
+  const entrar = document.getElementById('flEntrar'), erro = document.getElementById('flErro');
+  async function tentar(){
+    const tel = document.getElementById('flTel').value.trim();
+    const senha = document.getElementById('flSenha').value;
+    if(!tel || !senha){ erro.textContent = 'Preencha telefone e senha.'; return; }
+    entrar.disabled = true; erro.textContent = 'entrando…';
+    try{
+      const r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
+      let j = {}; try{ j = await r.json(); }catch(e){}
+      if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); primeAudio(); if(!conv) start(); }
+      else { erro.textContent = 'Telefone ou senha não conferem, ou você não está autorizado.'; }
+    }catch(e){ erro.textContent = 'Não consegui conectar. Tente de novo.'; }
+    entrar.disabled = false;
+  }
+  entrar.addEventListener('click', tentar);
+  document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
+})();
+function mostrarLogin(msg){ const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
+function esconderLogin(){ const el = document.getElementById('felyxLogin'); if(el) el.dataset.on = '0'; }
+
 /* ===================== mercado (em real) ===================== */
 const OIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c-3.2 4.3-6 7.6-6 11.3A6 6 0 0 0 18 13.8c0-3.7-2.8-7-6-11.3zm0 16.3a3 3 0 0 1-3-3c0-.5.4-.8.8-.8s.8.3.8.8a1.4 1.4 0 0 0 1.4 1.4c.5 0 .8.4.8.8s-.3.8-.8.8z"/></svg>';
 const ASSETS = [
@@ -798,8 +835,8 @@ async function runTile(i, btn){
   if(!conv) setState('thinking', t.n.toLowerCase());
   let texto = '';
   try{
-    const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta: frase, sessionId: SESSION_ID, origem:'hud-toque' }) });
-    const j = await r.json(); texto = String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
+    const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta: frase, sessionId: SESSION_ID, origem:'hud-toque', sessao: SESSAO }) });
+    const j = await r.json(); if(sessaoCaiu(r, j)){ btn.dataset.busy='0'; return; } texto = String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
   }catch(e){ texto = ''; }
   btn.dataset.busy = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
@@ -968,6 +1005,7 @@ async function pedirBoasVindas(){
       politica: (newsPol.items.length ? newsPol.items : ((ultimasNoticias && ultimasNoticias.politica) || []).slice(0,6)).map(n=>n.title),
       tecnologia: (newsTec.items.length ? newsTec.items : ((ultimasNoticias && ultimasNoticias.tecnologia) || []).slice(0,6)).map(n=>n.title) };
     const ctrl = new AbortController(); const tm = setTimeout(()=>ctrl.abort(), 25000);
+    body.sessao = SESSAO;
     const r = await fetch(BOASVINDAS_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctrl.signal });
     clearTimeout(tm);
     const j = await r.json();
@@ -1019,7 +1057,8 @@ class GeminiLive {
   constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; this.onTranscript=()=>{}; this.micOpen=true; }
   async start(){
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
-    const r = await fetch(TOKEN_URL, { cache:'no-store' });
+    const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
+    if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
     if(!r.ok) throw new Error('n8n não devolveu o token ('+r.status+')');
     const tk = await r.json();
     if(!tk.token) throw new Error('token vazio do n8n');
@@ -1125,7 +1164,7 @@ class GeminiLive {
         this.onState('thinking');
         let texto = '';
         try{
-          const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta, sessionId: SESSION_ID }) });
+          const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta, sessionId: SESSION_ID, sessao: SESSAO }) });
           const j = await r.json(); texto = String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
         }catch(e){ texto = ''; }
         response = { resposta: texto || 'Desculpe, não consegui consultar o cérebro agora. Pode repetir?' };
@@ -1206,6 +1245,7 @@ function liberarEComecar(){ if(unlockEl.hidden) return; unlockEl.hidden = true; 
 unlockEl.addEventListener('pointerdown', liberarEComecar);
 unlockEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') liberarEComecar(); });
 (function autoAbrir(){
+  if(!SESSAO){ mostrarLogin(''); return; }
   let podeTocar = false;
   try{ if(navigator.userActivation && navigator.userActivation.hasBeenActive) podeTocar = true; }catch(e){}
   try{ const AC = window.AudioContext || window.webkitAudioContext; const t = new AC(); podeTocar = podeTocar || t.state === 'running'; if(podeTocar){ fxCtx = t; } else t.close(); }catch(e){}
