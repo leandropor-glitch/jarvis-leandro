@@ -152,7 +152,12 @@ ul.notes li::marker{color:var(--wood)}
   .cad{display:block}
   .sheet,.prancha{break-inside:auto;border:0;margin:0 0 0;page-break-after:always}
   .sheet-body{gap:14px}
-  .blk,.figs,.two>div{break-inside:avoid}
+  .figs{grid-template-columns:repeat(3,minmax(0,1fr))!important;break-inside:avoid}
+  .two{grid-template-columns:1.1fr 1fr!important}
+  .two>div{break-inside:avoid}
+  .blk h3{break-after:avoid}
+  tr{break-inside:avoid}
+  .sheet-head{grid-template-columns:auto 1fr auto!important}
   .plan-box svg,.prancha .draw svg{min-width:0}
   .print-pranchas .prancha{page-break-after:always}
 }
