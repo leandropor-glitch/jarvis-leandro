@@ -1,7 +1,21 @@
 import SwiftUI
+import AVFoundation
 
 /// Apple TV: não tem navegador embutido, então é um app nativo no desenho aprovado
 /// (saudação, cenas da casa, notícias). Perguntas pelo controle usam o ditado do teclado da TV.
+/// A resposta aparece na tela e também é lida em voz alta.
+@MainActor
+enum VozTV {
+    private static let sintetizador = AVSpeechSynthesizer()
+    static func falar(_ texto: String) {
+        guard !texto.isEmpty else { return }
+        let fala = AVSpeechUtterance(string: texto)
+        fala.voice = AVSpeechSynthesisVoice(language: "pt-BR")
+        sintetizador.stopSpeaking(at: .immediate)
+        sintetizador.speak(fala)
+    }
+}
+
 @main
 struct FelyxTVApp: App {
     @StateObject private var m = ModeloTV()
@@ -56,10 +70,20 @@ final class ModeloTV: ObservableObject {
         resumo = dolarTxt + (noticias.first.map { "O destaque do dia: \($0.1.title)." } ?? "")
     }
 
-    func cena(_ c: String) async { aviso = "Ativando \(c)…"; aviso = await FelyxAPI.comandar("ativa a cena \(c)") }
+    func cena(_ c: String) async {
+        aviso = "Ativando \(c)…"
+        aviso = await FelyxAPI.comandar("ativa a cena \(c)")
+        VozTV.falar(aviso ?? "")
+    }
     func explicar(_ n: Noticia) async {
         lendo = "Lendo a matéria…"
         lendo = await FelyxAPI.perguntar("Abra e resuma esta notícia do painel: \"\(n.title)\"" + (n.source.map { " (\($0))" } ?? "") + (n.link.map { " — \($0)" } ?? ""))
+        VozTV.falar(lendo ?? "")
+    }
+    func perguntar(_ p: String) async {
+        lendo = "Consultando o cérebro…"
+        lendo = await FelyxAPI.perguntar(p)
+        VozTV.falar(lendo ?? "")
     }
     func entrou(token: String, nome: String) { Sessao.salvar(token: token, nome: nome); self.nome = nome; logado = true }
     func sair() { if let t = Sessao.token { Task { _ = try? await FelyxAPI.app("sair", ["token": t]) } }; Sessao.limpar(); logado = false }
@@ -105,7 +129,7 @@ struct InicioTV: View {
                     }
                     HStack(spacing: 24) {
                         TextField("Pergunte ao Felyx (segure o botão do microfone do controle para ditar)", text: $pergunta)
-                            .onSubmit { let p = pergunta; pergunta = ""; Task { m.lendo = "Consultando o cérebro…"; m.lendo = await FelyxAPI.perguntar(p) } }
+                            .onSubmit { let p = pergunta; pergunta = ""; Task { await m.perguntar(p) } }
                         Button("Sair") { m.sair() }
                     }.padding(.top, 20)
                 }.padding(.horizontal, 90).padding(.vertical, 60)
