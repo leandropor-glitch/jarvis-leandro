@@ -59,6 +59,8 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
+        # a Apple TV 1.0.3 já foi aprovada: as builds novas dela precisam de versão maior
+        MARKETING_VERSION: "1.0.4"
         TARGETED_DEVICE_FAMILY: "3"
 schemes:
   FelyxAI:
