@@ -33,6 +33,7 @@ final class ModeloTV: ObservableObject {
     @Published var lendo: String?
     @Published var iaPerguntada = Consentimento.perguntado
     @Published var iaAceita = Consentimento.aceito
+    let voz = VozTV()
 
     var primeiroNome: String { nome.split(separator: " ").first.map(String.init) ?? "" }
     var saudacao: String { let h = Calendar.current.component(.hour, from: Date()); return h >= 5 && h < 12 ? "Bom dia" : (h >= 12 && h < 18 ? "Boa tarde" : "Boa noite") }
@@ -60,12 +61,21 @@ final class ModeloTV: ObservableObject {
 
     func cena(_ c: String) async { aviso = "Ativando \(c)…"; aviso = await FelyxAPI.comandar("ativa a cena \(c)") }
     func explicar(_ n: Noticia) async {
+        voz.parar()
         lendo = "Lendo a matéria…"
-        lendo = await FelyxAPI.perguntar("Abra e resuma esta notícia do painel: \"\(n.title)\"" + (n.source.map { " (\($0))" } ?? "") + (n.link.map { " — \($0)" } ?? ""))
+        let r = await FelyxAPI.perguntar("Abra e resuma esta notícia do painel: \"\(n.title)\"" + (n.source.map { " (\($0))" } ?? "") + (n.link.map { " — \($0)" } ?? ""))
+        responder(r)
     }
+    func perguntar(_ p: String) async {
+        voz.parar()
+        lendo = "Consultando o cérebro…"
+        responder(await FelyxAPI.perguntar(p))
+    }
+    /// Mostra a resposta e a lê em voz alta com a voz Algieba (se a permissão de IA estiver dada).
+    private func responder(_ r: String) { lendo = r; voz.falar(r) }
     func entrou(token: String, nome: String) { Sessao.salvar(token: token, nome: nome); self.nome = nome; logado = true }
-    func sair() { if let t = Sessao.token { Task { _ = try? await FelyxAPI.app("sair", ["token": t]) } }; Sessao.limpar(); Consentimento.limpar(); iaPerguntada = false; iaAceita = false; logado = false }
-    func responderIA(_ v: Bool) { Consentimento.gravar(v); iaAceita = v; iaPerguntada = true }
+    func sair() { if let t = Sessao.token { Task { _ = try? await FelyxAPI.app("sair", ["token": t]) } }; Sessao.limpar(); Consentimento.limpar(); iaPerguntada = false; iaAceita = false; voz.parar(); logado = false }
+    func responderIA(_ v: Bool) { Consentimento.gravar(v); iaAceita = v; iaPerguntada = true; if !v { voz.parar() } }
 }
 
 struct InicioTV: View {
@@ -108,7 +118,7 @@ struct InicioTV: View {
                     }
                     HStack(spacing: 24) {
                         TextField("Pergunte ao Felyx (segure o botão do microfone do controle para ditar)", text: $pergunta)
-                            .onSubmit { let p = pergunta; pergunta = ""; Task { m.lendo = "Consultando o cérebro…"; m.lendo = await FelyxAPI.perguntar(p) } }
+                            .onSubmit { let p = pergunta; pergunta = ""; Task { await m.perguntar(p) } }
                         Button(m.iaAceita ? "Desligar IA" : "Permitir IA") { m.responderIA(!m.iaAceita) }
                         Button("Sair") { m.sair() }
                     }.padding(.top, 20)
@@ -116,7 +126,7 @@ struct InicioTV: View {
             }
         }
         .task { await m.carregar() }
-        .sheet(isPresented: Binding(get: { m.lendo != nil }, set: { if !$0 { m.lendo = nil } })) {
+        .sheet(isPresented: Binding(get: { m.lendo != nil }, set: { if !$0 { m.lendo = nil; m.voz.parar() } })) {
             ScrollView { Text(m.lendo ?? "").font(.system(size: 34)).padding(80).frame(maxWidth: 1400, alignment: .leading) }
         }
     }
@@ -129,9 +139,9 @@ struct PermissaoTV: View {
         VStack(alignment: .leading, spacing: 30) {
             Text("FELYX · VINCI AI").font(.system(size: 24, design: .monospaced)).tracking(6).foregroundStyle(cinza)
             Text("Antes de conversar").font(.system(size: 64, weight: .medium))
-            Text("Para responder, o Felyx usa serviços de inteligência artificial de outras empresas. Com a sua permissão, o texto do que você pergunta (escrito ou ditado) e o seu primeiro nome vão para a Anthropic (Claude), pelo servidor da Vinci (n8n), para gerar a resposta. Nada disso é usado para anúncios nem vendido.")
+            Text("Para responder, o Felyx usa serviços de inteligência artificial de outras empresas. Com a sua permissão, o texto do que você pergunta (escrito ou ditado) e o seu primeiro nome vão para a Anthropic (Claude), pelo servidor da Vinci (n8n), para gerar a resposta; e o texto da resposta vai para o Google (Gemini), para ser lido com a voz do Felyx. Nada disso é usado para anúncios nem vendido.")
                 .font(.system(size: 30)).foregroundStyle(Color(white: 0.8)).frame(maxWidth: 1300, alignment: .leading)
-            Text("Sem a permissão, as cenas da casa e as notícias continuam funcionando; só as perguntas ao Felyx ficam desligadas.")
+            Text("Sem a permissão, as cenas da casa e as notícias continuam funcionando; só as perguntas e a voz do Felyx ficam desligadas.")
                 .font(.system(size: 26)).foregroundStyle(cinza).frame(maxWidth: 1300, alignment: .leading)
             HStack(spacing: 30) {
                 Button("Permitir") { m.responderIA(true) }
