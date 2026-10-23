@@ -408,7 +408,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 <script>
 'use strict';
 /* ===================== configuração ===================== */
-const VERSAO = '1.0.4';
+const VERSAO = '1.0.5';
 const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const APP_URL = N8N + '/felix/app';
 const TOKEN_URL = N8N + '/felix/token';
@@ -930,7 +930,7 @@ async function iniciarVoz(){
   try{
     await g.start();
     conv = g; estado('listening');
-    const bv = store.get('felyx.bv', false), hoje = new Date().toDateString();
+    const bv = store.get('felyx.bv', true), hoje = new Date().toDateString();
     if (bv && store.get('felyx.bvDia', '') !== hoje){ store.set('felyx.bvDia', hoje); g.pedir(saudacao() + ', Félix.'); }
     else g.ler('Às suas ordens' + (primeiroNome() ? ', ' + primeiroNome() : '') + '.');
   }catch(e){
@@ -946,7 +946,7 @@ document.addEventListener('keydown', (e) => {
   // no computador: barra de espaço fora de campos de texto liga/desliga a conversa
   if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test((e.target && e.target.tagName) || '') && !$('#app').hidden){ e.preventDefault(); alternarVoz(); }
 });
-$('#ajBV').checked = store.get('felyx.bv', false);
+$('#ajBV').checked = store.get('felyx.bv', true);
 $('#ajBV').addEventListener('change', (e) => store.set('felyx.bv', e.target.checked));
 $('#ajIA').addEventListener('change', (e) => { if (e.target.checked){ e.target.checked = false; store.del(chaveIA()); permissaoIA(); } else { gravarIA(false); if (conv) conv.end(); } });
 
