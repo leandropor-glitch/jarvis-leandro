@@ -15,8 +15,8 @@ android {
         applicationId = "com.vinci.felyx"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.4"
     }
     signingConfigs {
         if (chave.getProperty("storeFile") != null) create("envio") {

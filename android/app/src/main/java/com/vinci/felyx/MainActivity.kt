@@ -7,6 +7,17 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.Gravity
+import android.view.View
+import android.webkit.WebResourceError
+import android.webkit.WebResourceResponse
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
@@ -29,6 +40,13 @@ class MainActivity : ComponentActivity() {
     private lateinit var web: WebView
     private var pedidoPendente: PermissionRequest? = null
     private var carregou = false
+    private var pronto = false
+    private lateinit var aviso: LinearLayout
+    private lateinit var girando: ProgressBar
+    private lateinit var textoAviso: TextView
+    private lateinit var tentar: Button
+    private val relogio = Handler(Looper.getMainLooper())
+    private val prazo = Runnable { if (!pronto) falhou() }
     private val fila = mutableListOf<Pair<String, String>>()
 
     private val pedirMicrofone = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
@@ -42,7 +60,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         web = WebView(this)
         web.setBackgroundColor(Color.parseColor("#06070A"))
-        setContentView(web)
+        setContentView(FrameLayout(this).apply {
+            setBackgroundColor(Color.parseColor("#06070A"))
+            addView(web, FrameLayout.LayoutParams(-1, -1))
+            addView(montarAviso(), FrameLayout.LayoutParams(-1, -1))
+        })
 
         // respeita a barra de status e a de navegação (a tela vai de ponta a ponta)
         ViewCompat.setOnApplyWindowInsetsListener(web) { v, insets ->
@@ -65,6 +87,12 @@ class MainActivity : ComponentActivity() {
                 val u = req.url
                 if (u.host == PAGINA.host) return false
                 abrirFora(u.toString()); return true
+            }
+            override fun onReceivedError(view: WebView, req: WebResourceRequest, erro: WebResourceError) {
+                if (req.isForMainFrame) falhou()
+            }
+            override fun onReceivedHttpError(view: WebView, req: WebResourceRequest, resp: WebResourceResponse) {
+                if (req.isForMainFrame && resp.statusCode >= 400) falhou()
             }
             override fun onPageFinished(view: WebView, url: String) {
                 carregou = true
@@ -91,6 +119,7 @@ class MainActivity : ComponentActivity() {
         })
 
         if (savedInstanceState == null) web.loadUrl(PAGINA.toString()) else web.restoreState(savedInstanceState)
+        esperarPagina()
         tratar(intent)
     }
 
@@ -111,13 +140,58 @@ class MainActivity : ComponentActivity() {
         web.post { web.evaluateJavascript(js, null) }
     }
 
+    /** Tela nativa por cima da página: "carregando" e, se a página não ficar pronta, o erro com "Tentar de novo". */
+    private fun montarAviso(): View {
+        val d = resources.displayMetrics.density
+        girando = ProgressBar(this)
+        textoAviso = TextView(this).apply {
+            setTextColor(Color.parseColor("#E9EAE6")); textSize = 17f; gravity = Gravity.CENTER
+            setPadding(0, (20 * d).toInt(), 0, (20 * d).toInt())
+        }
+        tentar = Button(this).apply { text = "Tentar de novo"; setOnClickListener { recarregar() } }
+        aviso = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
+            setBackgroundColor(Color.parseColor("#06070A")); setPadding((32 * d).toInt(), 0, (32 * d).toInt(), 0)
+            isClickable = true
+            addView(girando); addView(textoAviso); addView(tentar)
+        }
+        return aviso
+    }
+
+    private fun esperarPagina() {
+        pronto = false
+        aviso.visibility = View.VISIBLE; girando.visibility = View.VISIBLE
+        textoAviso.text = "Abrindo o Felyx…"; tentar.visibility = View.GONE
+        relogio.removeCallbacks(prazo); relogio.postDelayed(prazo, 25_000)
+    }
+
+    private fun falhou() {
+        if (pronto) return
+        relogio.removeCallbacks(prazo)
+        aviso.visibility = View.VISIBLE; girando.visibility = View.GONE
+        textoAviso.text = "Não consegui abrir o Felyx. Confira a conexão com a internet e tente de novo."
+        tentar.visibility = View.VISIBLE
+    }
+
+    private fun ficouPronto() {
+        pronto = true; relogio.removeCallbacks(prazo); aviso.visibility = View.GONE
+    }
+
+    private fun recarregar() { carregou = false; esperarPagina(); web.loadUrl(PAGINA.toString()) }
+
+    override fun onDestroy() { relogio.removeCallbacks(prazo); super.onDestroy() }
+
     private fun abrirFora(url: String) {
         try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) {}
     }
 
     inner class Ponte {
         @JavascriptInterface fun abrir(url: String) { runOnUiThread { abrirFora(url) } }
-        @JavascriptInterface fun evento(json: String) { /* login/logout: a sessão fica na própria página */ }
+        // login/logout: a sessão fica na própria página; "pronto" = a página carregou e o script rodou
+        @JavascriptInterface fun evento(json: String) {
+            val tipo = try { JSONObject(json).optString("tipo") } catch (_: Exception) { "" }
+            if (tipo == "pronto") runOnUiThread { ficouPronto() }
+        }
     }
 
     companion object {

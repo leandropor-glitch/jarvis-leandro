@@ -8,7 +8,7 @@ struct FelyxTVApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if m.logado { InicioTV() } else { LoginTV() }
+                if !m.logado { LoginTV() } else if !m.iaPerguntada { PermissaoTV() } else { InicioTV() }
             }
             .environmentObject(m)
             .preferredColorScheme(.dark)
@@ -31,6 +31,8 @@ final class ModeloTV: ObservableObject {
     @Published var resumo = "Carregando…"
     @Published var aviso: String?
     @Published var lendo: String?
+    @Published var iaPerguntada = Consentimento.perguntado
+    @Published var iaAceita = Consentimento.aceito
 
     var primeiroNome: String { nome.split(separator: " ").first.map(String.init) ?? "" }
     var saudacao: String { let h = Calendar.current.component(.hour, from: Date()); return h >= 5 && h < 12 ? "Bom dia" : (h >= 12 && h < 18 ? "Boa tarde" : "Boa noite") }
@@ -62,7 +64,8 @@ final class ModeloTV: ObservableObject {
         lendo = await FelyxAPI.perguntar("Abra e resuma esta notícia do painel: \"\(n.title)\"" + (n.source.map { " (\($0))" } ?? "") + (n.link.map { " — \($0)" } ?? ""))
     }
     func entrou(token: String, nome: String) { Sessao.salvar(token: token, nome: nome); self.nome = nome; logado = true }
-    func sair() { if let t = Sessao.token { Task { _ = try? await FelyxAPI.app("sair", ["token": t]) } }; Sessao.limpar(); logado = false }
+    func sair() { if let t = Sessao.token { Task { _ = try? await FelyxAPI.app("sair", ["token": t]) } }; Sessao.limpar(); Consentimento.limpar(); iaPerguntada = false; iaAceita = false; logado = false }
+    func responderIA(_ v: Bool) { Consentimento.gravar(v); iaAceita = v; iaPerguntada = true }
 }
 
 struct InicioTV: View {
@@ -106,6 +109,7 @@ struct InicioTV: View {
                     HStack(spacing: 24) {
                         TextField("Pergunte ao Felyx (segure o botão do microfone do controle para ditar)", text: $pergunta)
                             .onSubmit { let p = pergunta; pergunta = ""; Task { m.lendo = "Consultando o cérebro…"; m.lendo = await FelyxAPI.perguntar(p) } }
+                        Button(m.iaAceita ? "Desligar IA" : "Permitir IA") { m.responderIA(!m.iaAceita) }
                         Button("Sair") { m.sair() }
                     }.padding(.top, 20)
                 }.padding(.horizontal, 90).padding(.vertical, 60)
@@ -115,6 +119,25 @@ struct InicioTV: View {
         .sheet(isPresented: Binding(get: { m.lendo != nil }, set: { if !$0 { m.lendo = nil } })) {
             ScrollView { Text(m.lendo ?? "").font(.system(size: 34)).padding(80).frame(maxWidth: 1400, alignment: .leading) }
         }
+    }
+}
+
+/// Antes de qualquer pergunta: o que vai para cada serviço de IA, e o pedido de permissão.
+struct PermissaoTV: View {
+    @EnvironmentObject var m: ModeloTV
+    var body: some View {
+        VStack(alignment: .leading, spacing: 30) {
+            Text("FELYX · VINCI AI").font(.system(size: 24, design: .monospaced)).tracking(6).foregroundStyle(cinza)
+            Text("Antes de conversar").font(.system(size: 64, weight: .medium))
+            Text("Para responder, o Felyx usa serviços de inteligência artificial de outras empresas. Com a sua permissão, o texto do que você pergunta (escrito ou ditado) e o seu primeiro nome vão para a Anthropic (Claude), pelo servidor da Vinci (n8n), para gerar a resposta. Nada disso é usado para anúncios nem vendido.")
+                .font(.system(size: 30)).foregroundStyle(Color(white: 0.8)).frame(maxWidth: 1300, alignment: .leading)
+            Text("Sem a permissão, as cenas da casa e as notícias continuam funcionando; só as perguntas ao Felyx ficam desligadas.")
+                .font(.system(size: 26)).foregroundStyle(cinza).frame(maxWidth: 1300, alignment: .leading)
+            HStack(spacing: 30) {
+                Button("Permitir") { m.responderIA(true) }
+                Button("Agora não") { m.responderIA(false) }
+            }
+        }.padding(90)
     }
 }
 
@@ -134,10 +157,10 @@ struct LoginTV: View {
                 Text("FELYX · VINCI AI").font(.system(size: 24, design: .monospaced)).tracking(6).foregroundStyle(cinza)
                 if etapa == 0 {
                     Text("Entrar").font(.system(size: 64, weight: .medium))
-                    TextField("WhatsApp com DDD", text: $tel).keyboardType(.phonePad)
+                    TextField("Celular com DDD", text: $tel).keyboardType(.phonePad)
                     SecureField("Senha", text: $senha)
                     Button("Entrar") { Task { await entrar() } }
-                    Button("Primeiro acesso: receber código no WhatsApp") { Task { await pedirCodigo() } }
+                    Button("Primeiro acesso ou esqueci a senha") { Task { await pedirCodigo() } }
                 } else if etapa == 1 {
                     Text("Código do WhatsApp").font(.system(size: 54, weight: .medium))
                     TextField("6 dígitos", text: $codigo).keyboardType(.numberPad)
@@ -156,7 +179,7 @@ struct LoginTV: View {
     private func entrar() async {
         guard let r = try? await FelyxAPI.app("entrar", ["telefone": digitos, "senha": senha, "aparelho": "Apple TV"]) else { msg = "Sem conexão."; return }
         if r.ok == true, let t = r.token { m.entrou(token: t, nome: r.nome ?? "") }
-        else if r.erro == "sem_senha" { await pedirCodigo() } else { msg = r.mensagem ?? "Não deu certo." }
+        else if r.erro == "sem_senha" { msg = "Você ainda não tem senha. Escolha \"Primeiro acesso\"." } else { msg = r.mensagem ?? "Não deu certo." }
     }
     private func pedirCodigo() async {
         guard let r = try? await FelyxAPI.app("codigo", ["telefone": digitos]) else { msg = "Sem conexão."; return }

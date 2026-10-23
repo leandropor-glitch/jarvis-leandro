@@ -14,20 +14,28 @@ p,li{color:#c9cbc5} a{color:#d6ff1a} small{color:#8a8d86}
 <body>
 <main>
 <h1>Política de privacidade</h1>
-<small>Felyx AI Vinci · Vinci Automação (Rio de Janeiro, Brasil) · atualizada em 16 de outubro de 2026</small>
+<small>Felyx AI Vinci · Vinci Automação (Rio de Janeiro, Brasil) · atualizada em 23 de outubro de 2026</small>
 
 <h2>O que é o app</h2>
 <p>O Felyx AI Vinci é o assistente de automação residencial da Vinci Automação. Ele conversa por voz e por texto, mostra notícias e cotações e aciona cenas e aparelhos da casa do usuário. O uso é restrito a pessoas autorizadas pelo dono da instalação.</p>
 
 <h2>Dados que tratamos</h2>
 <ul>
-<li><b>Número de WhatsApp</b>: identifica a pessoa autorizada e recebe o código de acesso de 6 dígitos.</li>
+<li><b>Número de celular</b>: identifica a pessoa autorizada. No primeiro acesso ou para trocar a senha, recebe pelo WhatsApp um código de 6 dígitos.</li>
 <li><b>Senha</b>: guardada apenas como resumo criptográfico (scrypt com sal); ninguém consegue lê-la.</li>
 <li><b>Sessão</b>: um identificador aleatório guardado no aparelho e, no servidor, só como resumo criptográfico.</li>
 <li><b>Voz</b>: quando você toca no microfone, o áudio é transmitido em tempo real ao Google Gemini para reconhecimento e síntese da voz do Felyx. O app não grava nem armazena esse áudio.</li>
 <li><b>Perguntas e comandos</b>: o texto do que você pede é enviado ao serviço do assistente (n8n, com modelos de IA da Anthropic) para gerar a resposta e acionar a casa. O assistente guarda um histórico curto do dia para manter o contexto da conversa.</li>
 <li><b>Microfone</b>: usado somente enquanto a conversa por voz está aberta.</li>
 </ul>
+
+<h2>Inteligência artificial de terceiros</h2>
+<p>A conversa com o Felyx usa serviços de inteligência artificial de outras empresas. <b>Nada é enviado a eles antes de você tocar em "Permitir"</b> na tela "Antes de conversar", que aparece no primeiro uso e explica o que vai para cada serviço. Você pode retirar a permissão a qualquer momento em Ajustes; sem ela, a casa, as notícias e o mercado continuam funcionando e só a conversa fica desligada.</p>
+<ul>
+<li><b>Google (Gemini)</b>: recebe o áudio do microfone, transmitido em tempo real só enquanto a conversa por voz está aberta. Uso: reconhecer a sua fala e gerar a voz do Felyx. O app não grava esse áudio.</li>
+<li><b>Anthropic (Claude)</b>: recebe o texto do que você pergunta ou pede (falado ou escrito) e o seu primeiro nome, pelo servidor de orquestração da Vinci (n8n). Uso: gerar a resposta e decidir o comando da casa. O assistente guarda um histórico curto do dia para manter o contexto.</li>
+</ul>
+<p>Esses dados não são usados para publicidade nem vendidos. Os provedores os tratam sob os termos das suas APIs comerciais, que oferecem proteção igual ou equivalente à descrita nesta política.</p>
 
 <h2>O que não fazemos</h2>
 <ul>

@@ -112,7 +112,8 @@ struct FelyxWebView: Representavel {
             switch tipo {
             case "abrir": if let s = m["url"] as? String, let u = URL(string: s) { abrirFora(u) }
             case "login": if let t = m["token"] as? String { Sessao.salvar(token: t, nome: m["nome"] as? String ?? "") }
-            case "logout": Sessao.limpar()
+            case "logout": Sessao.limpar(); Consentimento.limpar()
+            case "ia": Consentimento.gravar(m["aceito"] as? Bool == true)
             default: break
             }
         }

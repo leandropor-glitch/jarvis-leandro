@@ -115,6 +115,13 @@ a{color:var(--acc)}
 .wa{display:flex;align-items:center;gap:10px;justify-content:center;height:48px;border-radius:24px;border:1px solid var(--line3);background:var(--card2);color:var(--ink);text-decoration:none;font-size:15px}
 .wa svg{flex:none}
 
+#ia{position:fixed;inset:0;z-index:40;background:#06070af2;display:flex;align-items:center;justify-content:center;overflow:auto;padding:calc(var(--safe-t) + 20px) 18px calc(var(--safe-b) + 20px)}
+.iaBox{width:min(520px,100%);padding:24px;display:flex;flex-direction:column;gap:14px;margin:auto}
+.iaBox h1{margin:0;font-size:26px;font-weight:500}
+.iaBox p,.iaBox li{margin:0;color:var(--soft);font-size:15px;line-height:21px}
+.iaBox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.iaBox b{color:var(--ink);font-weight:600}
+.iaBox a{font-size:14px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 104px);background:#1b1e24;border:1px solid var(--line3);color:var(--ink);padding:12px 18px;border-radius:14px;font-size:14px;z-index:50;max-width:min(92vw,520px);box-shadow:0 10px 30px #0008;transition:opacity .3s}
 .toast[data-show="0"]{opacity:0;pointer-events:none}
 .destaque{margin-top:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:left;color:var(--ink)}
@@ -156,7 +163,8 @@ body.android .tabbar .ico{width:64px;height:32px;border-radius:16px;display:flex
 #app.l-tablet #vFelyx .stage{flex:1;min-height:300px}
 #app.l-tablet #vFelyx .mic{width:84px;height:84px}
 #app.l-tablet #vFelyx .chat{max-height:24vh}
-#app.l-tablet #vFelyx .ask,#app.l-tablet #vFelyx .destaque,#app.l-tablet #vFelyx .favs,#app.l-tablet .fab{display:none}
+#app.l-tablet #vFelyx .ask{margin-top:12px}
+#app.l-tablet #vFelyx .destaque,#app.l-tablet #vFelyx .favs,#app.l-tablet .fab{display:none}
 #app.l-tablet #vCasa .casaHead h1{display:none}
 #app.l-tablet .gear{display:flex}
 .gear{display:none;background:none;border:0;color:var(--mute);align-items:center;gap:6px;font-family:var(--mono);font-size:12px;letter-spacing:2px}
@@ -230,22 +238,21 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 
     <form id="fTel" class="box" style="margin:0" autocomplete="on">
       <h1>Entrar</h1>
-      <p>Use o número de WhatsApp autorizado a falar com o Felyx.</p>
-      <div class="field"><label for="tel">WHATSAPP</label><input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" required></div>
+      <p>Entre com o seu número de celular e a sua senha.</p>
+      <div class="field"><label for="tel">CELULAR</label><input id="tel" type="tel" inputmode="tel" autocomplete="username" placeholder="(21) 99999-9999" required></div>
       <div class="field"><label for="senha">SENHA</label><input id="senha" type="password" autocomplete="current-password" placeholder="sua senha"></div>
       <div class="msg" id="mTel" role="status"></div>
       <button class="btn" id="bEntrar" type="submit">Entrar</button>
-      <button class="link" id="bPrimeiro" type="button">Primeiro acesso ou esqueci a senha: receber código no WhatsApp</button>
+      <button class="link" id="bPrimeiro" type="button">Primeiro acesso ou esqueci a senha</button>
     </form>
 
     <form id="fCod" class="box" style="margin:0" hidden>
       <h1>Código</h1>
-      <p id="pCod">Mandei um código de 6 dígitos no seu WhatsApp.</p>
+      <p id="pCod">Mandei um código de 6 dígitos para o seu número.</p>
       <div class="field"><label for="cod">CÓDIGO</label><input id="cod" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" required></div>
       <div class="msg" id="mCod" role="status"></div>
       <button class="btn" type="submit">Confirmar</button>
       <button class="link" id="bReenviar" type="button">Reenviar o código</button>
-      <a class="wa" id="waLogin" href="https://wa.me/5521967789150?text=oi" target="_blank" rel="noopener">Abrir o Felyx no WhatsApp</a>
       <button class="link" id="bVoltar1" type="button">Voltar</button>
     </form>
 
@@ -349,6 +356,11 @@ body.vision .tile,body.vision .chip{border-radius:28px}
       <span class="kick">Voz</span>
       <label style="display:flex;justify-content:space-between;align-items:center;font-size:15px">Boas-vindas faladas ao abrir <input type="checkbox" id="ajBV" style="width:22px;height:22px;accent-color:var(--acc)"></label>
     </div>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <span class="kick">Inteligência artificial</span>
+      <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px">Enviar voz ao Google (Gemini) e perguntas à Anthropic (Claude) <input type="checkbox" id="ajIA" style="width:22px;height:22px;flex:none;accent-color:var(--acc)"></label>
+      <a href="privacidade.html" target="_blank" rel="noopener" style="font-size:14px">Política de privacidade</a>
+    </div>
     <button class="btn ghost" id="bSair" type="button">Sair deste aparelho</button>
     <span class="kick" style="letter-spacing:0;text-transform:none" id="versao">Felyx AI Vinci</span>
   </section>
@@ -374,12 +386,29 @@ body.vision .tile,body.vision .chip{border-radius:28px}
   </nav>
 </main>
 
+<!-- ================= PERMISSÃO DE IA (antes de enviar qualquer dado a serviços de IA de terceiros) ================= -->
+<section id="ia" hidden role="dialog" aria-modal="true" aria-labelledby="iaTit">
+  <div class="iaBox card">
+    <span class="kick">Felyx · Vinci AI</span>
+    <h1 id="iaTit">Antes de conversar</h1>
+    <p>Para entender e responder, o Felyx usa serviços de inteligência artificial de outras empresas. Com a sua permissão, o app envia:</p>
+    <ul>
+      <li><b>Para o Google (Gemini):</b> o áudio do microfone, só enquanto a conversa por voz está aberta. Serve para reconhecer a sua fala e criar a voz do Felyx. O app não grava esse áudio.</li>
+      <li><b>Para a Anthropic (Claude):</b> o texto do que você pergunta ou pede, por voz ou escrito, e o seu primeiro nome. Passa pelo servidor da Vinci (n8n) e serve para gerar a resposta e acionar a casa.</li>
+    </ul>
+    <p>Nenhum desses dados é usado para anúncios nem vendido. Você pode retirar a permissão a qualquer momento em Ajustes. Sem ela, a casa, as notícias e o mercado continuam funcionando; só a conversa com o Felyx fica desligada.</p>
+    <a href="privacidade.html" target="_blank" rel="noopener">Ler a política de privacidade</a>
+    <button class="btn" id="iaSim" type="button">Permitir</button>
+    <button class="btn ghost" id="iaNao" type="button">Agora não</button>
+  </div>
+</section>
+
 <div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
 /* ===================== configuração ===================== */
-const VERSAO = '1.0.3';
+const VERSAO = '1.0.4';
 const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const APP_URL = N8N + '/felix/app';
 const TOKEN_URL = N8N + '/felix/token';
@@ -454,17 +483,17 @@ $('#fTel').addEventListener('submit', async (e) => {
   L.tel = digitos($('#tel').value);
   const senha = $('#senha').value;
   if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
-  if (!senha){ pedirCodigo(); return; }
+  if (!senha){ msg('mTel', 'Digite a sua senha. Ainda não tem? Toque em "Primeiro acesso".'); return; }
   $('#bEntrar').disabled = true; msg('mTel', '');
   try{
     const j = await api('entrar', { telefone: L.tel, senha, aparelho: aparelhoNome() });
     if (j.ok) entrou(j);
-    else if (j.erro === 'sem_senha'){ msg('mTel', j.mensagem, true); await sleep(900); pedirCodigo(); }
+    else if (j.erro === 'sem_senha') msg('mTel', (j.mensagem ? j.mensagem + ' ' : '') + 'Toque em "Primeiro acesso" para criar a sua senha.');
     else msg('mTel', j.mensagem || 'Não deu certo.');
   }catch(err){ msg('mTel', 'Sem conexão com o Felyx. Tente de novo.'); }
   $('#bEntrar').disabled = false;
 });
-$('#cod').addEventListener('input', (e) => { e.target.value = digitos(e.target.value).slice(0, 6); if (e.target.value.length === 6) $('#fCod').requestSubmit(); });
+$('#cod').addEventListener('input', (e) => { e.target.value = digitos(e.target.value).slice(0, 6); if (e.target.value.length === 6) $('#fCod').dispatchEvent(new Event('submit', { cancelable: true })); });
 $('#fCod').addEventListener('submit', async (e) => {
   e.preventDefault();
   try{
@@ -506,8 +535,9 @@ let atual = store.get('felyx.aba', 'vFelyx');
 function layout(){
   const w = innerWidth;
   const h = innerHeight;
-  // iPhone Duo aberto: 600–759 pt de largura em pé vira "livro" (duas metades); fechado: tela larga e baixa
-  const l = PLAT === 'vision' ? 'l-tablet' : (w >= 1200 || PLAT === 'mac') && PLAT !== 'ipad' ? 'l-desk' : (w >= 760 ? 'l-tablet' : (w >= 600 ? 'l-duo' : 'l-phone'));
+  // três colunas só cabem a partir de 1100 pt (iPad deitado, Vision Pro); abaixo disso (iPad em pé, Split View,
+  // iPhone Duo aberto) fica em duas metades: Felyx à esquerda e a seção escolhida à direita
+  const l = PLAT === 'mac' || (w >= 1200 && PLAT !== 'ipad' && PLAT !== 'vision') ? 'l-desk' : (w >= 1100 ? 'l-tablet' : (w >= 600 ? 'l-duo' : 'l-phone'));
   const app = $('#app'); app.classList.remove('l-phone', 'l-tablet', 'l-desk', 'l-duo'); app.classList.add(l);
   app.classList.toggle('duo-f', l === 'l-phone' && w >= 430 && h / w < 1.75);
   $$('.phoneOnly').forEach((el) => { el.hidden = l !== 'l-phone'; });
@@ -553,12 +583,14 @@ function animarBarras(){
 }
 
 /* ===================== mercado ===================== */
+// variação em USDT quando houver; senão a variação em dólar (sem "??": WebViews antigos do Android não entendem)
+const chg = (c) => c.chgUsdt != null ? c.chgUsdt : c.chg;
 const ATIVOS = [
   { id: 'usd', nome: 'Dólar', pick: (m) => m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null) },
-  { id: 'btc', nome: 'Bitcoin', pick: (m) => m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: m.cripto.bitcoin.chgUsdt ?? m.cripto.bitcoin.chg } : null },
-  { id: 'eth', nome: 'Ethereum', pick: (m) => m.cripto && m.cripto.ethereum ? { v: 'US$ ' + fmt(m.cripto.ethereum.usdt || m.cripto.ethereum.usd, 0), c: m.cripto.ethereum.chgUsdt ?? m.cripto.ethereum.chg } : null },
-  { id: 'sol', nome: 'Solana', pick: (m) => m.cripto && m.cripto.solana ? { v: 'US$ ' + fmt(m.cripto.solana.usdt || m.cripto.solana.usd, 2), c: m.cripto.solana.chgUsdt ?? m.cripto.solana.chg } : null },
-  { id: 'zec', nome: 'Zcash', pick: (m) => m.cripto && m.cripto.zcash ? { v: 'US$ ' + fmt(m.cripto.zcash.usdt || m.cripto.zcash.usd, 2), c: m.cripto.zcash.chgUsdt ?? m.cripto.zcash.chg } : null },
+  { id: 'btc', nome: 'Bitcoin', pick: (m) => m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: chg(m.cripto.bitcoin) } : null },
+  { id: 'eth', nome: 'Ethereum', pick: (m) => m.cripto && m.cripto.ethereum ? { v: 'US$ ' + fmt(m.cripto.ethereum.usdt || m.cripto.ethereum.usd, 0), c: chg(m.cripto.ethereum) } : null },
+  { id: 'sol', nome: 'Solana', pick: (m) => m.cripto && m.cripto.solana ? { v: 'US$ ' + fmt(m.cripto.solana.usdt || m.cripto.solana.usd, 2), c: chg(m.cripto.solana) } : null },
+  { id: 'zec', nome: 'Zcash', pick: (m) => m.cripto && m.cripto.zcash ? { v: 'US$ ' + fmt(m.cripto.zcash.usdt || m.cripto.zcash.usd, 2), c: chg(m.cripto.zcash) } : null },
   { id: 'oil', nome: 'Petróleo', pick: (m) => m.clusdt ? { v: 'US$ ' + fmt(m.clusdt.usdt, 2), c: m.clusdt.chg } : null }
 ];
 let mercado = null;
@@ -679,7 +711,7 @@ async function comandar(texto, el, nome, estado){
       // não foi comando simples: o cérebro resolve
       const r = await perguntar(texto); toast(r || 'Não consegui agora.');
     } else { toast(j.text || 'A central da Vinci não confirmou.'); estadoCasa(false, 'casa sem resposta'); }
-  }catch(e){ toast('Sem conexão com a casa.'); }
+  }catch(e){ toast(e && e.message === 'ia' ? SEM_IA : 'Sem conexão com a casa.'); }
   if (el){ el.dataset.busy = '0'; el.disabled = false; }
   renderCasa();
 }
@@ -721,7 +753,26 @@ function sessaoCaiu(r, j){
   if ((r && r.status === 401) || (j && j.relogar)){ toast('Sua sessão expirou. Entre de novo.'); sair(); return true; }
   return false;
 }
+/* ===================== permissão de IA (Google e Anthropic) ===================== */
+// nada vai para os serviços de IA de terceiros antes de a pessoa tocar em "Permitir"; a escolha fica por número
+function chaveIA(){ return 'felyx.ia.' + digitos(sessao && sessao.telefone); }
+function iaAceita(){ return store.get(chaveIA(), null) === true; }
+function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; avisarNativo('ia', { aceito: v === true }); }
+let iaPedido = null;
+function permissaoIA(){
+  if (iaAceita()) return Promise.resolve(true);
+  if (iaPedido) return iaPedido;
+  $('#ia').hidden = false; setTimeout(() => $('#iaSim').focus(), 50);
+  iaPedido = new Promise((ok) => {
+    const fim = (v) => { $('#ia').hidden = true; iaPedido = null; gravarIA(v); ok(v); };
+    $('#iaSim').onclick = () => fim(true);
+    $('#iaNao').onclick = () => fim(false);
+  });
+  return iaPedido;
+}
+const SEM_IA = 'Sem a sua permissão, o Felyx não envia perguntas aos serviços de IA. Você pode permitir em Ajustes.';
 async function perguntar(p){
+  if (!(await permissaoIA())) throw new Error('ia');
   const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(p), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
   const j = await r.json().catch(() => ({}));
   if (sessaoCaiu(r, j)) throw new Error('sessao');
@@ -732,7 +783,7 @@ async function perguntarPorTexto(p, mostrar){
   bolha(mostrar || p, 'me');
   const w = bolha('pensando…', 'fx wait');
   try{ const r = await perguntar(p); w.className = 'bub fx'; w.textContent = r || 'Não consegui consultar o cérebro agora.'; }
-  catch(e){ w.className = 'bub fx'; w.textContent = (e && e.message === 'sessao') ? 'Entre de novo para continuar.' : 'Sem conexão com o Felyx.'; }
+  catch(e){ w.className = 'bub fx'; w.textContent = (e && e.message === 'sessao') ? 'Entre de novo para continuar.' : (e && e.message === 'ia') ? SEM_IA : 'Sem conexão com o Felyx.'; }
   $('#chat').scrollTop = 1e9;
 }
 $('#ask').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#askIn').value.trim(); if (!v) return; $('#askIn').value = ''; if (conv && conv.micOpen) conv.pedir(v); else perguntarPorTexto(v); });
@@ -870,6 +921,7 @@ function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[
 function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
 async function iniciarVoz(){
   if (conv) return;
+  if (!(await permissaoIA())){ estado('idle', 'a voz precisa da sua permissão'); toast(SEM_IA); return; }
   const g = new GeminiLive();
   estado('boot');
   g.onState = (s) => { if (conv === g) estado(s); };
@@ -896,6 +948,7 @@ document.addEventListener('keydown', (e) => {
 });
 $('#ajBV').checked = store.get('felyx.bv', false);
 $('#ajBV').addEventListener('change', (e) => store.set('felyx.bv', e.target.checked));
+$('#ajIA').addEventListener('change', (e) => { if (e.target.checked){ e.target.checked = false; store.del(chaveIA()); permissaoIA(); } else { gravarIA(false); if (conv) conv.end(); } });
 
 /* o app nativo pode pedir ações (atalhos do ícone, Siri, notificações) */
 window.felyxNativo = function(acao, dado){
@@ -916,6 +969,9 @@ async function abrirApp(){
   layout(); estado('idle', primeiroNome() ? saudacao().toUpperCase() + ', ' + primeiroNome().toUpperCase() : '');
   $('#saud').textContent = saudacao() + (primeiroNome() ? ', ' + primeiroNome() : '') + '.';
   carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
+  // pergunta a permissão de IA logo na primeira abertura; o app nativo (Siri, atalhos) segue a mesma escolha
+  $('#ajIA').checked = iaAceita(); avisarNativo('ia', { aceito: iaAceita() });
+  if (store.get(chaveIA(), null) === null) permissaoIA();
   // confere a sessão no servidor (expirou ou foi encerrada em outro lugar)
   try{ const j = await api('sessao', { token: sessao.token }); if (j.ok){ sessao.nome = j.nome || sessao.nome; sessao.demo = !!j.demo; store.set('felyx.sessao', sessao); $('#ajNome').textContent = sessao.nome; } else if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); } }catch(e){}
 }
@@ -924,6 +980,8 @@ setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carre
 setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarCasa(true); } }, 10 * 60e3);   // mantém o indicador da casa honesto
 requestAnimationFrame(animarBarras);
 if (sessao && sessao.token) abrirApp(); else { $('#login').hidden = false; mostraForm('fTel'); }
+// o app nativo espera este aviso; sem ele (rede ruim, script que não rodou) mostra a tela de "tentar de novo"
+avisarNativo('pronto', {});
 </script>
 </body>
 </html>

@@ -63,9 +63,11 @@ enum FelyxAPI {
     }
 
     /// Pergunta ao cérebro pela ponte. A ponte exige a sessão do app (`sessao`); sem ela devolve 401 / relogar.
+    /// Só sai do aparelho depois de a pessoa permitir o envio aos serviços de IA (Consentimento).
     static func perguntar(_ pergunta: String) async -> String {
         struct R: Decodable { var text: String?; var relogar: Bool? }
         guard let token = Sessao.token else { return "Abra o Felyx e entre com seu número primeiro." }
+        guard Consentimento.aceito else { return "Para conversar com o Felyx, abra o app e permita o uso de inteligência artificial em Ajustes." }
         let nome = Sessao.nome ?? ""
         let primeiro = nome.split(separator: " ").first.map(String.init) ?? ""
         let fala = (!primeiro.isEmpty && primeiro.lowercased() != "leandro") ? "(\(primeiro) falando pelo app) \(pergunta)" : pergunta
@@ -76,6 +78,16 @@ enum FelyxAPI {
             return t.isEmpty ? "Não consegui consultar o cérebro agora." : t
         } catch { return "Sem conexão com o Felyx agora." }
     }
+}
+
+/// Permissão para enviar voz e perguntas aos serviços de IA de terceiros (Google Gemini e Anthropic Claude).
+/// No iPhone, iPad, Mac e Vision Pro quem pergunta é a página (ela avisa a escolha); na Apple TV, a tela própria.
+enum Consentimento {
+    private static let chave = "felyx.ia"
+    static var aceito: Bool { UserDefaults.standard.object(forKey: chave) as? Bool == true }
+    static var perguntado: Bool { UserDefaults.standard.object(forKey: chave) != nil }
+    static func gravar(_ v: Bool) { UserDefaults.standard.set(v, forKey: chave) }
+    static func limpar() { UserDefaults.standard.removeObject(forKey: chave) }
 }
 
 /// Sessão do app guardada no Keychain (o token chega da página quando a pessoa entra).
