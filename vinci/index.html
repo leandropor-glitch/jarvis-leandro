@@ -90,7 +90,7 @@ header{flex:none;height:54px;display:grid;grid-template-columns:1fr auto 1fr;ali
 .cena .tag{opacity:.55}
 .cena.e-on .tag{opacity:.6}
 .cena.ctl .tag{opacity:.85}
-.cena.ctl .tag svg{color:#E1FE06}
+.cena.ctl .tag svg{color:currentColor}
 .cena:active{transform:scale(.96)}
 .cena[data-busy="1"]{animation:espera 1s ease-in-out infinite}
 .cena.brilho{animation:brilho .7s ease-out}
@@ -574,10 +574,13 @@ function retornoDe(cena){
   const mesmos = ((casa && casa.aparelhos) || []).filter((a) => chave(a.nome) === k && a.tipo !== 'THERMOSTAT');
   return mesmos.length ? [cena] : null;
 }
+// Sem status = amarelo. Só fica grafite quando a central confirma que está desligado.
 function estadoCena(cena){
   const devs = retornoDe(cena);
-  if (!devs) return 'sem';
-  return devs.some((d) => estadoAp.get(chave(d)) === true) ? 'on' : 'off';
+  if (!devs || !estadoAp.size) return 'on';
+  const vals = devs.map((d) => estadoAp.get(chave(d)));
+  if (vals.some((v) => v === true)) return 'on';
+  return vals.length && vals.every((v) => v === false) ? 'off' : 'on';
 }
 function renderEstados(){
   $$('[data-cena-estado]').forEach((el) => { const e = estadoCena(el.dataset.cenaEstado); el.classList.remove('e-on', 'e-off', 'e-sem'); el.classList.add('e-' + e); });
@@ -598,7 +601,7 @@ function cartaoCena(nome, g, extra){
   return h('button', { type: 'button', class: 'cena e-' + estadoCena(nome), role: 'listitem', 'data-cena-estado': nome, style: tamanhoTexto(nome).replace(/^;/, '') + (extra || ''), on: { click: (e) => tocarCena(e.currentTarget, nome) } }, h('span', null, nome), h('span', { class: 'tag' }, g.comodo));
 }
 function cartaoControle(ctl, g, extra){
-  return h('button', { type: 'button', class: 'cena ctl e-sem', role: 'listitem', 'aria-label': 'Abrir controle ' + ctl.nome, style: tamanhoTexto(ctl.nome).replace(/^;/, '') + (extra || ''), on: { click: () => abrirFolha(ctl) } },
+  return h('button', { type: 'button', class: 'cena ctl e-on', role: 'listitem', 'aria-label': 'Abrir controle ' + ctl.nome, style: tamanhoTexto(ctl.nome).replace(/^;/, '') + (extra || ''), on: { click: () => abrirFolha(ctl) } },
     h('span', null, ctl.nome), h('span', { class: 'tag', html: (ctl.tipo === 'tv' ? ICO.tv : ICO.ar) + 'controle' }));
 }
 // Escolhe colunas e altura das linhas para caber na tela sem rolar, quando possível.

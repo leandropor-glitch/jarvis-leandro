@@ -148,7 +148,7 @@
   "semComodo": "Outros",
   "corSemComodo": "#2A3640",
   "textoSemComodo": "#F2F5F7",
-  "_retorno": "Cor dos botões na tela de Cenas: amarelo = a central confirma que está ligado; grafite = desligado (ou ainda sem confirmação); cinza médio = sem retorno (TV, ar, fontes, cenas de desligar). 'retorno' liga cada cena aos aparelhos que dizem se ela está ligada (basta um ligado). Cena com aparelho de mesmo nome já se liga sozinha. 'semRetorno' força o cinza médio.",
+  "_retorno": "Cor dos botões na tela de Cenas: amarelo = ligado ou sem status; grafite = só quando a central confirma que está desligado. 'retorno' liga cada cena aos aparelhos que dizem se ela está ligada (basta um ligado). Cena com aparelho de mesmo nome já se liga sozinha. 'semRetorno' = cenas sem status (ficam sempre amarelas).",
   "retorno": {
     "Cama": [
       "Casal Cama"
