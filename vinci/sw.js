@@ -1,6 +1,6 @@
 // Vinci — service worker simples: abre rápido com o que já está guardado e atualiza por trás.
 // Só guarda arquivos do próprio site (GET). Login e comandos (n8n, /api/) nunca passam pelo cache.
-const VERSAO = 'vinci-1';
+const VERSAO = 'vinci-2';
 const BASE = ['./', 'index.html', 'manifest.json', 'comodos.json', 'icone-192.png', 'icone-512.png', 'icone-180.png', 'logo.png', 'chevron.png'];
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(BASE)).then(() => self.skipWaiting())); });
