@@ -82,8 +82,15 @@ header{flex:none;height:54px;display:grid;grid-template-columns:1fr auto 1fr;ali
 .cena span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .cena .tag{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;opacity:.62;display:flex;align-items:center;gap:5px}
 .cena .tag svg{width:13px;height:13px}
-.cena.ctl{background:linear-gradient(155deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 50%), var(--card);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--cor), 0 6px 18px -10px rgba(0,0,0,.7)}
-.cena.ctl .tag{color:var(--cor);opacity:1}
+.cena{--cor:#E1FE06}
+/* três estados: ligado (amarelo Vinci), desligado (grafite, cor do fundo), sem retorno (cinza médio) */
+.cena.e-off{background:linear-gradient(155deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,0) 45%), #18222A;color:#C1CFD9;box-shadow:inset 0 0 0 1px #26323B, 0 6px 18px -12px rgba(0,0,0,.8)}
+.cena.e-on{background:linear-gradient(155deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 45%), #E1FE06;color:#1D2830;box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 0 26px -10px rgba(225,254,6,.75)}
+.cena.e-sem{background:linear-gradient(155deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 45%), #48545E;color:#F2F5F7;box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 6px 18px -12px rgba(0,0,0,.8)}
+.cena .tag{opacity:.55}
+.cena.e-on .tag{opacity:.6}
+.cena.ctl .tag{opacity:.85}
+.cena.ctl .tag svg{color:#E1FE06}
 .cena:active{transform:scale(.96)}
 .cena[data-busy="1"]{animation:espera 1s ease-in-out infinite}
 .cena.brilho{animation:brilho .7s ease-out}
@@ -102,14 +109,12 @@ header{flex:none;height:54px;display:grid;grid-template-columns:1fr auto 1fr;ali
 .chips{display:flex;gap:8px;overflow-x:auto;flex:none;scrollbar-width:none;padding:2px 0}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line3);background:var(--card2);font-size:13px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:8px;color:var(--soft)}
-.chip i{width:9px;height:9px;border-radius:3px}
 .chip small{font-size:10px;font-weight:700;opacity:.6}
 .chip[data-on="1"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
 .search{flex:none;height:46px;border-radius:14px;border:1px solid var(--line3);background:var(--card2);padding:0 16px;font-size:15px;outline:none;width:100%;-webkit-user-select:text;user-select:text}
 .search:focus{border-color:var(--acc)}
 .room{display:flex;flex-direction:column;gap:10px}
 .room h2{margin:6px 0 0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;letter-spacing:-.2px}
-.room h2 i{width:12px;height:12px;border-radius:4px}
 .room h2 span{margin-left:auto}
 .room h3{margin:4px 0 0;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--mute);text-transform:uppercase}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
@@ -120,7 +125,9 @@ header{flex:none;height:54px;display:grid;grid-template-columns:1fr auto 1fr;ali
 .dev .nm{min-width:0;flex:1 1 140px}
 .dev .nm b{font-weight:600;display:block;overflow-wrap:anywhere;font-size:15px}
 .dev small{display:block;font-size:9px;font-weight:700;color:var(--mute);letter-spacing:1.6px;text-transform:uppercase;margin-top:2px}
-.dev small.ok{color:var(--ok)} .dev small.err{color:var(--err)}
+.dev small.ok{color:var(--ok)} .dev small.lig{color:var(--acc)}
+.dev[data-on="1"]{box-shadow:inset 3px 0 0 var(--acc)}
+.dev .acts button.ativo{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)} .dev small.err{color:var(--err)}
 .dev .acts{display:flex;gap:6px}
 .dev .acts button{height:38px;min-width:44px;padding:0 15px;border-radius:19px;border:1px solid var(--line3);background:var(--card);font-size:12px;font-weight:600}
 .dev .acts button.pri{border-color:var(--acc);color:var(--acc)}
@@ -274,8 +281,7 @@ dialog .btn{height:44px;font-size:14px}
   </header>
 
   <section class="vista" id="vCenas" data-on="1">
-    <div class="legenda" id="legenda"></div>
-    <div id="grade" role="list" aria-label="Cenas"></div>
+        <div id="grade" role="list" aria-label="Cenas"></div>
   </section>
 
   <section class="vista" id="vComodos" data-on="0">
@@ -406,7 +412,7 @@ async function carregarCasa(forcar){
     store.set('vinci.casa', casa);
   }catch(e){ estado(false, casa ? 'sem conexão · lista guardada' : 'sem conexão'); }
   $('#bAtualizar').classList.remove('girar');
-  indexarCenas(); renderTudo();
+  indexarCenas(); renderTudo(); carregarEstados();
 }
 const primeiroNome = () => String((sessao && sessao.nome) || '').trim().split(/\s+/)[0] || '';
 
@@ -501,7 +507,7 @@ async function rodarFila(){
   filaRodando = true;
   while (fila.length){
     const { cena, el, rotulo } = fila.shift();
-    try{ if (typeof cena === 'object') await volumeCentral(cena); else await ativarCena(cena); if (!fila.some((x) => x.el === el)) toast('✓ ' + (rotulo || cena), 'ok', 1200); }
+    try{ if (typeof cena === 'object') await volumeCentral(cena); else { await ativarCena(cena); reconsultar(); } if (!fila.some((x) => x.el === el)) toast('✓ ' + (rotulo || cena), 'ok', 1200); }
     catch(e){ if (el){ el.classList.add('erro'); setTimeout(() => el.classList.remove('erro'), 1200); } toast((rotulo || cena) + ': ' + e.message, 'err', 2600); }
     if (el){ el._n = Math.max(0, (el._n || 1) - 1); marcarN(el); if (!el._n) el.classList.remove('vai'); }
   }
@@ -544,21 +550,55 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharFolh
   c.addEventListener('touchmove', (e) => { if (y0 != null && e.touches[0].clientY - y0 > 90){ y0 = null; fecharFolha(); } }, { passive: true });
 })();
 
+/* ===================== estado ligado/desligado ===================== */
+// Vem da central (ponte /estados via n8n). Sem retorno confirmado = desligado (grafite).
+let estadoAp = new Map();   // chave(nome do aparelho) → true | false | null
+async function carregarEstados(){
+  if (!sessao || LOCAL) return;
+  try{
+    const j = await api('estados', { token: sessao.token });
+    if (j.erro === 'sessao') return;
+    if (j.ok && Array.isArray(j.estados) && j.estados.length){
+      const m = new Map(); for (const e of j.estados){ const k = chave(e.nome); if (m.get(k) !== true) m.set(k, e.ligado); }
+      estadoAp = m; renderEstados();
+    }
+  }catch(e){}
+}
+let estT = [];
+function reconsultar(){ estT.forEach(clearTimeout); estT = [2500, 7000].map((ms) => setTimeout(carregarEstados, ms)); }
+function retornoDe(cena){
+  const rt = (mapa && mapa.retorno) || {};
+  if (Array.isArray(rt[cena])) return rt[cena];
+  if (((mapa && mapa.semRetorno) || []).some((n) => chave(n) === chave(cena))) return null;
+  const k = chave(cena);
+  const mesmos = ((casa && casa.aparelhos) || []).filter((a) => chave(a.nome) === k && a.tipo !== 'THERMOSTAT');
+  return mesmos.length ? [cena] : null;
+}
+function estadoCena(cena){
+  const devs = retornoDe(cena);
+  if (!devs) return 'sem';
+  return devs.some((d) => estadoAp.get(chave(d)) === true) ? 'on' : 'off';
+}
+function renderEstados(){
+  $$('[data-cena-estado]').forEach((el) => { const e = estadoCena(el.dataset.cenaEstado); el.classList.remove('e-on', 'e-off', 'e-sem'); el.classList.add('e-' + e); });
+  $$('.dev[data-ap]').forEach((el) => marcarAparelho(el));
+}
+
 /* ===================== Cenas (grade de parede) ===================== */
 async function tocarCena(el, nome){
   if (el.dataset.busy === '1') return;
   el.classList.remove('brilho', 'falha'); void el.offsetWidth; el.classList.add('brilho');
   vibrar(15);
   el.dataset.busy = '1';
-  try{ await ativarCena(nome); el.dataset.busy = '0'; el.classList.remove('brilho'); void el.offsetWidth; el.classList.add('brilho'); toast('✓ ' + nome, 'ok'); }
+  try{ await ativarCena(nome); reconsultar(); el.dataset.busy = '0'; el.classList.remove('brilho'); void el.offsetWidth; el.classList.add('brilho'); toast('✓ ' + nome, 'ok'); }
   catch(e){ el.dataset.busy = '0'; el.classList.remove('brilho'); void el.offsetWidth; el.classList.add('falha'); toast(nome + ': ' + e.message, 'err', 3000); }
 }
 function tamanhoTexto(nome){ const longa = Math.max(...nome.split(/\s+/).map((p) => p.length)); return longa > 9 ? ';font-size:calc(var(--fs) * ' + Math.max(0.72, 9 / longa).toFixed(2) + ')' : ''; }
 function cartaoCena(nome, g, extra){
-  return h('button', { type: 'button', class: 'cena', role: 'listitem', style: '--cor:' + g.cor + ';--txt:' + g.txt + tamanhoTexto(nome) + (extra || ''), on: { click: (e) => tocarCena(e.currentTarget, nome) } }, h('span', null, nome));
+  return h('button', { type: 'button', class: 'cena e-' + estadoCena(nome), role: 'listitem', 'data-cena-estado': nome, style: tamanhoTexto(nome).replace(/^;/, '') + (extra || ''), on: { click: (e) => tocarCena(e.currentTarget, nome) } }, h('span', null, nome), h('span', { class: 'tag' }, g.comodo));
 }
 function cartaoControle(ctl, g, extra){
-  return h('button', { type: 'button', class: 'cena ctl', role: 'listitem', 'aria-label': 'Abrir controle ' + ctl.nome, style: '--cor:' + g.cor + tamanhoTexto(ctl.nome) + (extra || ''), on: { click: () => abrirFolha(ctl) } },
+  return h('button', { type: 'button', class: 'cena ctl e-sem', role: 'listitem', 'aria-label': 'Abrir controle ' + ctl.nome, style: tamanhoTexto(ctl.nome).replace(/^;/, '') + (extra || ''), on: { click: () => abrirFolha(ctl) } },
     h('span', null, ctl.nome), h('span', { class: 'tag', html: (ctl.tipo === 'tv' ? ICO.tv : ICO.ar) + 'controle' }));
 }
 // Escolhe colunas e altura das linhas para caber na tela sem rolar, quando possível.
@@ -584,10 +624,9 @@ function itensDaGrade(){
   return [...cs.map((c) => ({ ctl: c, comodo: c.comodo })), ...cenas.map((n) => ({ nome: n, comodo: comodoDe(n, 'CENA') }))];
 }
 function renderCenas(){
-  const grade = $('#grade'), leg = $('#legenda');
+  const grade = $('#grade');
   const itens = itensDaGrade();
   const grupos = agrupar(itens, null, (it) => it.comodo);
-  leg.replaceChildren(...grupos.map((g) => h('span', null, h('i', { style: 'background:' + g.cor }), g.comodo)));
   if (!itens.length){ grade.replaceChildren(h('div', { class: 'vazio', style: 'grid-column:1/-1' }, casa ? 'Nenhuma cena na casa.' : 'Carregando a casa…')); return; }
   const W = grade.clientWidth || window.innerWidth, H = grade.clientHeight || (window.innerHeight - 170);
   const m = medidas(grupos, W, H);
@@ -613,7 +652,7 @@ function renderComodos(){
   const todos = [...itens.map((i) => ({ ...i, k: 'c' })), ...aps.map((a) => ({ ap: a, comodo: comodoDe(a.nome, a.tipo), k: 'a' }))];
   const grupos = agrupar(todos, null, (it) => it.comodo);
   if (!comodoAtivo || !grupos.some((g) => g.comodo === comodoAtivo)) comodoAtivo = grupos.length ? grupos[0].comodo : null;
-  $('#chips').replaceChildren(...grupos.map((g) => h('button', { type: 'button', class: 'chip', 'data-on': g.comodo === comodoAtivo && !busca ? '1' : '0', on: { click: () => { comodoAtivo = g.comodo; store.set('vinci.comodo', g.comodo); $('#busca').value = ''; renderComodos(); } } }, h('i', { style: 'background:' + g.cor }), g.comodo, h('small', null, String(g.itens.length)))));
+  $('#chips').replaceChildren(...grupos.map((g) => h('button', { type: 'button', class: 'chip', 'data-on': g.comodo === comodoAtivo && !busca ? '1' : '0', on: { click: () => { comodoAtivo = g.comodo; store.set('vinci.comodo', g.comodo); $('#busca').value = ''; renderComodos(); } } }, g.comodo, h('small', null, String(g.itens.length)))));
   const lista = $('#listaComodos'); lista.replaceChildren();
   for (const g of grupos){
     if (!busca && g.comodo !== comodoAtivo) continue;
@@ -622,7 +661,7 @@ function renderComodos(){
     const cenas = g.itens.filter((i) => i.nome && bate(i.nome));
     const apar = g.itens.filter((i) => i.ap && bate(i.ap.nome)).map((i) => i.ap).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
     if (!ctls.length && !cenas.length && !apar.length) continue;
-    const sec = h('section', { class: 'room' }, h('h2', null, h('i', { style: 'background:' + g.cor }), g.comodo, h('span', { class: 'kick' }, (ctls.length + cenas.length + apar.length) + ' itens')));
+    const sec = h('section', { class: 'room' }, h('h2', null, g.comodo, h('span', { class: 'kick' }, (ctls.length + cenas.length + apar.length) + ' itens')));
     if (ctls.length || cenas.length){
       sec.append(h('h3', null, 'Cenas e controles'));
       sec.append(h('div', { class: 'tiles' }, ctls.map((i) => cartaoControle(i.ctl, g, ';--fs:15px')), cenas.map((i) => cartaoCena(i.nome, g, ';--fs:15px'))));
@@ -632,17 +671,26 @@ function renderComodos(){
   }
   if (!lista.children.length) lista.append(h('div', { class: 'vazio' }, casa ? 'Nada com esse filtro.' : 'Carregando a casa…'));
 }
+function marcarAparelho(linha){
+  const e = estadoAp.get(chave(linha.dataset.ap));
+  const st = linha.querySelector('small'), tipo = TIPO[linha.dataset.tipo] || linha.dataset.tipo || '';
+  linha.dataset.on = e === true ? '1' : '0';
+  const [bl, bd] = linha.querySelectorAll('.acts button');
+  if (bl) bl.classList.toggle('ativo', e === true);
+  if (st && !st.dataset.fixo){ st.className = e === true ? 'lig' : ''; st.textContent = tipo + (e === true ? ' · ligado' : e === false ? ' · desligado' : e === null && estadoAp.has(chave(linha.dataset.ap)) ? ' · sem resposta' : ''); }
+}
 function linhaAparelho(a){
   const st = h('small', null, TIPO[a.tipo] || a.tipo || '');
-  const linha = h('div', { class: 'dev' }, h('div', { class: 'nm' }, h('b', null, a.nome), st), h('div', { class: 'acts' }));
+  const linha = h('div', { class: 'dev', 'data-ap': a.nome, 'data-tipo': a.tipo }, h('div', { class: 'nm' }, h('b', null, a.nome), st), h('div', { class: 'acts' }));
   const vai = async (ligar) => {
     const bs = linha.querySelectorAll('button'); bs.forEach((b) => b.disabled = true);
-    st.className = ''; st.textContent = 'enviando…'; vibrar(10);
-    try{ await ligarAparelho(a, ligar); st.className = 'ok'; st.textContent = (TIPO[a.tipo] || '') + ' · ' + (ligar ? 'ligado' : 'desligado'); }
-    catch(e){ st.className = 'err'; st.textContent = (TIPO[a.tipo] || '') + ' · erro'; toast(a.nome + ': ' + e.message, 'err', 3000); }
+    st.dataset.fixo = '1'; st.className = ''; st.textContent = 'enviando…'; vibrar(10);
+    try{ await ligarAparelho(a, ligar); estadoAp.set(chave(a.nome), ligar); delete st.dataset.fixo; renderEstados(); reconsultar(); }
+    catch(e){ st.className = 'err'; st.textContent = (TIPO[a.tipo] || '') + ' · erro'; toast(a.nome + ': ' + e.message, 'err', 3000); setTimeout(() => { delete st.dataset.fixo; marcarAparelho(linha); }, 3000); }
     bs.forEach((b) => b.disabled = false);
   };
   linha.lastChild.append(h('button', { type: 'button', class: 'pri', on: { click: () => vai(true) } }, 'Ligar'), h('button', { type: 'button', on: { click: () => vai(false) } }, 'Desligar'));
+  marcarAparelho(linha);
   return linha;
 }
 
@@ -819,6 +867,7 @@ async function manterAceso(){ try{ if ('wakeLock' in navigator && document.visib
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ manterAceso(); if (sessao || LOCAL) carregarCasa(false); } });
 let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(renderCenas, 120); });
 setInterval(() => { if ((sessao || LOCAL) && document.visibilityState === 'visible') carregarCasa(false); }, 10 * 60e3);
+setInterval(() => { if (sessao && document.visibilityState === 'visible' && !$('#app').hidden) carregarEstados(); }, 20e3);
 
 if (!DEMO && 'serviceWorker' in navigator && !/[?&]nosw/.test(location.search)) navigator.serviceWorker.register('sw.js').catch(() => {});
 
@@ -829,6 +878,7 @@ function demoApi(acao, dados){
     if (acao === 'entrar' || acao === 'senha') ok({ ok: true, token: 'demo', nome: 'Leandro' });
     else if (acao === 'sessao') ok({ ok: true, nome: 'Leandro' });
     else if (acao === 'casa') ok({ ok: true, cenas: d.cenas, aparelhos: d.aparelhos });
+    else if (acao === 'estados') ok({ ok: true, estados: d.estados || [] });
     else if (acao === 'comando'){
       const t = norm(dados.texto);
       if (/^(ativa a cena|liga o|desliga o) /.test(t)) ok({ ok: true, atalho: true, text: 'Feito (demonstração).' });

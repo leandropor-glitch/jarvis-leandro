@@ -83,7 +83,7 @@ async function dispositivos(forcar) {
     // cena: a Amazon diz se ela aceita 'desativar' (supportsDeactivation). Cenas Tuya/Smart Life costumam ser só de disparo.
     const sc = caps.find(c => c && /SceneController/.test(String(c.interfaceName || c.interface || '')));
     const desativavel = nomeTipo === 'CENA' ? !!(sc && sc.supportsDeactivation === true) : undefined;
-    out.push({ nome, id: la.entityId || la.applianceId, tipo: nomeTipo, fabricante: la.manufacturerName || '', acoes, desativavel, apelidos: (la.aliases || []).map(a => a.friendlyName || a).filter(Boolean) });
+    out.push({ nome, id: la.entityId || la.applianceId, aid: la.applianceId || la.entityId, tipo: nomeTipo, fabricante: la.manufacturerName || '', acoes, desativavel, apelidos: (la.aliases || []).map(a => a.friendlyName || a).filter(Boolean) });
   }
   cacheDisp = { t: Date.now(), itens: out };
   return out;
@@ -116,6 +116,34 @@ const ACAO = {
   desativar: () => ({ action: 'sceneDeactivate' }),
 };
 
+// ---------- estado ligado/desligado (para o app pintar os botões) ----------
+// Pergunta à Amazon o powerState de tudo que tem PowerController (cenas não têm estado). Cache curto para não martelar.
+let cacheEst = { t: 0, itens: [] };
+function lerCap(c) { if (typeof c === 'string') { try { return JSON.parse(c); } catch (e) { return {}; } } return c || {}; }
+async function estados(forcar) {
+  if (!forcar && Date.now() - cacheEst.t < 15 * 1000 && cacheEst.itens.length) return cacheEst.itens;
+  const lista = await dispositivos();
+  const alvos = lista.filter(d => d.tipo !== 'CENA' && (d.acoes || []).some(a => /PowerController|turnOn/.test(a)));
+  const porId = new Map();
+  for (let i = 0; i < alvos.length; i += 40) {
+    const lote = alvos.slice(i, i + 40);
+    let r = null;
+    try { r = await p(alexa.querySmarthomeDevices, lote.map(d => d.aid), 'APPLIANCE', 8000); } catch (e) { log('estados: falha no lote', String(e && e.message || e)); continue; }
+    for (const st of (r && r.deviceStates) || []) {
+      const id = st.entity && (st.entity.entityId || st.entity.applianceId);
+      const caps = (st.capabilityStates || []).map(lerCap);
+      const pw = caps.find(c => /PowerController/.test(String(c.namespace || '')) && c.name === 'powerState');
+      if (id && pw) porId.set(id, String(pw.value).toUpperCase() === 'ON');
+      const con = caps.find(c => /EndpointHealth/.test(String(c.namespace || '')) && c.name === 'connectivity');
+      if (id && con && String((con.value && con.value.value) || con.value).toUpperCase() === 'UNREACHABLE') porId.set(id, null);
+    }
+  }
+  const chave = (d) => porId.has(d.aid) ? d.aid : (porId.has(d.id) ? d.id : null);
+  const itens = alvos.filter(d => chave(d)).map(d => ({ nome: d.nome, tipo: d.tipo, ligado: porId.get(chave(d)) }));
+  cacheEst = { t: Date.now(), itens };
+  return itens;
+}
+
 // ---------- API ----------
 function lerCorpo(req) {
   return new Promise((ok) => { let b = ''; req.on('data', c => b += c); req.on('end', () => { try { ok(b ? JSON.parse(b) : {}); } catch (e) { ok({}); } }); });
@@ -136,6 +164,10 @@ const server = http.createServer(async (req, res) => {
         const lista = await dispositivos(url.searchParams.get('atualizar') === '1');
         return responder(res, 200, { total: lista.length, dispositivos: lista.map(d => ({ nome: d.nome, tipo: d.tipo, acoes: d.acoes, desativavel: d.desativavel, fabricante: d.fabricante })) });
       }
+      case '/estados': {
+        const itens = await estados(url.searchParams.get('atualizar') === '1');
+        return responder(res, 200, { ok: true, total: itens.length, em: new Date(cacheEst.t).toISOString(), estados: itens });
+      }
       case '/acao': {
         const lista = await dispositivos();
         const alvo = body.id ? lista.find(d => d.id === body.id) : acharPorNome(lista, body.dispositivo || body.nome);
@@ -145,6 +177,7 @@ const server = http.createServer(async (req, res) => {
         const r = await p(alexa.executeSmarthomeDeviceAction, [alvo.id], f(body.valor), 'APPLIANCE');
         const erros = (r && r.errors) || [];
         log('acao', alvo.nome, body.acao, body.valor || '', erros.length ? erros : 'ok');
+        cacheEst.t = 0;
         if (erros.length) return responder(res, 502, { ok: false, dispositivo: alvo.nome, erro: erros[0].code || 'erro', detalhe: erros });
         return responder(res, 200, { ok: true, dispositivo: alvo.nome, acao: body.acao, valor: body.valor });
       }
@@ -184,7 +217,7 @@ const server = http.createServer(async (req, res) => {
         return responder(res, 200, { ok: true, rotina: rot.name });
       }
       default:
-        return responder(res, 404, { erro: 'rota desconhecida', rotas: ['/status', '/dispositivos', '/acao', '/comando', '/falar', '/bruto', '/rotinas', '/rotina'] });
+        return responder(res, 404, { erro: 'rota desconhecida', rotas: ['/status', '/dispositivos', '/estados', '/acao', '/comando', '/falar', '/bruto', '/rotinas', '/rotina'] });
     }
   } catch (e) {
     log('erro', url.pathname, String(e && e.message || e));

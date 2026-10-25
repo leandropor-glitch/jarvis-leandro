@@ -148,6 +148,37 @@
   "semComodo": "Outros",
   "corSemComodo": "#2A3640",
   "textoSemComodo": "#F2F5F7",
+  "_retorno": "Cor dos botões na tela de Cenas: amarelo = a central confirma que está ligado; grafite = desligado (ou ainda sem confirmação); cinza médio = sem retorno (TV, ar, fontes, cenas de desligar). 'retorno' liga cada cena aos aparelhos que dizem se ela está ligada (basta um ligado). Cena com aparelho de mesmo nome já se liga sozinha. 'semRetorno' força o cinza médio.",
+  "retorno": {
+    "Cama": [
+      "Casal Cama"
+    ],
+    "Luz Alta": [
+      "Lustre"
+    ],
+    "Sanca": [
+      "Indireta"
+    ],
+    "3wBM": [
+      "Banho Master"
+    ]
+  },
+  "semRetorno": [
+    "OFF_Sala",
+    "Master OFF",
+    "Boa Noite",
+    "Música",
+    "Apple TV",
+    "PlayStation",
+    "Globo",
+    "PW Net",
+    "PW Z1",
+    "PW Z2",
+    "CH",
+    "Persianas",
+    "CortDir",
+    "Estante Felipe"
+  ],
   "_controles": "Controle remoto: cada botão dispara uma CENA da Smart Life/Tuya; vale a primeira cena da lista que existir na casa. 'volumeCentral' (sala ou suite): quando falta a cena de um lado do volume, o botão manda aumentar/abaixar o volume direto para a TV pela central da Vinci (a Amazon só recebe uma cena de volume por TV: Vol+ e Vol- chegam com o mesmo nome). Botão sem cena não aparece.",
   "controles": [
     {
