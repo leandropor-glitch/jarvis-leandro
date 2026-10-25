@@ -1,0 +1,858 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1519">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vinci">
+<meta name="application-name" content="Vinci">
+<meta name="description" content="Vinci Automação — a sua casa em uma tela, com o Félix.">
+<title>Vinci Casa</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+/* Paleta do Manual de Marca Vinci 2024: Preto Azulado #1D2830, Amarelo Destaque #E1FE06, tons secundários de cinza e amarelo. */
+:root{
+  --bg:#0E1519; --bg2:#131C22; --card:#1D2830; --card2:#17212A; --card3:#222E37;
+  --line:#26323B; --line2:#202B33; --line3:#3B464F;
+  --ink:#F2F5F7; --soft:#C1CFD9; --mute:#79868F; --acc:#E1FE06; --acc-ink:#1D2830; --acc2:#B0C034;
+  --ok:#C8DC2A; --err:#FF7A6B;
+  --sans:'Montserrat', system-ui, -apple-system, sans-serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px); --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+  --gap:8px; --raio:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+html{background:var(--bg)}
+body{overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background:
+    radial-gradient(120% 80% at 0% 0%, #1D2830 0%, rgba(29,40,48,0) 60%),
+    radial-gradient(80% 60% at 100% 100%, #17212A 0%, rgba(23,33,42,0) 70%),
+    var(--bg)}
+/* ziguezague do manual, discreto no canto */
+body::before{content:"";position:fixed;top:0;right:0;width:min(520px,70vw);height:180px;pointer-events:none;opacity:.07;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='14' viewBox='0 0 44 14'%3E%3Cpath d='M0 11 L11 3 L22 11 L33 3 L44 11' fill='none' stroke='%23C1CFD9' stroke-width='1.4'/%3E%3C/svg%3E") repeat;
+  -webkit-mask:linear-gradient(225deg,#000 10%,transparent 70%);mask:linear-gradient(225deg,#000 10%,transparent 70%)}
+button,input,textarea{font-family:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.kick{font-size:10px;font-weight:600;letter-spacing:2.2px;color:var(--mute);text-transform:uppercase}
+.dot{width:7px;height:7px;border-radius:4px;background:var(--acc);display:inline-block;flex:none;box-shadow:0 0 10px var(--acc)}
+.dot[data-on="0"]{background:var(--err);box-shadow:0 0 10px var(--err)}
+
+/* ---------- estrutura ---------- */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding:calc(var(--safe-t) + 8px) calc(var(--safe-r) + 16px) calc(var(--safe-b) + 10px) calc(var(--safe-l) + 16px)}
+header{flex:none;height:54px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+.marca{display:flex;align-items:center;gap:14px;min-width:0}
+.marca img{height:36px;width:auto;display:block}
+.marca .st{display:flex;align-items:center;gap:7px;min-width:0}
+.marca .kick{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.abas{display:flex;gap:2px;padding:4px;border-radius:14px;background:rgba(29,40,48,.75);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.abas button{height:36px;padding:0 18px;border:0;border-radius:10px;background:transparent;color:var(--mute);font-size:13px;font-weight:600;letter-spacing:.3px;transition:background .2s,color .2s}
+.abas button[aria-selected="true"]{background:var(--acc);color:var(--acc-ink)}
+.dir{display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.hora{display:flex;flex-direction:column;align-items:flex-end;line-height:1.05}
+.hora b{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.hora small{font-size:10px;font-weight:600;letter-spacing:1.6px;color:var(--mute);text-transform:uppercase}
+.ico{width:40px;height:40px;border-radius:20px;border:1px solid var(--line3);background:var(--card2);display:flex;align-items:center;justify-content:center;padding:0;color:var(--soft)}
+.ico:active{background:var(--card3)}
+.ico.girar svg{animation:gira 1s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.legenda{flex:none;display:flex;gap:16px;overflow:hidden;height:26px;align-items:center;white-space:nowrap;margin-top:4px}
+.legenda span{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:1.6px;color:var(--mute);text-transform:uppercase}
+.legenda i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.vista{flex:1;min-height:0;display:none;margin-top:6px}
+.vista[data-on="1"]{display:flex;flex-direction:column}
+
+/* ---------- Cenas: grade de parede ---------- */
+#grade{flex:1;min-height:0;display:grid;gap:var(--gap);grid-template-columns:repeat(var(--cols,8),minmax(0,1fr));grid-auto-rows:var(--row,96px);align-content:start;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding-bottom:4px}
+#grade::-webkit-scrollbar{display:none}
+.cena{position:relative;border:0;border-radius:var(--raio);color:var(--txt,#1D2830);text-align:left;padding:11px 13px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;overflow:hidden;font-size:var(--fs,15px);font-weight:700;line-height:1.15;letter-spacing:-.1px;transition:transform .12s ease, filter .12s ease;touch-action:manipulation;
+  background:linear-gradient(155deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 42%), var(--cor);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.18), 0 6px 18px -10px rgba(0,0,0,.7)}
+.cena span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.cena .tag{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;opacity:.62;display:flex;align-items:center;gap:5px}
+.cena .tag svg{width:13px;height:13px}
+.cena.ctl{background:linear-gradient(155deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 50%), var(--card);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--cor), 0 6px 18px -10px rgba(0,0,0,.7)}
+.cena.ctl .tag{color:var(--cor);opacity:1}
+.cena:active{transform:scale(.96)}
+.cena[data-busy="1"]{animation:espera 1s ease-in-out infinite}
+.cena.brilho{animation:brilho .7s ease-out}
+.cena.falha{animation:falha .45s ease-in-out;box-shadow:inset 0 0 0 3px var(--err)}
+.cena::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#fff;opacity:0;pointer-events:none}
+.cena.brilho::after{animation:luz .7s ease-out}
+@keyframes espera{50%{filter:brightness(.75)}}
+@keyframes brilho{0%{transform:scale(.95)}40%{transform:scale(1.03);box-shadow:0 0 0 3px #fff, 0 0 32px 6px var(--cor)}100%{transform:scale(1)}}
+@keyframes luz{0%{opacity:.5}100%{opacity:0}}
+@keyframes falha{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.vazio{padding:28px 16px;text-align:center;color:var(--mute);font-size:14px}
+
+/* ---------- Cômodos ---------- */
+.rolar{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:14px;padding-bottom:12px;scrollbar-width:none}
+.rolar::-webkit-scrollbar{display:none}
+.chips{display:flex;gap:8px;overflow-x:auto;flex:none;scrollbar-width:none;padding:2px 0}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line3);background:var(--card2);font-size:13px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:8px;color:var(--soft)}
+.chip i{width:9px;height:9px;border-radius:3px}
+.chip small{font-size:10px;font-weight:700;opacity:.6}
+.chip[data-on="1"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.search{flex:none;height:46px;border-radius:14px;border:1px solid var(--line3);background:var(--card2);padding:0 16px;font-size:15px;outline:none;width:100%;-webkit-user-select:text;user-select:text}
+.search:focus{border-color:var(--acc)}
+.room{display:flex;flex-direction:column;gap:10px}
+.room h2{margin:6px 0 0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;letter-spacing:-.2px}
+.room h2 i{width:12px;height:12px;border-radius:4px}
+.room h2 span{margin-left:auto}
+.room h3{margin:4px 0 0;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--mute);text-transform:uppercase}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.tiles .cena{min-height:78px}
+.devs{border-radius:var(--raio);background:var(--card2);border:1px solid var(--line)}
+.dev{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;min-height:58px;padding:8px 10px 8px 16px;border-bottom:1px solid var(--line2);gap:8px 10px}
+.dev:last-child{border-bottom:0}
+.dev .nm{min-width:0;flex:1 1 140px}
+.dev .nm b{font-weight:600;display:block;overflow-wrap:anywhere;font-size:15px}
+.dev small{display:block;font-size:9px;font-weight:700;color:var(--mute);letter-spacing:1.6px;text-transform:uppercase;margin-top:2px}
+.dev small.ok{color:var(--ok)} .dev small.err{color:var(--err)}
+.dev .acts{display:flex;gap:6px}
+.dev .acts button{height:38px;min-width:44px;padding:0 15px;border-radius:19px;border:1px solid var(--line3);background:var(--card);font-size:12px;font-weight:600}
+.dev .acts button.pri{border-color:var(--acc);color:var(--acc)}
+.dev .acts button:disabled{opacity:.45}
+
+/* ---------- Controles ---------- */
+.controles{flex:1;min-height:0;display:grid;grid-template-columns:minmax(190px,260px) 1fr;gap:16px}
+.ctlLista{display:flex;flex-direction:column;gap:8px;overflow:auto;scrollbar-width:none}
+.ctlLista button{min-height:60px;border-radius:var(--raio);border:1px solid var(--line);background:var(--card2);text-align:left;padding:10px 14px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:12px}
+.ctlLista button svg{flex:none;width:22px;height:22px;color:var(--mute)}
+.ctlLista button small{display:block;font-size:9px;font-weight:700;color:var(--mute);letter-spacing:1.6px;margin-top:2px}
+.ctlLista button[aria-selected="true"]{border-color:var(--acc);background:var(--card)}
+.ctlLista button[aria-selected="true"] svg{color:var(--acc)}
+.painelRemoto{border-radius:24px;background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--line);overflow:auto;display:flex;justify-content:center;padding:22px 16px;scrollbar-width:none}
+
+/* ---------- controle remoto ---------- */
+.remoto{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.rTopo{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rTopo h2{margin:2px 0 0;font-size:22px;font-weight:700;letter-spacing:-.3px}
+.tecla{position:relative;border:0;background:linear-gradient(180deg,#25323C 0%,#1A242C 100%);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 8px 18px -10px rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-weight:700;touch-action:manipulation;transition:transform .1s, background .15s}
+.tecla svg{width:24px;height:24px}
+.tecla:active{transform:scale(.94)}
+.tecla.vai{background:var(--acc);color:var(--acc-ink)}
+.tecla.erro{box-shadow:inset 0 0 0 2px var(--err)}
+.tecla .n{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:var(--acc);color:var(--acc-ink);font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.tecla small{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;opacity:.65}
+.pwr{width:62px;height:62px;border-radius:31px;color:var(--acc);box-shadow:inset 0 0 0 1.5px var(--acc), 0 0 24px -6px rgba(225,254,6,.45)}
+.balanco{width:72px;height:168px;border-radius:36px;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,#25323C 0%,#1A242C 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 10px 22px -12px #000}
+.balanco .tecla{flex:1;border-radius:0;background:transparent;box-shadow:none}
+.balanco .tecla.vai{background:var(--acc)}
+.balanco .n{top:8px;right:8px;background:var(--acc-ink);color:var(--acc)}
+.arHeroi{width:150px;height:150px;border-radius:75px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--soft);background:radial-gradient(circle at 50% 35%,#24313B 0%,#172028 72%);box-shadow:inset 0 0 0 1px var(--line), 0 0 0 10px rgba(29,40,48,.5), 0 14px 30px -16px #000}
+.arHeroi svg{width:46px;height:46px;color:var(--acc)}
+.arHeroi small{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--mute)}
+.balanco .meio{flex:none;height:26px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:1.6px;color:var(--mute)}
+.tvLinha{width:100%;display:flex;align-items:center;justify-content:center;gap:40px;padding:6px 0 4px}
+.balanco.unico{height:120px}
+.redonda{width:58px;height:58px;border-radius:29px}
+.arLinha{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.arLinha .tecla{height:58px;border-radius:16px;font-size:14px;flex-direction:row;gap:8px}
+
+/* folha do controle (abre ao tocar em TV Sala etc.) */
+#folha{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,12,15,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .22s}
+#folha[data-on="1"]{opacity:1;pointer-events:auto}
+#folha .caixaF{width:min(420px,100%);max-height:calc(100% - var(--safe-t) - 24px);overflow:auto;border-radius:28px 28px 0 0;background:linear-gradient(180deg,#1F2B34 0%,#141D24 100%);border:1px solid var(--line3);border-bottom:0;padding:10px 18px calc(var(--safe-b) + 22px);transform:translateY(40px);transition:transform .25s ease;scrollbar-width:none}
+#folha[data-on="1"] .caixaF{transform:none}
+#folha .pega{width:44px;height:5px;border-radius:3px;background:var(--line3);margin:2px auto 14px}
+@media (min-width:761px) and (min-height:700px){ #folha{align-items:center} #folha .caixaF{border-radius:28px;border-bottom:1px solid var(--line3);padding-bottom:22px} }
+
+/* ---------- Félix (voz e texto) ---------- */
+#felix{flex:none;margin-top:10px;position:relative}
+.fBarra{height:58px;border-radius:29px;background:rgba(23,33,42,.92);border:1px solid var(--line3);display:flex;align-items:center;gap:6px;padding:0 6px 0 8px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 12px 30px -16px #000}
+.fBarra .av{flex:none;width:40px;height:40px;border-radius:20px;background:#0E1519 url(chevron.png) center/20px auto no-repeat;box-shadow:inset 0 0 0 1px var(--line3)}
+.fBarra form{flex:1;min-width:0;display:flex}
+.fBarra input{flex:1;min-width:0;height:44px;border:0;background:transparent;font-size:15px;font-weight:500;outline:none;padding:0 8px;-webkit-user-select:text;user-select:text}
+.fBarra input::placeholder{color:var(--mute)}
+.mic{flex:none;width:46px;height:46px;border-radius:23px;border:0;background:var(--acc);color:var(--acc-ink);display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px -4px rgba(225,254,6,.55);transition:transform .12s}
+.mic:active{transform:scale(.93)}
+.mic svg{width:22px;height:22px}
+#felix[data-estado="ouvindo"] .mic{animation:pulso 1.2s ease-in-out infinite}
+@keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(225,254,6,.55)}50%{box-shadow:0 0 0 12px rgba(225,254,6,0)}}
+.eq{display:none;align-items:center;gap:3px;height:28px;padding:0 6px}
+.eq i{width:3px;border-radius:2px;background:var(--acc);height:6px;animation:eq .9s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.12s}.eq i:nth-child(3){animation-delay:.24s}.eq i:nth-child(4){animation-delay:.36s}.eq i:nth-child(5){animation-delay:.48s}.eq i:nth-child(6){animation-delay:.6s}.eq i:nth-child(7){animation-delay:.72s}
+@keyframes eq{0%,100%{height:5px}50%{height:24px}}
+#felix[data-estado="ouvindo"] .eq,#felix[data-estado="pensando"] .eq{display:flex}
+#felix[data-estado="pensando"] .eq i{background:var(--soft);animation-duration:1.6s}
+.fResp{position:absolute;left:0;right:0;bottom:68px;margin:0 auto;max-width:640px;border-radius:20px;background:rgba(29,40,48,.97);border:1px solid var(--line3);padding:14px 44px 14px 16px;box-shadow:0 18px 40px -18px #000;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .22s, transform .22s}
+.fResp[data-on="1"]{opacity:1;transform:none;pointer-events:auto}
+.fResp .kick{color:var(--acc);display:block;margin-bottom:5px}
+.fResp p{margin:0;font-size:15px;line-height:21px;color:var(--ink);-webkit-user-select:text;user-select:text;white-space:pre-wrap;max-height:40vh;overflow:auto}
+.fResp p.eu{color:var(--soft);font-size:13px;margin-bottom:8px}
+.fResp .x{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:15px;border:0;background:transparent;color:var(--mute);font-size:18px}
+
+/* ---------- login, ajustes, aviso ---------- */
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:calc(var(--safe-t) + 24px) 22px calc(var(--safe-b) + 24px);overflow:auto}
+.caixa{width:min(380px,100%);display:flex;flex-direction:column;gap:16px}
+.caixa .logo{width:120px;height:auto;margin:0 0 18px}
+.caixa p{margin:0;color:var(--soft);font-size:14px;line-height:21px}
+.caixa h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.4px}
+.campo{display:flex;flex-direction:column;gap:7px}
+.campo label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--mute)}
+.campo input{height:54px;border-radius:14px;border:1px solid var(--line3);background:var(--card2);padding:0 16px;font-size:17px;outline:none;-webkit-user-select:text;user-select:text}
+.campo input:focus{border-color:var(--acc)}
+.btn{height:52px;padding:0 22px;border-radius:26px;border:0;background:var(--acc);color:var(--acc-ink);font-size:15px;font-weight:700;letter-spacing:.2px}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line3);font-weight:600}
+.link{border:0;background:transparent;color:var(--soft);font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:6px 0;align-self:center}
+.msg{min-height:20px;font-size:13px;line-height:19px;color:var(--err)}
+.msg.ok{color:var(--ok)}
+dialog{width:min(680px,calc(100vw - 32px));border-radius:22px;border:1px solid var(--line3);background:var(--card);color:var(--ink);padding:22px}
+dialog::backdrop{background:#0E1519cc}
+dialog h3{margin:0 0 6px;font-weight:700}
+dialog p{margin:0 0 10px;color:var(--soft);font-size:13px;line-height:19px}
+dialog textarea{width:100%;height:40vh;border-radius:12px;border:1px solid var(--line3);background:var(--bg2);padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:17px;outline:none;resize:vertical;-webkit-user-select:text;user-select:text}
+dialog .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+dialog .btn{height:44px;font-size:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 14px);background:#1D2830;border:1px solid var(--line3);color:var(--ink);padding:11px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:60;max-width:min(92vw,560px);box-shadow:0 10px 30px #0009;transition:opacity .25s, transform .25s}
+.toast[data-show="0"]{opacity:0;pointer-events:none;transform:translate(-50%,-8px)}
+.toast.ok{border-color:var(--acc)} .toast.err{border-color:var(--err)}
+
+/* ---------- telas menores ---------- */
+@media (max-width:760px){
+  #app{padding-left:calc(var(--safe-l) + 12px);padding-right:calc(var(--safe-r) + 12px)}
+  header{grid-template-columns:1fr auto;height:auto;row-gap:10px;padding-top:2px}
+  .marca img{height:32px}
+  .abas{grid-column:1 / -1;grid-row:2}
+  .abas button{flex:1;padding:0 8px}
+  .hora{display:none}
+  .controles{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .ctlLista{flex-direction:row;overflow-x:auto}
+  .ctlLista button{flex:none;min-height:52px}
+  .legenda{display:none}
+  :root{--gap:7px;--raio:15px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="login" hidden>
+  <form class="caixa" id="fLogin" autocomplete="on">
+    <img class="logo" src="logo.png" alt="Vinci">
+    <h1 id="lTitulo">Bem-vindo à sua casa.</h1>
+    <p id="lTexto">Entre com o mesmo número e senha do app Felyx.</p>
+    <div class="campo" id="cTel"><label for="tel">CELULAR COM DDD</label><input id="tel" type="tel" inputmode="numeric" autocomplete="tel" placeholder="21 99999-9999"></div>
+    <div class="campo" id="cSenha"><label for="senha" id="lSenha">SENHA</label><input id="senha" type="password" autocomplete="current-password"></div>
+    <div class="campo" id="cCodigo" hidden><label for="codigo">CÓDIGO DO WHATSAPP</label><input id="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
+    <div class="msg" id="mLogin" role="alert"></div>
+    <button class="btn" id="bEntrar" type="submit">Entrar</button>
+    <button class="link" id="bCodigo" type="button">Primeiro acesso ou esqueci a senha</button>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <header>
+    <div class="marca">
+      <img src="logo.png" alt="Vinci">
+      <div class="st"><span class="dot" id="dot" data-on="0"></span><span class="kick" id="estado">conectando</span></div>
+    </div>
+    <nav class="abas" role="tablist" aria-label="Seções">
+      <button role="tab" data-v="cenas" aria-selected="true">Cenas</button>
+      <button role="tab" data-v="comodos" aria-selected="false">Cômodos</button>
+      <button role="tab" data-v="controles" aria-selected="false">Controles</button>
+    </nav>
+    <div class="dir">
+      <div class="hora"><b id="hora"></b><small id="data"></small></div>
+      <button class="ico" id="bAtualizar" type="button" aria-label="Atualizar a casa"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+      <button class="ico" id="bAjustes" type="button" aria-label="Ajustes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+    </div>
+  </header>
+
+  <section class="vista" id="vCenas" data-on="1">
+    <div class="legenda" id="legenda"></div>
+    <div id="grade" role="list" aria-label="Cenas"></div>
+  </section>
+
+  <section class="vista" id="vComodos" data-on="0">
+    <div class="rolar">
+      <nav class="chips" id="chips" aria-label="Cômodos"></nav>
+      <input class="search" id="busca" type="search" placeholder="Buscar cena ou aparelho" aria-label="Buscar">
+      <div id="listaComodos"></div>
+    </div>
+  </section>
+
+  <section class="vista" id="vControles" data-on="0">
+    <div class="controles">
+      <div class="ctlLista" id="ctlLista"></div>
+      <div class="painelRemoto" id="painelRemoto"></div>
+    </div>
+  </section>
+
+  <div id="felix" data-estado="parado">
+    <div class="fResp" id="fResp" role="status" aria-live="polite"><span class="kick">Félix</span><p class="eu" id="fEu" hidden></p><p id="fTxt"></p><button class="x" id="fFechar" type="button" aria-label="Fechar">×</button></div>
+    <div class="fBarra">
+      <span class="av" aria-hidden="true"></span>
+      <form id="fFelix"><input id="felixIn" type="text" enterkeyhint="send" placeholder="Fale com o Félix…" aria-label="Pedido para o Félix" autocomplete="off"></form>
+      <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <button class="mic" id="bMic" type="button" aria-label="Falar com o Félix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div id="folha" aria-hidden="true"><div class="caixaF" role="dialog" aria-modal="true" aria-label="Controle remoto"><div class="pega"></div><div id="folhaConteudo"></div></div></div>
+
+<dialog id="dlg">
+  <h3>Ajustes</h3>
+  <p id="ajConta"></p>
+  <p>Mapa de cômodos e controles (JSON). Cada botão do controle remoto aponta para uma lista de nomes de cena: vale a primeira que existir na casa. Fica salvo neste aparelho.</p>
+  <textarea id="txtMapa" spellcheck="false" aria-label="Mapa em JSON"></textarea>
+  <div class="msg" id="mMapa"></div>
+  <div class="row">
+    <button class="btn" id="bSalvar" type="button">Salvar</button>
+    <button class="btn ghost" id="bPadrao" type="button">Restaurar padrão</button>
+    <button class="btn ghost" id="bSair" type="button">Sair da conta</button>
+    <button class="btn ghost" id="bFechar" type="button">Fechar</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+const VERSAO = '1.0.0';
+const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const APP_URL = N8N + '/felix/app';
+const PERGUNTA_URL = N8N + '/felix/pergunta';
+const DEMO = !!window.VINCI_DEMO || /[?&]demo/.test(location.search);
+const TIPO = { SWITCH: 'Interruptor', SMARTPLUG: 'Tomada', LIGHT: 'Luz', THERMOSTAT: 'Ar-condicionado', OTHER: 'Aparelho', CENA: 'Cena' };
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const chave = (s) => norm(s).replace(/[^a-z0-9]+/g, ' ').trim();   // como a central da Vinci compara nomes: sem + e −, sem acento
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+function h(tag, attrs, ...filhos){
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})){
+    if (k === 'on') for (const [ev, fn] of Object.entries(v)) el.addEventListener(ev, fn);
+    else if (k === 'class') el.className = v;
+    else if (k === 'style') el.style.cssText = v;
+    else if (k === 'html') el.innerHTML = v;
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const f of filhos.flat()) if (f != null && f !== false) el.append(f.nodeType ? f : document.createTextNode(f));
+  return el;
+}
+const svg = (d, extra) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' + (extra || '') + '>' + d + '</svg>';
+const ICO = {
+  tv: svg('<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/>'),
+  ar: svg('<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9 4.5l3 2 3-2M9 19.5l3-2 3 2"/>'),
+  power: svg('<path d="M12 3v9"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/>'),
+  mudo: svg('<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l4 6M21 9l-4 6"/>'),
+  mais: svg('<path d="M12 5v14M5 12h14"/>'), menos: svg('<path d="M5 12h14"/>'),
+  remoto: svg('<rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="8" r="2"/><path d="M10 14h4M10 17h4"/>')
+};
+let toastT;
+function toast(t, tipo, ms){ const el = $('#toast'); el.textContent = t; el.className = 'toast ' + (tipo || ''); el.dataset.show = '1'; clearTimeout(toastT); toastT = setTimeout(() => { el.dataset.show = '0'; }, ms || 1800); }
+const vibrar = (ms) => { try{ navigator.vibrate && navigator.vibrate(ms || 12); }catch(e){} };
+
+/* ===================== fonte de dados =====================
+   Mesmo backend do app Felyx e do iConic: POST /webhook/felix/app (n8n) → atalho da casa → ponte da casa.
+   Login com o mesmo número e senha do app Felyx. */
+let LOCAL = false;
+let sessao = store.get('vinci.sessao', null);   // { token, nome, telefone }
+let casa = store.get('vinci.casa', null);       // { cenas:[nome], aparelhos:[{nome,tipo}] }
+
+async function api(acao, dados){
+  if (DEMO) return demoApi(acao, dados);
+  const r = await fetch(APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
+  if (!r.ok) throw new Error('servidor ' + r.status);
+  return r.json();
+}
+async function detectarLocal(){
+  if (DEMO || !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return false;
+  try{ const r = await fetch('api/dispositivos'); if (!r.ok) return false; aplicarLocal(await r.json()); return true; }catch(e){ return false; }
+}
+function aplicarLocal(j){
+  const ds = (j.dispositivos || []).filter((d) => !ocultos().has(d.tipo));
+  casa = { cenas: ds.filter((d) => d.tipo === 'CENA').map((d) => d.nome), aparelhos: ds.filter((d) => d.tipo !== 'CENA').map((d) => ({ nome: d.nome, tipo: d.tipo })) };
+}
+const ocultos = () => new Set((mapa && mapa.ocultar) || ['CAMERA', 'SECURITY_PANEL']);
+async function carregarCasa(forcar){
+  estado(null, forcar ? 'atualizando' : 'conectando');
+  $('#bAtualizar').classList.add('girar');
+  try{
+    if (LOCAL){
+      const r = await fetch('api/dispositivos' + (forcar ? '?atualizar=1' : ''));
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.erro || 'falhou');
+      aplicarLocal(j); estado(true, 'casa online');
+    } else {
+      const j = await api('casa', { token: sessao.token });
+      if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.', 'err', 3000); sair(); return; }
+      if (!j.ok) throw new Error(j.mensagem || 'falhou');
+      const vistos = new Set();
+      casa = { cenas: [...new Set(j.cenas || [])], aparelhos: (j.aparelhos || []).filter((a) => !ocultos().has(a.tipo) && !vistos.has(a.nome + '|' + a.tipo) && vistos.add(a.nome + '|' + a.tipo)) };
+      estado(true, sessao && sessao.nome ? 'casa de ' + primeiroNome() : 'casa online');
+    }
+    store.set('vinci.casa', casa);
+  }catch(e){ estado(false, casa ? 'sem conexão · lista guardada' : 'sem conexão'); }
+  $('#bAtualizar').classList.remove('girar');
+  indexarCenas(); renderTudo();
+}
+const primeiroNome = () => String((sessao && sessao.nome) || '').trim().split(/\s+/)[0] || '';
+
+// Numa cena, qualquer verbo é ATIVAR (as cenas da Smart Life só ativam).
+async function ativarCena(nome){
+  if (LOCAL){
+    const r = await fetch('api/acao', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome, tipo: 'CENA', acao: 'ativar' }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || 'falhou');
+    return;
+  }
+  const j = await api('comando', { token: sessao.token, texto: 'ativa a cena ' + nome });
+  if (j.erro === 'sessao'){ sair(); throw new Error('sessão expirada'); }
+  if (!j.ok) throw new Error(j.recusado ? (j.text || 'recusado') : 'a casa não confirmou');
+}
+async function volumeCentral(v){
+  const j = await api('volume', { token: sessao.token, tv: v.tv, direcao: v.direcao });
+  if (j.erro === 'sessao'){ sair(); throw new Error('sessão expirada'); }
+  if (!j.ok) throw new Error(j.text || 'a casa não confirmou');
+}
+async function ligarAparelho(a, ligar){
+  if (LOCAL){
+    const r = await fetch('api/acao', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ nome: a.nome, tipo: a.tipo, acao: ligar ? 'ligar' : 'desligar' }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || 'falhou');
+    return;
+  }
+  const j = await api('comando', { token: sessao.token, texto: (ligar ? 'liga o ' : 'desliga o ') + a.nome });
+  if (j.erro === 'sessao'){ sair(); throw new Error('sessão expirada'); }
+  if (!j.ok) throw new Error('a casa não confirmou');
+}
+function estado(on, txt){ if (on != null) $('#dot').dataset.on = on ? '1' : '0'; $('#estado').textContent = txt; }
+
+/* ===================== mapa de cômodos ===================== */
+let mapaPadrao = null, mapa = null;
+function casa1(nomeNorm, palavra){
+  const p = norm(palavra);
+  if (!p) return false;
+  if (p.length <= 3) return nomeNorm.split(/[^a-z0-9]+/).includes(p);
+  return nomeNorm.replace(/_/g, ' ').includes(p.replace(/_/g, ' '));
+}
+function comodoDe(nome, tipo){
+  const fixos = mapa.fixos || {};
+  const f = fixos[nome + '|' + tipo] || fixos[nome];
+  if (f) return f;
+  const n = norm(nome);
+  for (const c of mapa.comodos || []) if ((c.palavras || []).some((p) => casa1(n, p))) return c.nome;
+  return mapa.semComodo || 'Outros';
+}
+function ordemComodos(){ const base = (mapa.comodos || []).map((c) => c.nome); return [...new Set([...(mapa.ordemTela || []), ...base]), mapa.semComodo || 'Outros']; }
+function corDe(comodo){
+  const c = (mapa.comodos || []).find((x) => x.nome === comodo);
+  if (c) return { cor: c.cor || '#3B464F', txt: c.texto || '#1D2830' };
+  return { cor: mapa.corSemComodo || '#2A3640', txt: mapa.textoSemComodo || '#F2F5F7' };
+}
+function agrupar(itens, nomeDe, comodoFn){
+  const g = new Map();
+  for (const it of itens){ const c = comodoFn ? comodoFn(it) : comodoDe(nomeDe(it), it.tipo || 'CENA'); if (!g.has(c)) g.set(c, []); g.get(c).push(it); }
+  return [...new Set([...ordemComodos(), ...g.keys()])].filter((c) => g.has(c)).map((c) => ({ comodo: c, ...corDe(c), itens: g.get(c) }));
+}
+
+/* ===================== controles: botão → cena ===================== */
+let cenaPorChave = new Map();
+function indexarCenas(){ cenaPorChave = new Map(((casa && casa.cenas) || []).map((n) => [chave(n), n])); }
+const acha = (lista) => { for (const n of [].concat(lista || [])){ const c = cenaPorChave.get(chave(n)); if (c) return c; } return null; };
+function resolverControle(ctl){
+  const b = ctl.botoes || {}, r = { usadas: new Set() };
+  const pega = (k) => { const c = acha(b[k]); if (c) r.usadas.add(c); return c; };
+  r.power = pega('power'); r.mudo = pega('mudo');
+  r.volMais = pega('volMais'); r.volMenos = pega('volMenos');
+  // a Amazon só recebe uma cena de volume por TV: o lado que faltar vai direto para a TV pela central
+  if (ctl.volumeCentral && (r.volMais || r.volMenos || r.power)){
+    if (!r.volMais) r.volMais = { tv: ctl.volumeCentral, direcao: 'mais' };
+    if (!r.volMenos) r.volMenos = { tv: ctl.volumeCentral, direcao: 'menos' };
+  }
+  r.ligar = pega('ligar'); r.desligar = pega('desligar');
+  r.existe = r.usadas.size > 0;
+  return r;
+}
+const controles = () => ((mapa && mapa.controles) || []).map((c) => ({ ...c, r: resolverControle(c) })).filter((c) => c.r.existe);
+
+/* fila: os toques no controle saem em ordem (3 × volume + = 3 comandos) */
+const fila = []; let filaRodando = false;
+function disparar(cena, el, rotulo){
+  vibrar(10);
+  if (el){ el.classList.add('vai'); el._n = (el._n || 0) + 1; marcarN(el); }
+  fila.push({ cena, el, rotulo });
+  if (!filaRodando) rodarFila();
+}
+function marcarN(el){ let n = el.querySelector('.n'); if (el._n > 1){ if (!n){ n = h('span', { class: 'n' }); el.append(n); } n.textContent = el._n; } else if (n) n.remove(); }
+async function rodarFila(){
+  filaRodando = true;
+  while (fila.length){
+    const { cena, el, rotulo } = fila.shift();
+    try{ if (typeof cena === 'object') await volumeCentral(cena); else await ativarCena(cena); if (!fila.some((x) => x.el === el)) toast('✓ ' + (rotulo || cena), 'ok', 1200); }
+    catch(e){ if (el){ el.classList.add('erro'); setTimeout(() => el.classList.remove('erro'), 1200); } toast((rotulo || cena) + ': ' + e.message, 'err', 2600); }
+    if (el){ el._n = Math.max(0, (el._n || 1) - 1); marcarN(el); if (!el._n) el.classList.remove('vai'); }
+  }
+  filaRodando = false;
+}
+function tecla(cls, cena, rotulo, conteudo, extra){
+  const b = h('button', { type: 'button', class: 'tecla ' + cls, 'aria-label': rotulo, disabled: !cena, html: conteudo || '', ...(extra || {}) });
+  if (cena) b.addEventListener('click', () => disparar(cena, b, rotulo));
+  return b;
+}
+function renderRemoto(ctl, alvo){
+  const r = ctl.r, rot = ctl.rotulos || {};
+  const partes = [h('div', { class: 'rTopo' },
+    h('div', null, h('span', { class: 'kick' }, ctl.comodo + ' · ' + (ctl.tipo === 'tv' ? 'televisão' : 'ar-condicionado')), h('h2', null, ctl.nome)),
+    r.power ? tecla('pwr', r.power, ctl.nome + ' liga/desliga', ICO.power) : null)];
+  if (ctl.tipo === 'tv'){
+    const linha = h('div', { class: 'tvLinha' });
+    if (r.volMais || r.volMenos) linha.append(h('div', { class: 'balanco' + (r.volMais && r.volMenos ? '' : ' unico') },
+      r.volMais ? tecla('', r.volMais, rot.volMais || 'Vol +', ICO.mais) : null, h('div', { class: 'meio' }, 'VOL'), r.volMenos ? tecla('', r.volMenos, rot.volMenos || 'Vol −', ICO.menos) : null));
+    if (r.mudo) linha.append(tecla('redonda', r.mudo, 'Mudo', ICO.mudo));
+    if (linha.children.length) partes.push(linha);
+  } else {
+    partes.push(h('div', { class: 'arHeroi', html: ICO.ar + '<small>' + ctl.comodo + '</small>' }));
+    if (r.ligar || r.desligar) partes.push(h('div', { class: 'arLinha' },
+      r.ligar ? tecla('', r.ligar, 'Ligar ' + ctl.nome, ICO.power + 'Ligar') : null,
+      r.desligar ? tecla('', r.desligar, 'Desligar ' + ctl.nome, ICO.power + 'Desligar') : null));
+  }
+  alvo.replaceChildren(h('div', { class: 'remoto' }, partes));
+}
+function abrirFolha(ctl){
+  renderRemoto(ctl, $('#folhaConteudo'));
+  $('#folha').dataset.on = '1'; $('#folha').setAttribute('aria-hidden', 'false');
+}
+function fecharFolha(){ $('#folha').dataset.on = '0'; $('#folha').setAttribute('aria-hidden', 'true'); }
+$('#folha').addEventListener('click', (e) => { if (e.target.id === 'folha') fecharFolha(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharFolha(); });
+// arrastar a folha para baixo fecha
+(() => { let y0 = null; const c = $('#folha .caixaF');
+  c.addEventListener('touchstart', (e) => { y0 = c.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+  c.addEventListener('touchmove', (e) => { if (y0 != null && e.touches[0].clientY - y0 > 90){ y0 = null; fecharFolha(); } }, { passive: true });
+})();
+
+/* ===================== Cenas (grade de parede) ===================== */
+async function tocarCena(el, nome){
+  if (el.dataset.busy === '1') return;
+  el.classList.remove('brilho', 'falha'); void el.offsetWidth; el.classList.add('brilho');
+  vibrar(15);
+  el.dataset.busy = '1';
+  try{ await ativarCena(nome); el.dataset.busy = '0'; el.classList.remove('brilho'); void el.offsetWidth; el.classList.add('brilho'); toast('✓ ' + nome, 'ok'); }
+  catch(e){ el.dataset.busy = '0'; el.classList.remove('brilho'); void el.offsetWidth; el.classList.add('falha'); toast(nome + ': ' + e.message, 'err', 3000); }
+}
+function tamanhoTexto(nome){ const longa = Math.max(...nome.split(/\s+/).map((p) => p.length)); return longa > 9 ? ';font-size:calc(var(--fs) * ' + Math.max(0.72, 9 / longa).toFixed(2) + ')' : ''; }
+function cartaoCena(nome, g, extra){
+  return h('button', { type: 'button', class: 'cena', role: 'listitem', style: '--cor:' + g.cor + ';--txt:' + g.txt + tamanhoTexto(nome) + (extra || ''), on: { click: (e) => tocarCena(e.currentTarget, nome) } }, h('span', null, nome));
+}
+function cartaoControle(ctl, g, extra){
+  return h('button', { type: 'button', class: 'cena ctl', role: 'listitem', 'aria-label': 'Abrir controle ' + ctl.nome, style: '--cor:' + g.cor + tamanhoTexto(ctl.nome) + (extra || ''), on: { click: () => abrirFolha(ctl) } },
+    h('span', null, ctl.nome), h('span', { class: 'tag', html: (ctl.tipo === 'tv' ? ICO.tv : ICO.ar) + 'controle' }));
+}
+// Escolhe colunas e altura das linhas para caber na tela sem rolar, quando possível.
+function medidas(grupos, W, H){
+  const deitado = W > H;
+  const faixa = W >= 1200 ? [10, 12] : W >= 1000 ? [9, 11] : W >= 860 ? (deitado ? [8, 10] : [6, 8]) : W >= 760 ? [6, 8] : W >= 600 ? [5, 6] : W >= 400 ? [3, 4] : [2, 3];
+  const gap = W < 760 ? 7 : 8, minH = W < 600 ? 72 : 78, maxH = W < 600 ? 112 : 150;
+  const linhas = (cols, faixas) => faixas ? grupos.reduce((s, g) => s + Math.ceil(g.itens.length / cols), 0) : Math.ceil(grupos.reduce((s, g) => s + g.itens.length, 0) / cols);
+  for (const faixas of [true, false]){
+    for (let cols = faixa[0]; cols <= faixa[1]; cols++){
+      const n = linhas(cols, faixas);
+      const row = (H - gap * (n - 1)) / n;
+      if (row >= minH) return { cols, row: Math.min(row, maxH), faixas, gap };
+    }
+  }
+  return { cols: faixa[1], row: minH, faixas: false, gap };
+}
+function itensDaGrade(){
+  const cs = controles();
+  const usadas = new Set(); cs.forEach((c) => c.r.usadas.forEach((n) => usadas.add(n)));
+  // as cenas que viraram botão de controle saem da grade
+  const cenas = ((casa && casa.cenas) || []).filter((n) => !usadas.has(n));
+  return [...cs.map((c) => ({ ctl: c, comodo: c.comodo })), ...cenas.map((n) => ({ nome: n, comodo: comodoDe(n, 'CENA') }))];
+}
+function renderCenas(){
+  const grade = $('#grade'), leg = $('#legenda');
+  const itens = itensDaGrade();
+  const grupos = agrupar(itens, null, (it) => it.comodo);
+  leg.replaceChildren(...grupos.map((g) => h('span', null, h('i', { style: 'background:' + g.cor }), g.comodo)));
+  if (!itens.length){ grade.replaceChildren(h('div', { class: 'vazio', style: 'grid-column:1/-1' }, casa ? 'Nenhuma cena na casa.' : 'Carregando a casa…')); return; }
+  const W = grade.clientWidth || window.innerWidth, H = grade.clientHeight || (window.innerHeight - 170);
+  const m = medidas(grupos, W, H);
+  grade.style.setProperty('--cols', m.cols);
+  grade.style.setProperty('--row', Math.floor(m.row) + 'px');
+  document.documentElement.style.setProperty('--gap', m.gap + 'px');
+  const larg = (W - m.gap * (m.cols - 1)) / m.cols;
+  grade.style.setProperty('--fs', Math.round(Math.max(13, Math.min(19, larg / 7.4, m.row / 4.6))) + 'px');
+  const cards = [];
+  for (const g of grupos) g.itens.forEach((it, i) => {
+    const ex = m.faixas && i === 0 ? ';grid-column-start:1' : '';
+    cards.push(it.ctl ? cartaoControle(it.ctl, g, ex) : cartaoCena(it.nome, g, ex));
+  });
+  grade.replaceChildren(...cards);
+}
+
+/* ===================== Cômodos ===================== */
+let comodoAtivo = store.get('vinci.comodo', null);
+function renderComodos(){
+  const busca = norm($('#busca').value);
+  const itens = itensDaGrade();
+  const aps = (casa && casa.aparelhos) || [];
+  const todos = [...itens.map((i) => ({ ...i, k: 'c' })), ...aps.map((a) => ({ ap: a, comodo: comodoDe(a.nome, a.tipo), k: 'a' }))];
+  const grupos = agrupar(todos, null, (it) => it.comodo);
+  if (!comodoAtivo || !grupos.some((g) => g.comodo === comodoAtivo)) comodoAtivo = grupos.length ? grupos[0].comodo : null;
+  $('#chips').replaceChildren(...grupos.map((g) => h('button', { type: 'button', class: 'chip', 'data-on': g.comodo === comodoAtivo && !busca ? '1' : '0', on: { click: () => { comodoAtivo = g.comodo; store.set('vinci.comodo', g.comodo); $('#busca').value = ''; renderComodos(); } } }, h('i', { style: 'background:' + g.cor }), g.comodo, h('small', null, String(g.itens.length)))));
+  const lista = $('#listaComodos'); lista.replaceChildren();
+  for (const g of grupos){
+    if (!busca && g.comodo !== comodoAtivo) continue;
+    const bate = (n) => !busca || norm(n).includes(busca);
+    const ctls = g.itens.filter((i) => i.ctl && bate(i.ctl.nome));
+    const cenas = g.itens.filter((i) => i.nome && bate(i.nome));
+    const apar = g.itens.filter((i) => i.ap && bate(i.ap.nome)).map((i) => i.ap).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+    if (!ctls.length && !cenas.length && !apar.length) continue;
+    const sec = h('section', { class: 'room' }, h('h2', null, h('i', { style: 'background:' + g.cor }), g.comodo, h('span', { class: 'kick' }, (ctls.length + cenas.length + apar.length) + ' itens')));
+    if (ctls.length || cenas.length){
+      sec.append(h('h3', null, 'Cenas e controles'));
+      sec.append(h('div', { class: 'tiles' }, ctls.map((i) => cartaoControle(i.ctl, g, ';--fs:15px')), cenas.map((i) => cartaoCena(i.nome, g, ';--fs:15px'))));
+    }
+    if (apar.length){ sec.append(h('h3', null, 'Aparelhos')); sec.append(h('div', { class: 'devs' }, apar.map(linhaAparelho))); }
+    lista.append(sec);
+  }
+  if (!lista.children.length) lista.append(h('div', { class: 'vazio' }, casa ? 'Nada com esse filtro.' : 'Carregando a casa…'));
+}
+function linhaAparelho(a){
+  const st = h('small', null, TIPO[a.tipo] || a.tipo || '');
+  const linha = h('div', { class: 'dev' }, h('div', { class: 'nm' }, h('b', null, a.nome), st), h('div', { class: 'acts' }));
+  const vai = async (ligar) => {
+    const bs = linha.querySelectorAll('button'); bs.forEach((b) => b.disabled = true);
+    st.className = ''; st.textContent = 'enviando…'; vibrar(10);
+    try{ await ligarAparelho(a, ligar); st.className = 'ok'; st.textContent = (TIPO[a.tipo] || '') + ' · ' + (ligar ? 'ligado' : 'desligado'); }
+    catch(e){ st.className = 'err'; st.textContent = (TIPO[a.tipo] || '') + ' · erro'; toast(a.nome + ': ' + e.message, 'err', 3000); }
+    bs.forEach((b) => b.disabled = false);
+  };
+  linha.lastChild.append(h('button', { type: 'button', class: 'pri', on: { click: () => vai(true) } }, 'Ligar'), h('button', { type: 'button', on: { click: () => vai(false) } }, 'Desligar'));
+  return linha;
+}
+
+/* ===================== Controles ===================== */
+let ctlAtivo = store.get('vinci.controle', null);
+function renderControles(){
+  const cs = controles();
+  if (!cs.some((c) => c.nome === ctlAtivo)) ctlAtivo = cs.length ? cs[0].nome : null;
+  $('#ctlLista').replaceChildren(...cs.map((c) => h('button', { type: 'button', 'aria-selected': c.nome === ctlAtivo ? 'true' : 'false', on: { click: () => { ctlAtivo = c.nome; store.set('vinci.controle', c.nome); renderControles(); } } },
+    h('span', { html: c.tipo === 'tv' ? ICO.tv : ICO.ar, style: 'display:flex' }), h('span', null, c.nome, h('small', null, c.comodo.toUpperCase() + ' · ' + c.r.usadas.size + ' CENAS')))));
+  const alvo = $('#painelRemoto');
+  const c = cs.find((x) => x.nome === ctlAtivo);
+  if (!c){ alvo.replaceChildren(h('div', { class: 'vazio' }, casa ? 'Nenhum controle com cena na casa. Veja “controles” em Ajustes.' : 'Carregando a casa…')); return; }
+  renderRemoto(c, alvo);
+}
+
+function renderTudo(){ if (!mapa) return; renderCenas(); renderComodos(); renderControles(); }
+
+/* ===================== Félix: voz e texto ===================== */
+// 1) comando simples da casa vai direto para a central (rápido, sem IA);
+// 2) o resto vai para o cérebro do Félix, com a mesma sessão do app.
+const SESSION_ID = 'vinci-' + Math.random().toString(36).slice(2, 8);
+let respT;
+function felixEstado(s){ $('#felix').dataset.estado = s; }
+function mostrarResp(eu, txt, ms){
+  $('#fEu').hidden = !eu; $('#fEu').textContent = eu ? '“' + eu + '”' : '';
+  $('#fTxt').textContent = txt; $('#fResp').dataset.on = '1';
+  clearTimeout(respT); if (ms !== 0) respT = setTimeout(() => { $('#fResp').dataset.on = '0'; }, ms || 9000);
+}
+$('#fFechar').addEventListener('click', () => { $('#fResp').dataset.on = '0'; });
+async function perguntarFelix(p){
+  if (DEMO) return 'Demonstração: aqui o Félix responderia a “' + p + '”.';
+  const n = primeiroNome();
+  const pergunta = (n && !/^leandro$/i.test(n)) ? '(' + n + ' falando pelo app Vinci) ' + p : p;
+  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta, sessionId: SESSION_ID, origem: 'app-vinci', usuario: sessao ? sessao.nome : '', sessao: sessao ? sessao.token : '' }) });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 || j.relogar){ toast('Sua sessão expirou. Entre de novo.', 'err', 3000); sair(); throw new Error('sessao'); }
+  return String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
+}
+async function pedirFelix(texto){
+  texto = String(texto || '').trim(); if (!texto) return;
+  felixEstado('pensando'); mostrarResp(texto, 'Pensando…', 0);
+  try{
+    let resp = '';
+    if (LOCAL) resp = await perguntarFelix(texto);
+    else {
+      const j = await api('comando', { token: sessao.token, texto });
+      if (j.erro === 'sessao'){ sair(); return; }
+      if (j.ok) resp = j.text || 'Pronto, feito.';
+      else if (j.recusado) resp = j.text || 'A central da Vinci não permite esse comando.';
+      else if (!j.atalho) resp = (await perguntarFelix(texto)) || 'Não consegui agora.';
+      else resp = j.text || 'A central da Vinci não confirmou.';
+    }
+    mostrarResp(texto, String(resp).replace(/\balexa\b/gi, 'Vinci'));
+  }catch(e){ if (e.message !== 'sessao') mostrarResp(texto, 'Sem conexão com o Félix agora.'); }
+  felixEstado('parado');
+}
+$('#fFelix').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#felixIn').value; $('#felixIn').value = ''; $('#felixIn').blur(); pedirFelix(v); });
+
+const Reconhecer = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, ouvindo = false;
+function ouvir(){
+  if (ouvindo){ try{ rec && rec.stop(); }catch(e){} return; }
+  if (!Reconhecer){ $('#felixIn').focus(); toast('Use o microfone do teclado para ditar ao Félix.', '', 2600); return; }
+  rec = new Reconhecer(); rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  let final = '';
+  rec.onstart = () => { ouvindo = true; felixEstado('ouvindo'); vibrar(15); $('#felixIn').value = ''; $('#felixIn').placeholder = 'Ouvindo…'; };
+  rec.onresult = (ev) => {
+    let parcial = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++){ const t = ev.results[i][0].transcript; if (ev.results[i].isFinal) final += t; else parcial += t; }
+    $('#felixIn').value = (final + parcial).trim();
+  };
+  rec.onerror = (ev) => { if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') toast('Libere o microfone para este site nos ajustes do navegador.', 'err', 3200); };
+  rec.onend = () => {
+    ouvindo = false; $('#felixIn').placeholder = 'Fale com o Félix…';
+    const t = (final || $('#felixIn').value).trim(); $('#felixIn').value = '';
+    if (t) pedirFelix(t); else felixEstado('parado');
+  };
+  try{ rec.start(); }catch(e){ ouvindo = false; felixEstado('parado'); }
+}
+$('#bMic').addEventListener('click', ouvir);
+
+/* ===================== navegação, ajustes, login ===================== */
+$$('.abas button').forEach((b) => b.addEventListener('click', () => {
+  $$('.abas button').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+  $$('.vista').forEach((v) => { v.dataset.on = v.id === 'v' + b.dataset.v[0].toUpperCase() + b.dataset.v.slice(1) ? '1' : '0'; });
+  store.set('vinci.aba', b.dataset.v);
+  if (b.dataset.v === 'cenas') renderCenas();
+}));
+$('#busca').addEventListener('input', renderComodos);
+$('#bAtualizar').addEventListener('click', () => carregarCasa(true));
+$('#bAjustes').addEventListener('click', () => {
+  $('#ajConta').textContent = (LOCAL ? 'Conectado à central deste Mac.' : 'Conta: ' + ((sessao && sessao.nome) || '—')) + ' · Vinci ' + VERSAO + (DEMO ? ' · demonstração' : '');
+  $('#bSair').hidden = LOCAL || DEMO;
+  $('#txtMapa').value = JSON.stringify(mapa, null, 2); $('#mMapa').textContent = ''; $('#dlg').showModal();
+});
+$('#bFechar').addEventListener('click', () => $('#dlg').close());
+$('#bSalvar').addEventListener('click', () => {
+  try{
+    const m = JSON.parse($('#txtMapa').value);
+    if (!Array.isArray(m.comodos)) throw new Error('falta a lista "comodos"');
+    if (!Array.isArray(m.controles)) throw new Error('"controles" precisa ser uma lista');
+    mapa = m; store.set('vinci.mapa', m); $('#dlg').close(); renderTudo(); toast('Mapa salvo.', 'ok');
+  }catch(e){ $('#mMapa').textContent = 'JSON inválido: ' + e.message; }
+});
+$('#bPadrao').addEventListener('click', () => { mapa = mapaPadrao; store.del('vinci.mapa'); $('#txtMapa').value = JSON.stringify(mapa, null, 2); renderTudo(); });
+$('#bSair').addEventListener('click', () => { $('#dlg').close(); sair(); });
+
+function sair(){
+  if (sessao && sessao.token && !DEMO) api('sair', { token: sessao.token }).catch(() => {});
+  sessao = null; casa = null; store.del('vinci.sessao'); store.del('vinci.casa');
+  $('#app').hidden = true; $('#login').hidden = false; $('#senha').value = ''; modoLogin('senha');
+}
+/* login: senha (normal) → ou código do WhatsApp → nova senha */
+let L = { modo: 'senha', tel: '', ticket: '' };
+function modoLogin(m){
+  L.modo = m; $('#mLogin').textContent = ''; $('#mLogin').className = 'msg';
+  $('#cTel').hidden = m !== 'senha' && m !== 'pedir';
+  $('#cSenha').hidden = m === 'pedir' || m === 'codigo';
+  $('#cCodigo').hidden = m !== 'codigo';
+  $('#lSenha').textContent = m === 'nova' ? 'CRIE UMA SENHA (MÍNIMO 6)' : 'SENHA';
+  $('#senha').autocomplete = m === 'nova' ? 'new-password' : 'current-password';
+  $('#bEntrar').textContent = { senha: 'Entrar', pedir: 'Mandar código no WhatsApp', codigo: 'Confirmar código', nova: 'Salvar senha e entrar' }[m];
+  $('#bCodigo').textContent = m === 'senha' ? 'Primeiro acesso ou esqueci a senha' : 'Voltar para a senha';
+  $('#lTexto').textContent = { senha: 'Entre com o mesmo número e senha do app Felyx.', pedir: 'Vou mandar um código de 6 dígitos no WhatsApp do número autorizado.', codigo: 'Digite o código que chegou no WhatsApp.', nova: 'Crie a sua senha. Ela vale também no app Felyx.' }[m];
+}
+$('#bCodigo').addEventListener('click', () => modoLogin(L.modo === 'senha' ? 'pedir' : 'senha'));
+$('#fLogin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = (t, ok) => { $('#mLogin').textContent = t; $('#mLogin').className = 'msg' + (ok ? ' ok' : ''); };
+  const tel = $('#tel').value.replace(/\D/g, '');
+  if ((L.modo === 'senha' || L.modo === 'pedir') && tel.length < 10) return msg('Digite o número com DDD.');
+  $('#bEntrar').disabled = true; msg('');
+  try{
+    if (L.modo === 'senha'){
+      const senha = $('#senha').value; if (!senha){ $('#bEntrar').disabled = false; return msg('Digite a sua senha.'); }
+      const j = await api('entrar', { telefone: tel, senha, aparelho: 'vinci · ' + (navigator.platform || 'web').slice(0, 20) });
+      if (j.ok) entrou(j, tel);
+      else if (j.erro === 'sem_senha'){ L.tel = tel; modoLogin('pedir'); msg(j.mensagem || 'Crie a sua senha com um código do WhatsApp.'); }
+      else msg(j.mensagem || 'Número ou senha incorretos.');
+    } else if (L.modo === 'pedir'){
+      L.tel = tel;
+      const j = await api('codigo', { telefone: tel });
+      if (j.ok){ modoLogin('codigo'); msg('Código enviado para o WhatsApp.', true); setTimeout(() => $('#codigo').focus(), 60); }
+      else msg(j.mensagem || 'Não consegui mandar o código.');
+    } else if (L.modo === 'codigo'){
+      const j = await api('verificar', { telefone: L.tel, codigo: $('#codigo').value });
+      if (j.ok){ L.ticket = j.ticket; modoLogin('nova'); $('#senha').value = ''; setTimeout(() => $('#senha').focus(), 60); }
+      else msg(j.mensagem || 'Código incorreto.');
+    } else if (L.modo === 'nova'){
+      const j = await api('senha', { telefone: L.tel, ticket: L.ticket, senha: $('#senha').value, aparelho: 'vinci · web' });
+      if (j.ok) entrou(j, L.tel); else msg(j.mensagem || 'Não consegui salvar a senha.');
+    }
+  }catch(err){ msg('Sem conexão. Tente de novo.'); }
+  $('#bEntrar').disabled = false;
+});
+function entrou(j, tel){ sessao = { token: j.token, nome: j.nome || '', telefone: tel }; store.set('vinci.sessao', sessao); abrirApp(); }
+
+function abrirApp(){
+  $('#login').hidden = true; $('#app').hidden = false;
+  const aba = store.get('vinci.aba', 'cenas');
+  const b = $('.abas button[data-v="' + aba + '"]'); if (b) b.click();
+  indexarCenas(); renderTudo(); carregarCasa(false);
+}
+
+/* relógio, tela sempre acesa (tablet de parede), redimensionar */
+function relogio(){
+  const d = new Date();
+  $('#hora').textContent = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  $('#data').textContent = d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace(/\./g, '');
+}
+setInterval(relogio, 15000); relogio();
+async function manterAceso(){ try{ if ('wakeLock' in navigator && document.visibilityState === 'visible') await navigator.wakeLock.request('screen'); }catch(e){} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ manterAceso(); if (sessao || LOCAL) carregarCasa(false); } });
+let rT; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(renderCenas, 120); });
+setInterval(() => { if ((sessao || LOCAL) && document.visibilityState === 'visible') carregarCasa(false); }, 10 * 60e3);
+
+if (!DEMO && 'serviceWorker' in navigator && !/[?&]nosw/.test(location.search)) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+/* ===================== demonstração (prévia sem a casa) ===================== */
+function demoApi(acao, dados){
+  const d = window.VINCI_DEMO || { cenas: [], aparelhos: [] };
+  return new Promise((ok) => setTimeout(() => {
+    if (acao === 'entrar' || acao === 'senha') ok({ ok: true, token: 'demo', nome: 'Leandro' });
+    else if (acao === 'sessao') ok({ ok: true, nome: 'Leandro' });
+    else if (acao === 'casa') ok({ ok: true, cenas: d.cenas, aparelhos: d.aparelhos });
+    else if (acao === 'comando'){
+      const t = norm(dados.texto);
+      if (/^(ativa a cena|liga o|desliga o) /.test(t)) ok({ ok: true, atalho: true, text: 'Feito (demonstração).' });
+      else ok({ ok: false, atalho: false });
+    } else ok({ ok: true });
+  }, 350 + Math.random() * 400));
+}
+
+(async () => {
+  try{ mapaPadrao = window.VINCI_MAPA || await (await fetch('comodos.json')).json(); }catch(e){ mapaPadrao = { comodos: [], fixos: {}, controles: [], semComodo: 'Outros' }; }
+  mapa = store.get('vinci.mapa', null) || mapaPadrao;
+  if (!Array.isArray(mapa.controles)) mapa.controles = mapaPadrao.controles || [];
+  if (DEMO && !sessao) sessao = { token: 'demo', nome: 'Leandro' };
+  LOCAL = await detectarLocal();
+  // mesma origem do app Felyx e do iConic no GitHub: reaproveita a sessão que já estiver aberta neste navegador
+  if (!sessao && !LOCAL){
+    for (const k of ['felyx.sessao', 'iconic.sessao']){
+      const s = store.get(k, null); if (!s || !s.token) continue;
+      try{ const j = await api('sessao', { token: s.token }); if (j.ok){ sessao = { token: s.token, nome: j.nome || s.nome || '', telefone: j.telefone || s.telefone || '' }; store.set('vinci.sessao', sessao); break; } }catch(e){}
+    }
+  }
+  if (LOCAL || sessao){ abrirApp(); manterAceso(); }
+  else { $('#login').hidden = false; modoLogin('senha'); }
+})();
+</script>
+</body>
+</html>
