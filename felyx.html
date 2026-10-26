@@ -1053,11 +1053,19 @@ Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, c
 Quem você é: quando perguntarem quem você é, qual é a sua história, de onde veio ou quem o criou, NUNCA responda de cabeça: chame consultar_cerebro e leia a história que vier, inteira, exatamente como veio.
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
 Se a função falhar ou vier vazia, diga que não conseguiu consultar o cérebro agora e peça para repetir.
+Chamado pelo nome: você só atende quando a fala chama "Félix" (por exemplo "Félix, liga a luz da sala"). Barulho, TV, música ou conversa entre outras pessoas que não chamem "Félix" não são com você: fique em silêncio, não diga nada e não chame nenhuma função. Se a pessoa disser só "Félix", responda apenas "Pois não?" e espere.
 Mensagens que começam com "Mensagem automática do sistema" são instruções da própria página: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Às suas ordens. Félix em linha." e nada mais. Não chame nenhuma função agora.';
 
+// a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
+const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
+const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
 class GeminiLive {
-  constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; this.onTranscript=()=>{}; this.micOpen=true; }
+  constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; this.onTranscript=()=>{}; this.micOpen=true;
+    // meia-via: enquanto o Félix fala ou consulta o cérebro, o microfone não manda nada (barulho não interrompe)
+    this.mudo=false; this.pensando=false;
+    // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
+    this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
   async start(){
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
     const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
@@ -1080,6 +1088,8 @@ class GeminiLive {
             behavior: 'BLOCKING',
             parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] }
           }] }],
+          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
+          inputAudioTranscription: {},
           outputAudioTranscription: {}
         }}));
       };
@@ -1090,24 +1100,58 @@ class GeminiLive {
         if(m.toolCall) this.handleToolCall(m.toolCall);
         const sc = m.serverContent;
         if(sc){
-          if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); }
-          if(sc.outputTranscription && sc.outputTranscription.text){ try{ this.onTranscript(sc.outputTranscription.text); }catch(e){} }
+          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; }
+          if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
+          if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
           if(sc.modelTurn && sc.modelTurn.parts){
-            for(const p of sc.modelTurn.parts){ if(p.inlineData && p.inlineData.data){ this.playChunk(p.inlineData.data); } }
+            for(const p of sc.modelTurn.parts){ if(p.inlineData && p.inlineData.data){ this.receber(p.inlineData.data); } }
           }
+          if(sc.turnComplete) this.fimDoTurno();
         }
       };
       this.ws.onerror = ()=>{ if(!setupDone) fail(new Error('WebSocket do Gemini falhou')); };
       this.ws.onclose = (e)=>{ if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
     });
   }
+  // a fala deste turno chamou o Félix? (mensagens da página sempre valem; sem transcrição, vale tudo)
+  aceitar(){
+    if(this.liberado || !this.temTranscricao) return true;
+    if(CHAMA_FELIX.test(this.ouvido)) return true;
+    return Date.now() < this.janelaAte;
+  }
+  // áudio da resposta: toca se o turno chamou o Félix; senão descarta. Na dúvida, segura um instante esperando a transcrição.
+  receber(b64){
+    if(this.decisao === 'sim') return this.playChunk(b64);
+    if(this.decisao === 'nao') return;
+    if(this.aceitar()){ this.decisao = 'sim'; return this.playChunk(b64); }
+    this.pendentes.push(b64);
+    if(!this.timerDecisao) this.timerDecisao = setTimeout(()=>this.decidirPendentes(), 900);
+  }
+  decidirPendentes(){
+    clearTimeout(this.timerDecisao); this.timerDecisao = null;
+    if(this.decisao) return;
+    const p = this.pendentes; this.pendentes = [];
+    if(this.aceitar()){ this.decisao = 'sim'; p.forEach(c=>this.playChunk(c)); }
+    else this.decisao = 'nao';
+  }
+  fimDoTurno(){
+    if(!this.decisao && this.pendentes.length) this.decidirPendentes();
+    // chamou só "Félix": a próxima fala, logo em seguida, vale sem repetir o nome
+    if(this.decisao === 'sim' && !this.liberado && SO_O_NOME.test(this.ouvido)) this.janelaAte = Date.now() + 15000;
+    else if(this.decisao === 'sim') this.janelaAte = 0;
+    this.ouvido=''; this.decisao=null; this.liberado=false;
+    if(!this.sources.length) this.abrirMic();
+  }
+  abrirMic(){ setTimeout(()=>{ if(!this.sources.length && !this.pensando) this.mudo = false; }, 350); }
   sayText(texto){
     if(!this.ws || this.ws.readyState!==1) return;
+    this.liberado = true;
     const msg = 'Mensagem automática do sistema: a sessão acabou de abrir. Leia em voz alta o texto abaixo exatamente como está escrito, palavra por palavra, com energia e com o timing de quem conta uma piada, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto;
     this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
   }
   sayOpening(){
     if(!this.ws || this.ws.readyState!==1) return;
+    this.liberado = true;
     this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: OPENING }] }], turnComplete: true } }));
   }
   async startAudio(){
@@ -1126,7 +1170,7 @@ class GeminiLive {
     this.worklet.port.onmessage = (ev)=>{
       const f = ev.data;
       let s2=0; for(let i=0;i<f.length;i+=4) s2+=f[i]*f[i]; this.inLevel = Math.sqrt(s2/(f.length/4));
-      if(!this.ws || this.ws.readyState!==1 || !this.micOpen) return;
+      if(!this.ws || this.ws.readyState!==1 || !this.micOpen || this.mudo) return;
       const n = Math.floor(f.length/ratio); const pcm = new Int16Array(n);
       for(let i=0;i<n;i++){ const s = Math.max(-1, Math.min(1, f[Math.floor(i*ratio)])); pcm[i] = s<0 ? s*0x8000 : s*0x7FFF; }
       let bin=''; const bytes = new Uint8Array(pcm.buffer); for(let i=0;i<bytes.length;i+=0x8000){ bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000)); }
@@ -1141,7 +1185,8 @@ class GeminiLive {
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
     const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.analyser);
     const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
-    this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length) this.onState('listening'); };
+    this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
+    this.mudo = true;
     this.onState('speaking');
   }
   stopPlayback(){ for(const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources=[]; if(this.outCtx) this.playhead = this.outCtx.currentTime; }
@@ -1164,12 +1209,17 @@ class GeminiLive {
       let response;
       if(fc.name==='consultar_cerebro'){
         const pergunta = String((fc.args||{}).pergunta||'');
+        // ninguém chamou o Félix (TV, conversa, barulho): não consulta o cérebro e não aciona nada na casa
+        if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
+        if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
+        this.pensando = true; this.mudo = true;
         this.onState('thinking');
         let texto = '';
         try{
           const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta, sessionId: SESSION_ID, sessao: SESSAO }) });
           const j = await r.json(); texto = String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
         }catch(e){ texto = ''; }
+        this.pensando = false;
         response = { resposta: texto || 'Desculpe, não consegui consultar o cérebro agora. Pode repetir?' };
         try{ this.onBrain(pergunta, texto); }catch(e){}
       } else { response = { erro: 'função desconhecida' }; }
@@ -1226,7 +1276,7 @@ async function start(){
     // quando o Felyx terminar de falar, abre o microfone e apaga os destaques
     let falou = false;
     const prev = g.onState;
-    g.onState = (s)=>{ prev(s); if(s === 'speaking') falou = true; if(falou && s === 'listening' && !g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); statusText.textContent = 'pode falar'; setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 4000); } };
+    g.onState = (s)=>{ prev(s); if(s === 'speaking') falou = true; if(falou && s === 'listening' && !g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); statusText.textContent = 'diga “Félix” e fale'; setTimeout(()=>{ if(statusText.textContent === 'diga “Félix” e fale') statusText.textContent = ''; }, 4000); } };
     setTimeout(()=>{ if(!g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); } }, 120000);
   }catch(e){
     g.teardown('');
