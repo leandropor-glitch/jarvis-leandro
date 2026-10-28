@@ -119,3 +119,10 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
 - **Modelo do cérebro:** Claude **Sonnet 5**, thinking DESLIGADO. Não usar Sonnet 5.5: ele não aceita thinking desligado, e com thinking a Memória do dia guarda blocos assinados que quebram a mensagem seguinte ("Invalid signature in thinking block"). Memória do dia agora em `-r6`.
 - **Casa online/fora do ar (app):** o workflow do app (hsy4DwI0zHn5UYQD) testa `GET {ponte}/` na hora do pedido `casa` (nó "Ponte responde?"). A data em felyx_ponte só muda quando o endereço do túnel muda, por isso a regra antiga dos 25 min dava "fora do ar" falso.
 - **Voz (app 1.0.6 e felyx.html):** meia-via — enquanto o Felyx fala ou consulta o cérebro, o microfone não envia nada; sessão com `activityHandling: NO_INTERRUPTION`. Palavra de chamada: com `inputAudioTranscription`, a página só toca a resposta e só consulta o cérebro quando a fala chama "Félix" (aceita Felix/Felyx/Félis); "Félix" sozinho abre 15 s para a próxima fala sem o nome. Texto digitado e mensagens do app sempre valem. Se o Gemini não mandar transcrição, volta ao comportamento antigo.
+
+## 28/10/2026 — Felyx Lite
+- **`felyx-lite.html`** (GitHub Pages): o Felyx só no Gemini Live, sem WhatsApp. V da Vinci (#D6FF1A) pulsando, modelo `gemini-3.8-live`, voz Algieba.
+  - Login do app (`felix/app` acao `entrar`, sessão em `localStorage` felyx_lite_sessao); token temporário em `felix/token?s=`.
+  - Ferramentas: `controlar_casa` → `felix/app` acao `comando` (atalho da casa; cenas viram "ativar cena X", porque cena da Smart Life só alterna), `buscar_informacao` → `felix/mercado` / `felix/noticias`, `consultar_cerebro` → `felix/pergunta`.
+- Versão de teste local (sem login, chave do .env) em `~/FelyxApp/felix-lite` (porta 3470).
+- A busca do Google embutida no Gemini Live exige faturamento ativo na conta Google; sem ele a sessão cai com "quota exceeded".
