@@ -470,15 +470,9 @@ async function start() {
     const sc = msg.serverContent;
     if (!sc) return;
     if (sc.interrupted) { pararTeclado(); stopPlayback(); setMode("listening", "Ouvindo"); }
-    if (sc.inputTranscription?.text) captionEl.textContent = "Você: " + sc.inputTranscription.text;
-    if (sc.outputTranscription?.text) {
-      if (!captionEl.dataset.felyx) { captionEl.textContent = ""; captionEl.dataset.felyx = "1"; }
-      captionEl.textContent += sc.outputTranscription.text;
-    }
     for (const p of sc.modelTurn?.parts || []) {
       if (p.inlineData) { setMode("speaking", "Falando"); playChunk(p.inlineData.data); }
     }
-    if (sc.turnComplete) delete captionEl.dataset.felyx;
   };
   ws.onclose = (e) => { stop(); setMode("idle", e.code === 1000 ? "Toque no Felyx para começar" : "Conexão caiu — toque para reconectar"); };
 }
