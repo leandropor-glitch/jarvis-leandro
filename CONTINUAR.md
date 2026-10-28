@@ -126,3 +126,11 @@ Leia este arquivo inteiro antes de qualquer coisa. Ele resume a conversa anterio
   - Ferramentas: `controlar_casa` → `felix/app` acao `comando` (atalho da casa; cenas viram "ativar cena X", porque cena da Smart Life só alterna), `buscar_informacao` → `felix/mercado` / `felix/noticias`, `consultar_cerebro` → `felix/pergunta`.
 - Versão de teste local (sem login, chave do .env) em `~/FelyxApp/felix-lite` (porta 3470).
 - A busca do Google embutida no Gemini Live exige faturamento ativo na conta Google; sem ele a sessão cai com "quota exceeded".
+
+## Felyx Pro e rosto ao vivo (28/10/2026)
+- LiveAvatar (HeyGen), conta antiga do Leandro, chave na credencial n8n "LiveAvatar API". Avatar de foto "Felyx" 0226a9a8-ce65-48b8-9498-1586723c5720. Modo LITE: 1 crédito/min. Saldo era 861; não precisa upgrade.
+- `felyx-pro.html`: o Felyx Lite inteiro (voz Algieba) com o vídeo do avatar. A voz do Gemini vai pelo `ws_url` da sessão (`agent.speak` com PCM 24 kHz em base64) e volta sincronizada pelo LiveKit.
+- `felyx.html` (todos os apps): o avatar agora é padrão. Abre com a sessão, fecha após 3 min sem conversa e reabre quando chamam o Felyx. Se não estiver pronto, a voz toca local. `?avatar=0` desliga no aparelho.
+- n8n: `Felyx Pro — abrir sessão do LiveAvatar` (JLw24AUBBNObeQLv, POST felix/pro-sessao, exige login); `Felyx Pro — cérebro do LiveAvatar (OpenAI compatível)` (Eelp3zNpL9b1iReA, para o modo FULL); utilitário `ver conta` (nA6xnr4Jyb7ZWrZ0).
+- O LiveTalking/MuseTalk no RunPod foi reprovado; a GPU está pausada.
+- Falta: Apple TV (nativa, precisa de LiveKit em Swift), reduzir a latência e melhorar a boca (rugas).
