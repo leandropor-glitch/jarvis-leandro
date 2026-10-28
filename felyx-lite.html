@@ -63,7 +63,21 @@ const SYSTEM = "Você é o Felyx (pronuncia-se Félix), o assistente pessoal da 
   "Nunca diga que não sabe sem antes usar uma ferramenta. " +
   "Você também controla a casa com controlar_casa, usando o nome exato da lista abaixo. Cenas da Smart Life alternam a cada acionamento: " +
   "para ligar ou desligar uma cena basta pedir, e você confirma dizendo que acionou, sem afirmar se ficou ligado ou desligado. " +
-  "Se não achar o aparelho, pergunte qual é.\n\n";
+  "Se não achar o aparelho, pergunte qual é. " +
+  "Você cria e ajusta rotinas da casa a pedido: uma rotina tem um nome (o que a pessoa vai falar) e passos em ordem. " +
+  "Ex.: 'no cenário luz alta, não ligue o Perfil' vira a rotina 'Luz Alta' com os passos ativar a cena Luz Alta e depois desligar o Perfil. " +
+  "Use salvar_rotina para criar ou alterar (sempre com a lista completa de passos) e apagar_rotina para remover. " +
+  "Quando a pessoa disser o nome de uma rotina, use executar_rotina em vez de controlar_casa. Confirme a rotina criada em uma frase. " +
+  "Antes de pesquisar informação, consultar o cérebro ou executar uma rotina, diga primeiro, em voz alta, só uma destas frases, variando a cada vez e nunca repetindo a anterior: " +
+  "'Só um minutinho, já vejo isso para você.' / 'Peraí, já tô vendo aqui, um minuto.' / 'Isso é mole, já resolvo para você.' / " +
+  "'Deixa eu só dar uma pesquisada aqui.' / 'Deixa eu só dar uma confirmada, para ter certeza do que vou te falar.' " +
+  "Depois de chamar a ferramenta, espere o resultado em silêncio e então responda.\n\n";
+
+const PASSO = { type: "OBJECT", properties: {
+  dispositivo: { type: "STRING", description: "Nome exato do aparelho ou cena." },
+  acao: { type: "STRING", enum: ["ligar", "desligar", "ativar"] },
+}, required: ["dispositivo", "acao"] };
+const NOME = { type: "OBJECT", properties: { nome: { type: "STRING" } }, required: ["nome"] };
 
 const TOOLS = [{ functionDeclarations: [{
   name: "controlar_casa",
@@ -81,6 +95,17 @@ const TOOLS = [{ functionDeclarations: [{
   description: "Envia a pergunta ao cérebro completo do Felyx (memória, agenda, conhecimento geral) e devolve a resposta em texto.",
   behavior: "BLOCKING",
   parameters: { type: "OBJECT", properties: { pergunta: { type: "STRING", description: "A fala do usuário, completa." } }, required: ["pergunta"] },
+}, {
+  name: "salvar_rotina",
+  description: "Cria ou substitui uma rotina da casa: um nome e a lista completa de passos, executados em ordem.",
+  parameters: { type: "OBJECT", properties: {
+    nome: { type: "STRING", description: "Nome da rotina, como a pessoa vai chamar (ex.: 'Luz Alta')." },
+    passos: { type: "ARRAY", items: PASSO },
+  }, required: ["nome", "passos"] },
+}, {
+  name: "executar_rotina", description: "Executa uma rotina já salva, pelo nome.", parameters: NOME,
+}, {
+  name: "apagar_rotina", description: "Apaga uma rotina salva.", parameters: NOME,
 }] }];
 
 const orb = document.getElementById("orb"), ctx = orb.getContext("2d");
@@ -140,12 +165,60 @@ function vPath(c, w) {
 const sparks = Array.from({ length: 140 }, () => ({ x: Math.random(), y: Math.random(), v: 0.2 + Math.random() }));
 const ripples = [];
 
+// --- rosto do Felyx: as partes androides, o HUD e os olhos (pixels ciano do ícone) brilham e vibram com a voz ---
+const VISUAL = new URLSearchParams(location.search).get("visual") === "v" ? "v" : "rosto";
+const rosto = new Image();
+let brilhoRosto = null;
+rosto.onload = () => {
+  const n = rosto.naturalWidth, off = document.createElement("canvas");
+  off.width = off.height = n;
+  const o = off.getContext("2d");
+  o.drawImage(rosto, 0, 0);
+  const img = o.getImageData(0, 0, n, n), p = img.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const [r, g, b] = [p[i], p[i + 1], p[i + 2]];
+    p[i + 3] = b > 140 && g > 110 && b - r > 70 ? Math.min(255, (b - r) * 2) : 0;
+  }
+  o.putImageData(img, 0, 0);
+  brilhoRosto = off;
+};
+if (VISUAL === "rosto") rosto.src = "marca/icone-oficial-1024.png";
+const OLHOS = [[0.362, 0.377], [0.708, 0.4]];
+
+function drawRosto(s, breathe) {
+  const W = orb.width, c = W / 2;
+  if (!rosto.complete || !brilhoRosto) return;
+  const lado = W * (0.92 + s * 0.03 + breathe * 0.01), x = c - lado / 2, y = c - lado / 2;
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(x, y, lado, lado, lado * 0.06); ctx.clip();
+  ctx.drawImage(rosto, x, y, lado, lado);
+  ctx.globalCompositeOperation = "lighter";
+  const tremor = s > 0.08 ? s * 6 : 0;
+  const dx = (Math.random() - 0.5) * tremor, dy = (Math.random() - 0.5) * tremor;
+  ctx.globalAlpha = Math.min(1, 0.15 + breathe * 0.25 + s * 1.4);
+  ctx.filter = `blur(${6 + s * 14}px)`;
+  ctx.drawImage(brilhoRosto, x + dx, y + dy, lado, lado);
+  ctx.filter = "none";
+  ctx.globalAlpha = Math.min(1, 0.1 + s * 1.1);
+  ctx.drawImage(brilhoRosto, x + dx, y + dy, lado, lado);
+  for (const [ox, oy] of OLHOS) {
+    const ex = x + ox * lado, ey = y + oy * lado, raio = lado * (0.03 + s * 0.06 + breathe * 0.01);
+    const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, raio);
+    g.addColorStop(0, `rgba(120,220,255,${0.35 + s * 0.65})`);
+    g.addColorStop(1, "rgba(120,220,255,0)");
+    ctx.globalAlpha = 1; ctx.fillStyle = g;
+    ctx.fillRect(ex - raio, ey - raio, raio * 2, raio * 2);
+  }
+  ctx.restore();
+}
+
 function draw(t) {
   const W = orb.width, c = W / 2;
   ctx.clearRect(0, 0, W, W);
   const target = mode === "speaking" ? outputLevel() : mode === "listening" ? level : 0;
   draw.s = (draw.s || 0) * 0.8 + target * 0.2;
   const s = draw.s, breathe = (Math.sin(t / 900) + 1) / 2;
+  if (VISUAL === "rosto") { drawRosto(s, breathe); return requestAnimationFrame(draw); }
   const w = W * 0.5 * (1 + s * 0.12);
 
   if (mode !== "idle" && s > 0.08 && (!ripples.length || t - ripples[ripples.length - 1].t > 260)) ripples.push({ t });
@@ -224,6 +297,10 @@ function playChunk(b64) {
   const src = audioCtx.createBufferSource();
   src.buffer = buf; src.connect(outAnalyser);
   playHead = Math.max(playHead, audioCtx.currentTime);
+  if (aguardandoResposta) { // primeira fala depois da ferramenta: espera a digitação mínima e cala o teclado ali
+    playHead = Math.max(playHead, fimFrase + TECLADO_MIN);
+    tecladoAte = playHead; aguardandoResposta = false;
+  }
   src.start(playHead); playHead += buf.duration;
   sources.push(src);
   src.onended = () => {
@@ -232,6 +309,34 @@ function playChunk(b64) {
   };
 }
 function stopPlayback() { sources.forEach((s) => s.stop()); sources = []; playHead = 0; }
+
+// --- teclado: depois da frase de espera, cliques de teclado até a resposta começar, para ele nunca parecer lento ---
+// A resposta só começa depois de pelo menos TECLADO_MIN segundos de digitação, mesmo se a ferramenta for instantânea.
+const TECLADO_MIN = 1.6;
+let timerTeclado = null, fimFrase = 0, tecladoAte = Infinity, aguardandoResposta = false;
+function clique() {
+  if (!audioCtx) return;
+  const dur = 0.03, buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length / 6));
+  const src = audioCtx.createBufferSource(), filtro = audioCtx.createBiquadFilter(), vol = audioCtx.createGain();
+  filtro.type = "bandpass"; filtro.frequency.value = 2500 + Math.random() * 2500; filtro.Q.value = 1.2;
+  vol.gain.value = 0.25 + Math.random() * 0.15;
+  src.buffer = buf; src.connect(filtro).connect(vol).connect(audioCtx.destination); src.start();
+}
+function iniciarTeclado() {
+  if (!audioCtx || aguardandoResposta) return;
+  fimFrase = Math.max(playHead, audioCtx.currentTime); // fim da frase de espera que já está na fila
+  tecladoAte = Infinity; aguardandoResposta = true;
+  if (timerTeclado) return;
+  const proximo = () => {
+    const agora = audioCtx ? audioCtx.currentTime : Infinity;
+    if (agora >= tecladoAte) { timerTeclado = null; return; }
+    if (agora >= fimFrase) clique(); // não digita por cima da frase
+    timerTeclado = setTimeout(proximo, 70 + Math.random() * (Math.random() < 0.15 ? 380 : 120));
+  };
+  proximo();
+}
+function pararTeclado() { aguardandoResposta = false; tecladoAte = 0; }
 
 // --- ferramentas ---
 // Mesma regra do atalho da casa: cena da Smart Life só ativa e alterna; ligar/desligar viram "ativar cena".
@@ -268,8 +373,43 @@ async function consultarCerebro({ pergunta }) {
   return { resposta: String(j.text || "").replace(/\balexa\b/gi, "Vinci") };
 }
 
-const FERRAMENTAS = { controlar_casa: controlarCasa, buscar_informacao: buscarInformacao, consultar_cerebro: consultarCerebro };
+// --- rotinas: guardadas neste aparelho; cada passo vai pelo mesmo atalho da casa ---
+const ROTINAS_KEY = "felyx_lite_rotinas";
+function lerRotinas() { try { return JSON.parse(localStorage.getItem(ROTINAS_KEY) || "{}"); } catch (e) { return {}; } }
+function gravarRotinas(r) { try { localStorage.setItem(ROTINAS_KEY, JSON.stringify(r)); } catch (e) {} }
+const espera = (ms) => new Promise((ok) => setTimeout(ok, ms));
+function acharRotina(nome) { return Object.keys(lerRotinas()).find((n) => n.toLowerCase() === String(nome || "").toLowerCase()); }
+
+async function salvarRotina({ nome, passos }) {
+  const r = lerRotinas(); r[nome] = { passos: passos || [] }; gravarRotinas(r);
+  casaEl.textContent = `✓ rotina ${nome} salva`;
+  return { ok: true };
+}
+async function apagarRotina({ nome }) {
+  const r = lerRotinas(), n = acharRotina(nome); if (n) delete r[n]; gravarRotinas(r);
+  casaEl.textContent = n ? `✓ rotina ${n} apagada` : "";
+  return { ok: !!n };
+}
+async function executarRotina({ nome }) {
+  const n = acharRotina(nome);
+  if (!n) return { ok: false, erro: "Rotina não encontrada: " + nome };
+  casaEl.textContent = `rotina ${n}…`;
+  const passos = [];
+  for (const p of lerRotinas()[n].passos) {
+    const j = await app({ acao: "comando", token: SESSAO, texto: textoComando(p.dispositivo, p.acao) });
+    passos.push({ ...p, ok: !!j.ok, resposta: j.text || j.mensagem || "" });
+    await espera(1500); // deixa a cena terminar antes do ajuste seguinte
+  }
+  const ok = passos.every((p) => p.ok);
+  casaEl.textContent = ok ? `✓ rotina ${n}` : `✗ rotina ${n}: algum passo falhou`;
+  return { ok, rotina: n, passos };
+}
+
+const FERRAMENTAS = { controlar_casa: controlarCasa, buscar_informacao: buscarInformacao, consultar_cerebro: consultarCerebro,
+  salvar_rotina: salvarRotina, apagar_rotina: apagarRotina, executar_rotina: executarRotina };
+const DEMORADAS = new Set(["buscar_informacao", "consultar_cerebro", "executar_rotina"]);
 async function executar(call) {
+  if (DEMORADAS.has(call.name)) iniciarTeclado();
   let response;
   try { response = await FERRAMENTAS[call.name](call.args || {}); }
   catch (e) { response = { erro: e.message }; casaEl.textContent = ""; }
@@ -299,7 +439,8 @@ async function start() {
   micNode = new AudioWorkletNode(audioCtx, "mic-processor");
   audioCtx.createMediaStreamSource(micStream).connect(micNode);
 
-  const nomes = "Aparelhos: " + casa.aparelhos.join(", ") + "\nCenas: " + casa.cenas.join(", ");
+  const rotinas = Object.entries(lerRotinas()).map(([n, r]) => `${n}: ` + r.passos.map((p) => `${p.acao} ${p.dispositivo}`).join(", depois ")).join("\n");
+  const nomes = "Rotinas salvas:\n" + (rotinas || "nenhuma") + "\n\nAparelhos: " + casa.aparelhos.join(", ") + "\nCenas: " + casa.cenas.join(", ");
   ws = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tk.token));
   ws.onopen = () => ws.send(JSON.stringify({ setup: {
     model: "models/" + MODEL,
@@ -327,7 +468,7 @@ async function start() {
     }
     const sc = msg.serverContent;
     if (!sc) return;
-    if (sc.interrupted) { stopPlayback(); setMode("listening", "Ouvindo"); }
+    if (sc.interrupted) { pararTeclado(); stopPlayback(); setMode("listening", "Ouvindo"); }
     if (sc.inputTranscription?.text) captionEl.textContent = "Você: " + sc.inputTranscription.text;
     if (sc.outputTranscription?.text) {
       if (!captionEl.dataset.felyx) { captionEl.textContent = ""; captionEl.dataset.felyx = "1"; }
@@ -342,6 +483,7 @@ async function start() {
 }
 
 function stop() {
+  pararTeclado();
   micStream?.getTracks().forEach((t) => t.stop());
   stopPlayback(); audioCtx?.close();
   ws = null; audioCtx = null; outAnalyser = null; micStream = null; level = 0;
