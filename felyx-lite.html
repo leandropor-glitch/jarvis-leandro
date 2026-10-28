@@ -30,7 +30,7 @@
 <body>
 <main>
   <canvas id="orb" width="900" height="900" aria-label="Toque para falar com o Felyx"></canvas>
-  <div id="state">Toque no V para começar</div>
+  <div id="state">Toque no Felyx para começar</div>
   <div id="caption"></div>
   <div id="casa"></div>
 </main>
@@ -116,7 +116,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     if (!j.ok) { erro.textContent = j.erro === "sem_senha" ? "Crie sua senha primeiro no app Felyx AI Vinci." : (j.mensagem || "Não deu certo."); return; }
     salvarSessao(j.token);
     document.getElementById("login").dataset.on = "0";
-    stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}. Toque no V` : "Toque no V para começar";
+    stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}. Toque no Felyx` : "Toque no Felyx para começar";
   } catch (err) { erro.textContent = "Sem conexão. Tente de novo."; }
 });
 document.getElementById("sair").addEventListener("click", async () => {
@@ -338,7 +338,7 @@ async function start() {
     }
     if (sc.turnComplete) delete captionEl.dataset.felyx;
   };
-  ws.onclose = (e) => { stop(); setMode("idle", e.code === 1000 ? "Toque no V para começar" : "Conexão caiu — toque para reconectar"); };
+  ws.onclose = (e) => { stop(); setMode("idle", e.code === 1000 ? "Toque no Felyx para começar" : "Conexão caiu — toque para reconectar"); };
 }
 
 function stop() {
