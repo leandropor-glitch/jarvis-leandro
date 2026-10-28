@@ -59,6 +59,8 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .hud[data-state="listening"] .face{box-shadow:0 0 0 1px rgba(255,255,255,.18),0 0 60px rgba(var(--accent-rgb),.1),inset 0 0 40px rgba(0,0,0,.7)}
 .hud[data-state="thinking"] .face{box-shadow:0 0 0 1px rgba(79,168,255,.5),0 0 80px rgba(79,168,255,.18),inset 0 0 40px rgba(0,0,0,.7)}
 .face canvas{display:block;width:100%;height:100%}
+.face video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;pointer-events:none}
+.face video.on{opacity:1}
 .scan{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s}
 .scan[data-on="1"]{opacity:1}
 .scan .line{position:absolute;left:0;right:0;height:2px;top:-4px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.95),transparent);box-shadow:0 0 18px rgba(var(--accent-rgb),.9);animation:sweep 1.5s ease-in-out infinite}
@@ -267,6 +269,8 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
         <canvas id="rings" aria-hidden="true"></canvas>
         <div class="face">
           <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
+          <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
+          <audio id="avatarAudio" autoplay></audio>
           <div class="scan" id="scan" data-on="0" aria-hidden="true"><div class="line"></div><div class="ret l"></div><div class="ret r"></div></div>
         </div>
         <div class="boot" id="boot" data-on="0" aria-live="polite"></div>
@@ -1060,6 +1064,78 @@ const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Dig
 // a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
 const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
 const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
+/* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
+// O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
+// (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
+// créditos, então ele fecha sozinho depois de AVATAR_OCIOSO_MIN sem conversa e reabre quando chamam o Felyx.
+// Enquanto não está pronto (ou se falhar), a voz toca normal aqui. Desligar: ?avatar=0 (fica salvo neste aparelho).
+const PRO_URL = N8N + '/felix/pro-sessao';
+const AVATAR_OCIOSO_MIN = 3;
+const FelyxAvatar = (()=>{
+  try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
+  let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
+  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null;
+  const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
+  const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
+  const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
+  async function abrir(){
+    if(!ligado || pronto || abrindo || !SESSAO) return abrindo;
+    abrindo = (async ()=>{
+      const r = await fetch(PRO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: SESSAO }) });
+      const j = await r.json().catch(()=>({}));
+      if(!j.ok || !j.livekit_url || !j.ws_url) throw new Error('avatar indisponível');
+      sessao = { id: j.session_id, token: j.session_token };
+      const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
+      room = new LK.Room({ adaptiveStream: true });
+      room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
+        if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto) video.classList.add('on'); }; }
+        if(track.kind === 'audio'){ track.attach(audio); audio.play().catch(()=>{}); }
+      });
+      room.on(LK.RoomEvent.Disconnected, ()=> fechar());
+      await room.connect(j.livekit_url, j.livekit_client_token);
+      await new Promise((ok, falha)=>{
+        ws = new WebSocket(j.ws_url);
+        const limite = setTimeout(()=>falha(new Error('avatar demorou')), 20000);
+        ws.onmessage = (e)=>{
+          let m; try{ m = JSON.parse(e.data); }catch(x){ return; }
+          if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
+          if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
+        };
+        ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
+      });
+      pronto = true; ultimo = Date.now();
+      if(video.readyState >= 2) video.classList.add('on');
+      clearInterval(timer);
+      timer = setInterval(()=>{
+        if(!pronto) return;
+        if(Date.now() - ultimo > AVATAR_OCIOSO_MIN * 60000) return fechar();
+        enviar('session.keep_alive');
+      }, 30000);
+    })().catch((e)=>{ console.warn('Felyx avatar:', e.message); fechar(); }).finally(()=>{ abrindo = null; });
+    return abrindo;
+  }
+  function fechar(){
+    const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false;
+    clearInterval(timer); timer = null;
+    video.classList.remove('on');
+    try{ ws && ws.close(); }catch(e){} ws = null;
+    try{ room && room.disconnect(); }catch(e){} room = null;
+    if(s && s.token) fetch('https://api.liveavatar.com/v1/sessions/stop', { method:'POST', keepalive:true,
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + s.token },
+      body: JSON.stringify({ session_id: s.id, reason:'USER_CLOSED' }) }).catch(()=>{});
+  }
+  return {
+    pronto: ()=> pronto,
+    abrir, fechar,
+    usar(){ ultimo = Date.now(); if(!pronto) abrir(); },   // chamaram o Felyx: mantém (ou reabre) o rosto
+    falar(b64){ ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; } enviar('agent.speak', { audio: b64 }); falaAberta = true; },
+    fim(){ if(falaAberta){ enviar('agent.speak_end'); falaAberta = false; } },
+    interromper(){ if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
+    ouvir(){ ultimo = Date.now(); if(!ouvindo && !falaAberta){ enviar('agent.start_listening'); ouvindo = true; } }
+  };
+})();
+addEventListener('pagehide', ()=> FelyxAvatar.fechar());
+
 class GeminiLive {
   constructor(){ this.ws=null; this.inCtx=null; this.outCtx=null; this.micStream=null; this.worklet=null; this.analyser=null; this.playhead=0; this.sources=[]; this.onState=()=>{}; this.onClose=()=>{}; this.onBrain=()=>{}; this.closed=false; this.inLevel=0; this.onTranscript=()=>{}; this.micOpen=true;
     // meia-via: enquanto o Félix fala ou consulta o cérebro, o microfone não manda nada (barulho não interrompe)
@@ -1100,7 +1176,7 @@ class GeminiLive {
         if(m.toolCall) this.handleToolCall(m.toolCall);
         const sc = m.serverContent;
         if(sc){
-          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; }
+          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
           if(sc.modelTurn && sc.modelTurn.parts){
@@ -1136,13 +1212,16 @@ class GeminiLive {
   }
   fimDoTurno(){
     if(!this.decisao && this.pendentes.length) this.decidirPendentes();
+    if(this.viaAvatar) FelyxAvatar.fim();
+    this.viaAvatar = undefined;
+    if(this.decisao === 'sim') FelyxAvatar.usar();
     // chamou só "Félix": a próxima fala, logo em seguida, vale sem repetir o nome
     if(this.decisao === 'sim' && !this.liberado && SO_O_NOME.test(this.ouvido)) this.janelaAte = Date.now() + 15000;
     else if(this.decisao === 'sim') this.janelaAte = 0;
     this.ouvido=''; this.decisao=null; this.liberado=false;
     if(!this.sources.length) this.abrirMic();
   }
-  abrirMic(){ setTimeout(()=>{ if(!this.sources.length && !this.pensando) this.mudo = false; }, 350); }
+  abrirMic(){ setTimeout(()=>{ if(!this.sources.length && !this.pensando) this.mudo = false; }, FelyxAvatar.pronto() ? 1500 : 350); }
   sayText(texto){
     if(!this.ws || this.ws.readyState!==1) return;
     this.liberado = true;
@@ -1157,6 +1236,7 @@ class GeminiLive {
   async startAudio(){
     this.outCtx = (window.__felyxOut && window.__felyxOut.state !== 'closed') ? window.__felyxOut : new (window.AudioContext||window.webkitAudioContext)({ sampleRate: 24000 });
     try{ if(this.outCtx.state === 'suspended') await this.outCtx.resume(); }catch(e){}
+    this.silencio = this.outCtx.createGain(); this.silencio.gain.value = 0; this.silencio.connect(this.outCtx.destination);
     this.analyser = this.outCtx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(this.outCtx.destination);
     this.playhead = this.outCtx.currentTime;
     this.inCtx = (window.__felyxIn && window.__felyxIn.state !== 'closed') ? window.__felyxIn : new (window.AudioContext||window.webkitAudioContext)();
@@ -1180,16 +1260,18 @@ class GeminiLive {
     this.onState('listening');
   }
   playChunk(b64){
+    if(this.viaAvatar === undefined) this.viaAvatar = FelyxAvatar.pronto();
+    if(this.viaAvatar) FelyxAvatar.falar(b64);
     const bin = atob(b64); const n = bin.length>>1; const f = new Float32Array(n);
     for(let i=0;i<n;i++){ let v = bin.charCodeAt(2*i) | (bin.charCodeAt(2*i+1)<<8); if(v>=0x8000) v-=0x10000; f[i]=v/0x8000; }
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
-    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.analyser);
+    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.viaAvatar ? this.silencio : this.analyser);   // com o avatar, o som sai pelo vídeo; aqui só marca o tempo
     const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
     this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
     this.mudo = true;
     this.onState('speaking');
   }
-  stopPlayback(){ for(const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources=[]; if(this.outCtx) this.playhead = this.outCtx.currentTime; }
+  stopPlayback(){ if(this.viaAvatar) FelyxAvatar.interromper(); this.viaAvatar = undefined; for(const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources=[]; if(this.outCtx) this.playhead = this.outCtx.currentTime; }
   getBands(n){
     if(!this.analyser || !this.sources.length) return null;
     const a = new Uint8Array(this.analyser.frequencyBinCount); this.analyser.getByteFrequencyData(a);
@@ -1258,7 +1340,7 @@ async function start(){
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ FelyxAvatar.fechar(); if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // microfone só abre depois das boas-vindas (o Felyx não ouve a própria abertura)
@@ -1268,6 +1350,7 @@ async function start(){
     await g.start();
     await boot;
     conv = g;
+    FelyxAvatar.abrir();
     setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=false;
     const segs = await textoBV;
     if(conv !== g) return;
