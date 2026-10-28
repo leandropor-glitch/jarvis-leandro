@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Felyx</title>
+<title>Felyx FULL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -307,6 +307,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   </footer>
 </div>
 
+<script src="esqueci-senha.js"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -581,10 +582,10 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
   st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#d6ff1a}#felyxLogin button{width:100%;margin-top:14px;background:#d6ff1a;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
   document.head.appendChild(st);
   const el = document.createElement('div'); el.id = 'felyxLogin';
-  el.innerHTML = '<div class="cx"><h1>FELYX</h1><p>vinci ai</p>'
+  el.innerHTML = '<div class="cx"><h1>FELYX</h1><p>FULL · vinci ai</p>'
     + '<input id="flTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="telefone com DDD">'
-    + '<input id="flSenha" type="password" autocomplete="current-password" placeholder="senha da casa">'
-    + '<button id="flEntrar">Entrar</button><div class="er" id="flErro"></div></div>';
+    + '<input id="flSenha" type="password" autocomplete="current-password" placeholder="senha do app Felyx">'
+    + '<button id="flEntrar">Entrar</button><button id="flEsqueci" type="button" style="background:none;color:#8a8d86;font-weight:400;margin-top:6px">Esqueci a senha</button><div class="er" id="flErro"></div></div>';
   document.body.appendChild(el);
   const entrar = document.getElementById('flEntrar'), erro = document.getElementById('flErro');
   async function tentar(){
@@ -593,14 +594,21 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
     if(!tel || !senha){ erro.textContent = 'Preencha telefone e senha.'; return; }
     entrar.disabled = true; erro.textContent = 'entrando…';
     try{
-      const r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
+      // mesma senha do app Felyx (Lite, PRO e apps); a senha antiga da casa continua valendo como segunda tentativa
+      let r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'entrar', telefone: tel, senha, aparelho:'Felyx FULL' }) });
       let j = {}; try{ j = await r.json(); }catch(e){}
+      if(!(r.ok && j.ok && j.token)){
+        r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
+        j = {}; try{ j = await r.json(); }catch(e){}
+      }
       if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); primeAudio(); if(!conv) start(); }
       else { erro.textContent = 'Telefone ou senha não conferem, ou você não está autorizado.'; }
     }catch(e){ erro.textContent = 'Não consegui conectar. Tente de novo.'; }
     entrar.disabled = false;
   }
   entrar.addEventListener('click', tentar);
+  document.getElementById('flEsqueci').addEventListener('click', ()=> felyxEsqueciSenha({ telefone: document.getElementById('flTel').value, aparelho: 'Felyx FULL',
+    aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); primeAudio(); if(!conv) start(); } }));
   document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
 })();
 function mostrarLogin(msg){ const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }

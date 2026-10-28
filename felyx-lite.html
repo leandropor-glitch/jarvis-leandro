@@ -24,6 +24,7 @@
   #login input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #2a2f15; background: var(--panel);
     color: var(--text); font-size: 16px; }
   #login button { padding: 14px; border-radius: 10px; border: 0; background: var(--vinci); color: #111; font-size: 16px; font-weight: 600; cursor: pointer; }
+  #login .link { background: none; color: var(--muted); font-weight: 400; padding: 6px; }
   #loginErro { min-height: 1.3em; font-size: 14px; color: #ff8a7a; text-align: center; }
 </style>
 </head>
@@ -41,9 +42,11 @@
     <input id="loginTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="Seu WhatsApp (com DDD)" required>
     <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Senha do app Felyx" required>
     <button type="submit">Entrar</button>
+    <button type="button" class="link" id="esqueci">Esqueci a senha</button>
     <div id="loginErro"></div>
   </form>
 </div>
+<script src="esqueci-senha.js"></script>
 <script>
 // Felyx Lite: o Felyx no Gemini Live, sem WhatsApp e sem o fluxo completo.
 // Login e casa pelo n8n (felix/app), token temporário do Gemini (felix/token), mercado e notícias do painel,
@@ -146,6 +149,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}. Toque no Felyx` : "Toque no Felyx para começar";
   } catch (err) { erro.textContent = "Sem conexão. Tente de novo."; }
 });
+document.getElementById("esqueci").addEventListener("click", () => felyxEsqueciSenha({ telefone: document.getElementById("loginTel").value, aparelho: "Felyx Lite",
+  aoEntrar: (j) => { salvarSessao(j.token); document.getElementById("login").dataset.on = "0"; stateEl.textContent = "Toque no Felyx para começar"; } }));
 document.getElementById("sair").addEventListener("click", async () => {
   try { await app({ acao: "sair", token: SESSAO }); } catch (e) {}
   stop(); salvarSessao(""); mostrarLogin("");

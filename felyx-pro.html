@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050505">
-<title>Felyx Pro</title>
+<title>Felyx PRO</title>
 <style>
   :root { --bg: #050505; --vinci: #d6ff1a; --text: #eef7cc; --muted: #6f7a4a; --panel: #101208; }
   * { box-sizing: border-box; }
@@ -32,6 +32,7 @@
   #login input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #2a2f15; background: var(--panel);
     color: var(--text); font-size: 16px; }
   #login button { padding: 14px; border-radius: 10px; border: 0; background: var(--vinci); color: #111; font-size: 16px; font-weight: 600; cursor: pointer; }
+  #login .link { background: none; color: var(--muted); font-weight: 400; padding: 6px; }
   #loginErro { min-height: 1.3em; font-size: 14px; color: #ff8a7a; text-align: center; }
 </style>
 </head>
@@ -47,14 +48,16 @@
 <div class="topo"><button id="encerrar" hidden>encerrar</button><button id="sair" hidden>sair</button></div>
 <div id="login">
   <form id="loginForm">
-    <h1>Felyx Pro</h1>
+    <h1>Felyx PRO</h1>
     <input id="loginTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="Seu WhatsApp (com DDD)" required>
     <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Senha do app Felyx" required>
     <button type="submit">Entrar</button>
+    <button type="button" class="link" id="esqueci">Esqueci a senha</button>
     <div id="loginErro"></div>
   </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/dist/livekit-client.umd.js"></script>
+<script src="esqueci-senha.js"></script>
 <script>
 // Felyx Pro: o mesmo Felyx Lite (Gemini Live, voz Algieba, casa, rotinas, mercado, cérebro) com o rosto ao vivo do LiveAvatar.
 // O LiveAvatar roda em modo LITE: só faz o vídeo e a boca. A voz do Gemini não toca aqui; vai pelo WebSocket da sessão
@@ -167,6 +170,8 @@ $("loginForm").addEventListener("submit", async (e) => {
     stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}` : "";
   } catch (err) { erro.textContent = "Sem conexão. Tente de novo."; }
 });
+$("esqueci").addEventListener("click", () => felyxEsqueciSenha({ telefone: $("loginTel").value, aparelho: "Felyx PRO",
+  aoEntrar: (j) => { salvarSessao(j.token); $("login").dataset.on = "0"; } }));
 $("sair").addEventListener("click", async () => {
   try { await app({ acao: "sair", token: SESSAO }); } catch (e) {}
   stop(); salvarSessao(""); mostrarLogin("");
