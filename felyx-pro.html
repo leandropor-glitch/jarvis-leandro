@@ -58,6 +58,7 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/dist/livekit-client.umd.js"></script>
 <script src="esqueci-senha.js"></script>
+<script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script>
@@ -307,7 +308,7 @@ async function buscarInformacao({ tema }) {
 async function consultarCerebro({ pergunta }) {
   casaEl.textContent = "pensando…";
   const r = await fetch(PERGUNTA_URL, { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pergunta, sessionId: SESSION_ID, origem: "felyx-pro", sessao: SESSAO }) });
+    body: JSON.stringify({ pergunta: felyxCumprimento.ajustar(pergunta), sessionId: SESSION_ID, origem: "felyx-pro", sessao: SESSAO }) });
   const j = await r.json();
   casaEl.textContent = "";
   if (r.status === 401 || j.relogar) { salvarSessao(""); stop(); mostrarLogin("A sessão expirou. Entre de novo."); }

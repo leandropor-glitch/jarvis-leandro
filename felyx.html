@@ -314,6 +314,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   </footer>
 </div>
 
+<script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
@@ -1285,7 +1286,7 @@ class GeminiLive {
         this.onState('thinking');
         let texto = '';
         try{
-          const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta, sessionId: SESSION_ID, sessao: SESSAO }) });
+          const r = await fetch(PERGUNTA_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ pergunta: felyxCumprimento.ajustar(pergunta), sessionId: SESSION_ID, sessao: SESSAO }) });
           const j = await r.json(); texto = String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
         }catch(e){ texto = ''; }
         this.pensando = false;
@@ -1312,7 +1313,7 @@ class GeminiLive {
 const GREETING = /\b(bom\s*dia|boa\s*tarde|boa\s*noite)\b/i;
 const HOUSE = /\b(lig|deslig|acend|apag|abr|fech|ativ|aument|diminu|cena|rotina|cortina|persiana|ar[- ]condicionado|ventilador|luz|luzes|tv|lâmpada|tomada|luminária)/i;
 function onBrain(pergunta, resposta){
-  if(GREETING.test(pergunta)) briefing();
+  if(GREETING.test(pergunta) && felyxCumprimento.agoraMesmo()) briefing();   // cards do panorama só no cumprimento completo
   if(!resposta) { addCard({ kicker:'sistema', title:'Cérebro indisponível', body:'A pergunta não chegou ao cérebro. Tente de novo.', foot:'falha de comunicação', ttl: 15000 }); return; }
   if(HOUSE.test(pergunta) && !GREETING.test(pergunta)){
     const ok = !FAIL_RX.test(resposta);
@@ -1333,11 +1334,14 @@ function fimDaFala(g){
     }, 120);
   });
 }
+let iniciando = false;   // login, tela da íris e botão podem chamar ao mesmo tempo: a abertura roda uma vez só
 async function start(){
+  if(iniciando || conv) return;
+  iniciando = true;
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ FelyxAvatar.fechar(); if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // microfone só abre depois das boas-vindas (o Felyx não ouve a própria abertura)
@@ -1353,8 +1357,11 @@ async function start(){
     if(conv !== g) return;
     const sd = saudacaoAgora();
     g.sayText(sd + ', Leandro.');   // entra já cumprimentando; o que vem depois ele pensa enquanto fala
-    const [segs] = await Promise.all([textoBV, fimDaFala(g)]);
+    const completo = !felyxCumprimento.recente();   // panorama completo (mercado, notícias) no máximo a cada 4 horas
+    const [segs] = await Promise.all([completo ? textoBV : Promise.resolve([]), fimDaFala(g)]);
     if(conv !== g) return;
+    if(!completo || !segs.length){ g.micOpen = true; statusText.textContent = 'diga “Félix” e fale'; return; }
+    felyxCumprimento.marcar();
     const SAUD = /^\s*(bom dia|boa tarde|boa noite)[,.!]?\s*(leandro[,.!]?)?\s*/i;
     if(segs[0]) segs[0] = { ...segs[0], texto: segs[0].texto.replace(SAUD, '') || segs[0].texto };
     iniciarAcompanhamento(segs);
@@ -1365,6 +1372,7 @@ async function start(){
     g.onState = (s)=>{ prev(s); if(s === 'speaking') falou = true; if(falou && s === 'listening' && !g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); statusText.textContent = 'diga “Félix” e fale'; setTimeout(()=>{ if(statusText.textContent === 'diga “Félix” e fale') statusText.textContent = ''; }, 4000); } };
     setTimeout(()=>{ if(!g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); } }, 120000);
   }catch(e){
+    iniciando = false;
     g.teardown('');
     bootEl.dataset.on='0'; scanEl.dataset.on='0';
     talkBtn.disabled=false;
@@ -1374,7 +1382,7 @@ async function start(){
   }
 }
 function stop(){ if(conv){ conv.end(); } }
-talkBtn.addEventListener('click', ()=>{ if(conv){ stop(); return; } primeAudio(); start(); });
+talkBtn.addEventListener('click', ()=>{ if(conv){ stop(); return; } if(iniciando) return; primeAudio(); start(); });
 
 /* ---------- abertura automática ---------- */
 // Ao abrir a página o Felyx já tenta começar sozinho. Se o navegador exigir um toque para liberar som e microfone,

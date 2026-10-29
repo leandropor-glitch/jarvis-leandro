@@ -409,6 +409,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 
 <div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
 
+<script src="../cumprimento.js"></script>
 <script src="../iris-sons.js"></script>
 <script src="../iris.js"></script>
 <script>
@@ -779,7 +780,7 @@ function permissaoIA(){
 const SEM_IA = 'Sem a sua permissão, o Felyx não envia perguntas aos serviços de IA. Você pode permitir em Ajustes.';
 async function perguntar(p){
   if (!(await permissaoIA())) throw new Error('ia');
-  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(p), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
+  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(felyxCumprimento.ajustar(p)), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
   const j = await r.json().catch(() => ({}));
   if (sessaoCaiu(r, j)) throw new Error('sessao');
   return String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
@@ -1051,9 +1052,13 @@ let conv = null;
 const ESTADO = { listening: 'diga “Félix” e fale', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
 function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Felyx'); }); }
 function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
-let irisFeita = false;
+let irisFeita = false, iniciandoVoz = false;
 async function iniciarVoz(){
-  if (conv) return;
+  if (conv || iniciandoVoz) return;
+  iniciandoVoz = true;
+  try{ await iniciarVozDeVerdade(); } finally { iniciandoVoz = false; }
+}
+async function iniciarVozDeVerdade(){
   if (!(await permissaoIA())){ estado('idle', 'a voz precisa da sua permissão'); toast(SEM_IA); return; }
   const g = new GeminiLive();
   estado('boot');

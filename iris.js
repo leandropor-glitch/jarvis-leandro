@@ -100,7 +100,12 @@
     };
   }
 
-  async function desbloquear(alvo) {
+  let emCurso = null;
+  function desbloquear(alvo) {
+    if (!emCurso) emCurso = rodar(alvo).finally(() => { emCurso = null; });
+    return emCurso;
+  }
+  async function rodar(alvo) {
     preparar();
     const r = radar(alvo);
     r.texto('efetuando desbloqueio de íris');

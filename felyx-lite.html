@@ -47,6 +47,7 @@
   </form>
 </div>
 <script src="esqueci-senha.js"></script>
+<script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script>
@@ -380,7 +381,7 @@ async function buscarInformacao({ tema }) {
 async function consultarCerebro({ pergunta }) {
   casaEl.textContent = "pensando…";
   const r = await fetch(PERGUNTA_URL, { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pergunta, sessionId: SESSION_ID, origem: "felyx-lite", sessao: SESSAO }) });
+    body: JSON.stringify({ pergunta: felyxCumprimento.ajustar(pergunta), sessionId: SESSION_ID, origem: "felyx-lite", sessao: SESSAO }) });
   const j = await r.json();
   casaEl.textContent = "";
   if (r.status === 401 || j.relogar) { salvarSessao(""); stop(); mostrarLogin("A sessão expirou. Entre de novo."); }
@@ -431,9 +432,11 @@ async function executar(call) {
 }
 
 // --- sessão com o Gemini ---
+let iniciando = false;   // dois toques seguidos não abrem duas sessões (nem duas vozes no desbloqueio)
 async function start() {
-  if (ws) return;
+  if (ws || iniciando) return;
   if (!SESSAO) return mostrarLogin("");
+  iniciando = true;
   setMode("idle", "");
   const iris = felyxIris.desbloquear(document.getElementById("orbBox"));
   micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
@@ -494,6 +497,7 @@ async function start() {
 }
 
 function stop() {
+  iniciando = false;
   pararTeclado();
   micStream?.getTracks().forEach((t) => t.stop());
   stopPlayback(); audioCtx?.close();
@@ -501,7 +505,7 @@ function stop() {
 }
 
 orb.addEventListener("click", () => {
-  if (ws) { ws.close(1000); } else { felyxIris.preparar(); start().catch((err) => { stop(); setMode("idle", err.message); if (!SESSAO) mostrarLogin(err.message); }); }
+  if (ws) { ws.close(1000); } else if (!iniciando) { felyxIris.preparar(); start().catch((err) => { stop(); setMode("idle", err.message); if (!SESSAO) mostrarLogin(err.message); }); }
 });
 </script>
 </body>
