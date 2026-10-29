@@ -61,6 +61,12 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .face canvas{display:block;width:100%;height:100%}
 .face video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;pointer-events:none}
 .face video.on{opacity:1}
+/* com o rosto ao vivo, o centro vira o quadro do PRO: retângulo grande, sem os anéis */
+#hud.com-rosto .orbWrap{width:min(100%,960px);aspect-ratio:16/9}
+#hud.com-rosto #rings{display:none}
+#hud.com-rosto .face{width:100%;aspect-ratio:16/9;border-radius:18px;box-shadow:0 0 0 1px rgba(214,255,26,.18),0 0 50px rgba(214,255,26,.08)}
+#hud.com-rosto .face video{object-fit:contain}
+#hud.com-rosto .face canvas{opacity:0}
 .scan{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s}
 .scan[data-on="1"]{opacity:1}
 .scan .line{position:absolute;left:0;right:0;height:2px;top:-4px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.95),transparent);box-shadow:0 0 18px rgba(var(--accent-rgb),.9);animation:sweep 1.5s ease-in-out infinite}
@@ -1112,6 +1118,7 @@ const FelyxAvatar = (()=>{
         ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
       });
       pronto = true; ultimo = Date.now();
+      document.getElementById('hud').classList.add('com-rosto');
       if(video.readyState >= 2) video.classList.add('on');
       clearInterval(timer);
       timer = setInterval(()=>{
@@ -1126,6 +1133,7 @@ const FelyxAvatar = (()=>{
     const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false;
     clearInterval(timer); timer = null;
     video.classList.remove('on');
+    document.getElementById('hud').classList.remove('com-rosto');
     try{ ws && ws.close(); }catch(e){} ws = null;
     try{ room && room.disconnect(); }catch(e){} room = null;
     if(s && s.token) fetch('https://api.liveavatar.com/v1/sessions/stop', { method:'POST', keepalive:true,
