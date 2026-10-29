@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>Felyx-V</title>
+<style>
+  :root { --bg: #050505; --vinci: #d6ff1a; --text: #eef7cc; --muted: #6f7a4a; --panel: #101208; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+  main { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 16px; }
+  canvas { width: min(80vw, 62vh); height: min(80vw, 62vh); cursor: pointer; }
+  #state { font-size: 14px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+  #caption { min-height: 3em; max-width: 640px; text-align: center; font-size: 18px; line-height: 1.5; }
+  #casa { min-height: 1.4em; font-size: 14px; color: var(--vinci); opacity: .85; }
+  #sair { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 16px; background: none; border: 0;
+    color: var(--muted); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  #login { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: var(--bg); padding: 16px; }
+  #login[data-on="1"] { display: flex; }
+  #login form { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 12px; }
+  #login h1 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: .04em; color: var(--vinci); text-align: center; }
+  #login input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #2a2f15; background: var(--panel);
+    color: var(--text); font-size: 16px; }
+  #login button { padding: 14px; border-radius: 10px; border: 0; background: var(--vinci); color: #111; font-size: 16px; font-weight: 600; cursor: pointer; }
+  #login .link { background: none; color: var(--muted); font-weight: 400; padding: 6px; }
+  #loginErro { min-height: 1.3em; font-size: 14px; color: #ff8a7a; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <div id="orbBox" style="position:relative;border-radius:6%;overflow:hidden"><canvas id="orb" width="900" height="900" aria-label="Toque para falar com o Felyx" style="display:block"></canvas></div>
+  <div id="state">Toque no Felyx para começar</div>
+  <div id="caption"></div>
+  <div id="casa"></div>
+</main>
+<button id="sair" hidden>sair</button>
+<div id="login">
+  <form id="loginForm">
+    <h1>Felyx-V</h1>
+    <input id="loginTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="Seu WhatsApp (com DDD)" required>
+    <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Senha do app Felyx" required>
+    <button type="submit">Entrar</button>
+    <button type="button" class="link" id="esqueci">Esqueci a senha</button>
+    <div id="loginErro"></div>
+  </form>
+</div>
+<script src="esqueci-senha.js"></script>
+<script src="cumprimento.js"></script>
+<script src="iris-sons.js"></script>
+<script src="iris.js"></script>
+<script>
+// Felyx-V: o layout do V (cópia do Lite, sem legenda), guardado à parte para o Lite poder mudar de cara. O Felyx no Gemini Live, sem WhatsApp e sem o fluxo completo.
+// Login e casa pelo n8n (felix/app), token temporário do Gemini (felix/token), mercado e notícias do painel,
+// e o cérebro do Felyx (felix/pergunta) para o que não for casa nem informação do dia.
+const N8N = "https://vinciautomacao.app.n8n.cloud/webhook";
+const APP_URL = N8N + "/felix/app", TOKEN_URL = N8N + "/felix/token", PERGUNTA_URL = N8N + "/felix/pergunta";
+const MERCADO_URL = N8N + "/felix/mercado", NOTICIAS_URL = N8N + "/felix/noticias";
+const MODEL = "gemini-3.8-live", VOICE = "Algieba";
+const SESSION_ID = "lite-" + Math.random().toString(36).slice(2);
+
+const SYSTEM = "Você é o Felyx (pronuncia-se Félix), o assistente pessoal da Vinci Automação, no estilo de um mordomo de casa inteligente: sereno, elegante e prestativo. " +
+  'Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi".' + " " +
+  "Fale sempre em português do Brasil, com frases curtas e naturais. " +
+  "Nunca diga que é o Gemini nem que foi criado pelo Google: você é o Felyx, da Vinci. " +
+  "Você é bem informado, como um apresentador ao vivo. Sobre mercado financeiro, cotações e notícias do dia, use a ferramenta buscar_informacao " +
+  "e responda com números e fatos concretos, arredondando valores para falar bem. " +
+  "Bitcoin e outras criptomoedas: sempre em dólar (campo usd), nunca em reais, a não ser que peçam em reais. " +
+  "Para qualquer outra pergunta, pedido ou assunto pessoal (agenda, lembretes, memória, curiosidades), use consultar_cerebro e diga a resposta com suas palavras. " +
+  "Perguntas sobre você mesmo (quem você é, sua história, quem te criou, o que você sabe fazer) também vão para consultar_cerebro: é lá que está a sua história. " +
+  "Nunca diga que não sabe sem antes usar uma ferramenta. " +
+  "Você também controla a casa com controlar_casa, usando o nome exato da lista abaixo. Cenas da Smart Life alternam a cada acionamento: " +
+  "para ligar ou desligar uma cena basta pedir, e você confirma dizendo que acionou, sem afirmar se ficou ligado ou desligado. " +
+  "Se não achar o aparelho, pergunte qual é. " +
+  "Você cria e ajusta rotinas da casa a pedido: uma rotina tem um nome (o que a pessoa vai falar) e passos em ordem. " +
+  "Ex.: 'no cenário luz alta, não ligue o Perfil' vira a rotina 'Luz Alta' com os passos ativar a cena Luz Alta e depois desligar o Perfil. " +
+  "Use salvar_rotina para criar ou alterar (sempre com a lista completa de passos) e apagar_rotina para remover. " +
+  "Quando a pessoa disser o nome de uma rotina, use executar_rotina em vez de controlar_casa. Confirme a rotina criada em uma frase. " +
+  "Antes de pesquisar informação, consultar o cérebro ou executar uma rotina, diga primeiro, em voz alta, só uma destas frases, variando a cada vez e nunca repetindo a anterior: " +
+  "'Só um minutinho, já vejo isso para você.' / 'Peraí, já tô vendo aqui, um minuto.' / 'Isso é mole, já resolvo para você.' / " +
+  "'Deixa eu só dar uma pesquisada aqui.' / 'Deixa eu só dar uma confirmada, para ter certeza do que vou te falar.' " +
+  "Depois de chamar a ferramenta, espere o resultado em silêncio e então responda.\n\n";
+
+const PASSO = { type: "OBJECT", properties: {
+  dispositivo: { type: "STRING", description: "Nome exato do aparelho ou cena." },
+  acao: { type: "STRING", enum: ["ligar", "desligar", "ativar"] },
+}, required: ["dispositivo", "acao"] };
+const NOME = { type: "OBJECT", properties: { nome: { type: "STRING" } }, required: ["nome"] };
+
+const TOOLS = [{ functionDeclarations: [{
+  name: "controlar_casa",
+  description: "Liga, desliga ou aciona um aparelho ou cena da casa.",
+  parameters: { type: "OBJECT", properties: {
+    dispositivo: { type: "STRING", description: "Nome exato do aparelho ou cena, como está na lista." },
+    acao: { type: "STRING", enum: ["ligar", "desligar", "ativar"] },
+  }, required: ["dispositivo", "acao"] },
+}, {
+  name: "buscar_informacao",
+  description: "Cotações do dia (dólar, euro, bitcoin e outras criptos) e manchetes recentes (Brasil, mundo, tecnologia).",
+  parameters: { type: "OBJECT", properties: { tema: { type: "STRING", enum: ["mercado", "noticias"] } }, required: ["tema"] },
+}, {
+  name: "consultar_cerebro",
+  description: "Envia a pergunta ao cérebro completo do Felyx (memória, agenda, conhecimento geral) e devolve a resposta em texto.",
+  behavior: "BLOCKING",
+  parameters: { type: "OBJECT", properties: { pergunta: { type: "STRING", description: "A fala do usuário, completa." } }, required: ["pergunta"] },
+}, {
+  name: "salvar_rotina",
+  description: "Cria ou substitui uma rotina da casa: um nome e a lista completa de passos, executados em ordem.",
+  parameters: { type: "OBJECT", properties: {
+    nome: { type: "STRING", description: "Nome da rotina, como a pessoa vai chamar (ex.: 'Luz Alta')." },
+    passos: { type: "ARRAY", items: PASSO },
+  }, required: ["nome", "passos"] },
+}, {
+  name: "executar_rotina", description: "Executa uma rotina já salva, pelo nome.", parameters: NOME,
+}, {
+  name: "apagar_rotina", description: "Apaga uma rotina salva.", parameters: NOME,
+}] }];
+
+const orb = document.getElementById("orb"), ctx = orb.getContext("2d");
+const stateEl = document.getElementById("state"), captionEl = document.getElementById("caption"), casaEl = document.getElementById("casa");
+let mode = "idle", level = 0, ws, audioCtx, micStream, micNode, outAnalyser, playHead = 0, sources = [];
+let casa = { cenas: [], desativaveis: [], aparelhos: [] };
+
+// --- sessão (login do app Felyx) ---
+let SESSAO = "";
+try { SESSAO = localStorage.getItem("felyx_lite_sessao") || ""; } catch (e) {}
+function salvarSessao(t) {
+  SESSAO = t || "";
+  try { t ? localStorage.setItem("felyx_lite_sessao", t) : localStorage.removeItem("felyx_lite_sessao"); } catch (e) {}
+  document.getElementById("sair").hidden = !SESSAO;
+}
+function mostrarLogin(msg) {
+  document.getElementById("loginErro").textContent = msg || "";
+  document.getElementById("login").dataset.on = "1";
+}
+async function app(corpo) {
+  const r = await fetch(APP_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+  const j = await r.json();
+  if (j && j.erro === "sessao") { salvarSessao(""); stop(); mostrarLogin("A sessão expirou. Entre de novo."); throw new Error("sessao"); }
+  return j;
+}
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const erro = document.getElementById("loginErro");
+  erro.textContent = "Entrando…";
+  try {
+    const j = await app({ acao: "entrar", telefone: document.getElementById("loginTel").value,
+      senha: document.getElementById("loginSenha").value, aparelho: "Felyx-V" });
+    if (!j.ok) { erro.textContent = j.erro === "sem_senha" ? "Crie sua senha primeiro no app Felyx AI Vinci." : (j.mensagem || "Não deu certo."); return; }
+    salvarSessao(j.token);
+    try { localStorage.setItem("felyx_nome", j.nome || ""); } catch (e) {}
+    document.getElementById("login").dataset.on = "0";
+    stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}. Toque no Felyx` : "Toque no Felyx para começar";
+  } catch (err) { erro.textContent = "Sem conexão. Tente de novo."; }
+});
+document.getElementById("esqueci").addEventListener("click", () => felyxEsqueciSenha({ telefone: document.getElementById("loginTel").value, aparelho: "Felyx-V",
+  aoEntrar: (j) => { salvarSessao(j.token); document.getElementById("login").dataset.on = "0"; stateEl.textContent = "Toque no Felyx para começar"; } }));
+document.getElementById("sair").addEventListener("click", async () => {
+  try { await app({ acao: "sair", token: SESSAO }); } catch (e) {}
+  stop(); salvarSessao(""); mostrarLogin("");
+});
+salvarSessao(SESSAO);
+if (!SESSAO) mostrarLogin("");
+
+function setMode(m, label) { mode = m; stateEl.textContent = label; }
+function saudacaoAgora() { const h = new Date().getHours(); return h >= 5 && h < 12 ? "Bom dia" : h >= 12 && h < 18 ? "Boa tarde" : "Boa noite"; }
+function nomeSalvo() { try { return localStorage.getItem("felyx_nome") || ""; } catch (e) { return ""; } }
+function cumprimento() { const n = nomeSalvo(); return saudacaoAgora() + (n ? ", " + n.split(" ")[0] : "") + "."; }
+
+
+// --- V da Vinci (proporções do logo oficial) ---
+const V = [[0, 0], [0.5, 0.625], [1, 0], [1, 0.372], [0.5, 1], [0, 0.372]];
+const RGB = "214,255,26";
+function vPath(c, w) {
+  const h = w * 0.803, x0 = c - w / 2, y0 = c - h / 2;
+  ctx.beginPath();
+  V.forEach(([x, y], i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, x0 + x * w, y0 + y * h));
+  ctx.closePath();
+}
+const sparks = Array.from({ length: 140 }, () => ({ x: Math.random(), y: Math.random(), v: 0.2 + Math.random() }));
+const ripples = [];
+
+// --- rosto do Felyx: as partes androides, o HUD e os olhos (pixels ciano do ícone) brilham e vibram com a voz ---
+const VISUAL = new URLSearchParams(location.search).get("visual") === "v" ? "v" : "rosto";
+const rosto = new Image();
+let brilhoRosto = null;
+rosto.onload = () => {
+  const n = rosto.naturalWidth, off = document.createElement("canvas");
+  off.width = off.height = n;
+  const o = off.getContext("2d");
+  o.drawImage(rosto, 0, 0);
+  const img = o.getImageData(0, 0, n, n), p = img.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const [r, g, b] = [p[i], p[i + 1], p[i + 2]];
+    p[i + 3] = b > 140 && g > 110 && b - r > 70 ? Math.min(255, (b - r) * 2) : 0;
+  }
+  o.putImageData(img, 0, 0);
+  brilhoRosto = off;
+};
+if (VISUAL === "rosto") rosto.src = "marca/icone-oficial-1024.png";
+const OLHOS = [[0.362, 0.377], [0.708, 0.4]];
+
+function drawRosto(s, breathe) {
+  const W = orb.width, c = W / 2;
+  if (!rosto.complete || !brilhoRosto) return;
+  const lado = W * (0.92 + s * 0.03 + breathe * 0.01), x = c - lado / 2, y = c - lado / 2;
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(x, y, lado, lado, lado * 0.06); ctx.clip();
+  ctx.drawImage(rosto, x, y, lado, lado);
+  ctx.globalCompositeOperation = "lighter";
+  const tremor = s > 0.08 ? s * 6 : 0;
+  const dx = (Math.random() - 0.5) * tremor, dy = (Math.random() - 0.5) * tremor;
+  ctx.globalAlpha = Math.min(1, 0.15 + breathe * 0.25 + s * 1.4);
+  ctx.filter = `blur(${6 + s * 14}px)`;
+  ctx.drawImage(brilhoRosto, x + dx, y + dy, lado, lado);
+  ctx.filter = "none";
+  ctx.globalAlpha = Math.min(1, 0.1 + s * 1.1);
+  ctx.drawImage(brilhoRosto, x + dx, y + dy, lado, lado);
+  for (const [ox, oy] of OLHOS) {
+    const ex = x + ox * lado, ey = y + oy * lado, raio = lado * (0.03 + s * 0.06 + breathe * 0.01);
+    const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, raio);
+    g.addColorStop(0, `rgba(120,220,255,${0.35 + s * 0.65})`);
+    g.addColorStop(1, "rgba(120,220,255,0)");
+    ctx.globalAlpha = 1; ctx.fillStyle = g;
+    ctx.fillRect(ex - raio, ey - raio, raio * 2, raio * 2);
+  }
+  ctx.restore();
+}
+
+function draw(t) {
+  const W = orb.width, c = W / 2;
+  ctx.clearRect(0, 0, W, W);
+  const target = mode === "speaking" ? outputLevel() : mode === "listening" ? level : 0;
+  draw.s = (draw.s || 0) * 0.8 + target * 0.2;
+  const s = draw.s, breathe = (Math.sin(t / 900) + 1) / 2;
+  if (VISUAL === "rosto") { drawRosto(s, breathe); return requestAnimationFrame(draw); }
+  const w = W * 0.5 * (1 + s * 0.12);
+
+  if (mode !== "idle" && s > 0.08 && (!ripples.length || t - ripples[ripples.length - 1].t > 260)) ripples.push({ t });
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const k = (t - ripples[i].t) / 1600;
+    if (k > 1) { ripples.splice(i, 1); continue; }
+    vPath(c, w * (1 + k * 0.7));
+    ctx.lineWidth = 3; ctx.strokeStyle = `rgba(${RGB},${(1 - k) * 0.5})`; ctx.stroke();
+  }
+
+  ctx.save();
+  ctx.shadowColor = `rgba(${RGB},1)`;
+  ctx.shadowBlur = 30 + breathe * 25 + s * 120;
+  vPath(c, w);
+  const g = ctx.createLinearGradient(0, c - w * 0.4, 0, c + w * 0.4);
+  g.addColorStop(0, `rgba(${RGB},${0.55 + s * 0.45})`);
+  g.addColorStop(1, `rgba(${RGB},${0.85 + s * 0.15})`);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  vPath(c, w); ctx.clip();
+  const h = w * 0.803, x0 = c - w / 2, y0 = c - h / 2;
+  for (let band = 0; band < 3; band++) {
+    ctx.beginPath();
+    for (let x = 0; x <= 1.001; x += 0.01) {
+      const y = 0.5 + Math.sin(x * (8 + band * 3) - t / (260 - band * 50)) * (0.06 + s * 0.3) + (band - 1) * 0.16;
+      (x ? ctx.lineTo : ctx.moveTo).call(ctx, x0 + x * w, y0 + y * h);
+    }
+    ctx.lineWidth = 3 + s * 6; ctx.strokeStyle = `rgba(255,255,255,${0.18 + s * 0.5})`; ctx.stroke();
+  }
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  sparks.forEach((p) => {
+    p.y -= 0.002 * p.v * (1 + s * 6);
+    if (p.y < 0) { p.y = 1; p.x = Math.random(); }
+    ctx.fillRect(x0 + p.x * w, y0 + p.y * h, 2.5, 2.5);
+  });
+  ctx.restore();
+
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+function outputLevel() {
+  if (!outAnalyser) return 0;
+  const d = new Uint8Array(outAnalyser.fftSize);
+  outAnalyser.getByteTimeDomainData(d);
+  let sum = 0; for (const v of d) sum += ((v - 128) / 128) ** 2;
+  return Math.min(1, Math.sqrt(sum / d.length) * 4);
+}
+
+// --- microfone: PCM 16-bit 16 kHz em blocos de ~100 ms ---
+const MIC_WORKLET = `class MicProcessor extends AudioWorkletProcessor {
+  constructor() { super(); this.ratio = sampleRate / 16000; this.buffer = []; this.pos = 0; }
+  process(inputs) {
+    const input = inputs[0][0];
+    if (!input) return true;
+    for (; this.pos < input.length; this.pos += this.ratio) {
+      const s = Math.max(-1, Math.min(1, input[Math.floor(this.pos)]));
+      this.buffer.push(s < 0 ? s * 0x8000 : s * 0x7fff);
+    }
+    this.pos -= input.length;
+    if (this.buffer.length >= 1600) { this.port.postMessage(Int16Array.from(this.buffer).buffer); this.buffer = []; }
+    return true;
+  }
+}
+registerProcessor("mic-processor", MicProcessor);`;
+
+// --- áudio de saída (PCM 24 kHz) ---
+function playChunk(b64) {
+  const bytes = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+  const pcm = new Int16Array(bytes.buffer);
+  const buf = audioCtx.createBuffer(1, pcm.length, 24000);
+  const ch = buf.getChannelData(0);
+  for (let i = 0; i < pcm.length; i++) ch[i] = pcm[i] / 0x8000;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf; src.connect(outAnalyser);
+  playHead = Math.max(playHead, audioCtx.currentTime);
+  if (aguardandoResposta) { // primeira fala depois da ferramenta: espera a digitação mínima e cala o teclado ali
+    playHead = Math.max(playHead, fimFrase + TECLADO_MIN);
+    tecladoAte = playHead; aguardandoResposta = false;
+  }
+  src.start(playHead); playHead += buf.duration;
+  sources.push(src);
+  src.onended = () => {
+    sources = sources.filter((x) => x !== src);
+    if (!sources.length && mode === "speaking") setMode("listening", "Ouvindo");
+  };
+}
+function stopPlayback() { sources.forEach((s) => s.stop()); sources = []; playHead = 0; }
+
+// --- teclado: depois da frase de espera, cliques de teclado até a resposta começar, para ele nunca parecer lento ---
+// A resposta só começa depois de pelo menos TECLADO_MIN segundos de digitação, mesmo se a ferramenta for instantânea.
+const TECLADO_MIN = 1.6;
+let timerTeclado = null, fimFrase = 0, tecladoAte = Infinity, aguardandoResposta = false;
+function clique() {
+  if (!audioCtx) return;
+  const dur = 0.03, buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length / 6));
+  const src = audioCtx.createBufferSource(), filtro = audioCtx.createBiquadFilter(), vol = audioCtx.createGain();
+  filtro.type = "bandpass"; filtro.frequency.value = 2500 + Math.random() * 2500; filtro.Q.value = 1.2;
+  vol.gain.value = 0.25 + Math.random() * 0.15;
+  src.buffer = buf; src.connect(filtro).connect(vol).connect(audioCtx.destination); src.start();
+}
+function iniciarTeclado() {
+  if (!audioCtx || aguardandoResposta) return;
+  fimFrase = Math.max(playHead, audioCtx.currentTime); // fim da frase de espera que já está na fila
+  tecladoAte = Infinity; aguardandoResposta = true;
+  if (timerTeclado) return;
+  const proximo = () => {
+    const agora = audioCtx ? audioCtx.currentTime : Infinity;
+    if (agora >= tecladoAte) { timerTeclado = null; return; }
+    if (agora >= fimFrase) clique(); // não digita por cima da frase
+    timerTeclado = setTimeout(proximo, 70 + Math.random() * (Math.random() < 0.15 ? 380 : 120));
+  };
+  proximo();
+}
+function pararTeclado() { aguardandoResposta = false; tecladoAte = 0; }
+
+// --- ferramentas ---
+// Mesma regra do atalho da casa: cena da Smart Life só ativa e alterna; ligar/desligar viram "ativar cena".
+function textoComando(nome, acao) {
+  const cena = casa.cenas.includes(nome);
+  if (!cena) return `${acao === "desligar" ? "desligar" : "ligar"} ${nome}`;
+  return `${acao === "desligar" && casa.desativaveis.includes(nome) ? "desativar" : "ativar"} cena ${nome}`;
+}
+
+async function controlarCasa({ dispositivo, acao }) {
+  casaEl.textContent = `${acao} → ${dispositivo}…`;
+  const j = await app({ acao: "comando", token: SESSAO, texto: textoComando(dispositivo, acao) });
+  casaEl.textContent = j.ok ? `✓ ${j.text || dispositivo}` : `✗ ${j.text || j.mensagem || "a casa não confirmou"}`;
+  return { ok: !!j.ok, resposta: j.text || j.mensagem || "" };
+}
+
+async function buscarInformacao({ tema }) {
+  casaEl.textContent = "pesquisando…";
+  const j = await (await fetch(tema === "noticias" ? NOTICIAS_URL : MERCADO_URL, { cache: "no-store" })).json();
+  casaEl.textContent = "";
+  if (tema !== "noticias") return j;
+  const resumo = {};
+  for (const [k, v] of Object.entries(j)) if (Array.isArray(v)) resumo[k] = v.slice(0, 5).map((n) => ({ titulo: n.title, data: n.date }));
+  return resumo;
+}
+
+async function consultarCerebro({ pergunta }) {
+  casaEl.textContent = "pensando…";
+  const r = await fetch(PERGUNTA_URL, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pergunta: felyxCumprimento.ajustar(pergunta), sessionId: SESSION_ID, origem: "felyx-lite", sessao: SESSAO }) });
+  const j = await r.json();
+  casaEl.textContent = "";
+  if (r.status === 401 || j.relogar) { salvarSessao(""); stop(); mostrarLogin("A sessão expirou. Entre de novo."); }
+  return { resposta: String(j.text || "").replace(/\balexa\b/gi, "Vinci") };
+}
+
+// --- rotinas: guardadas neste aparelho; cada passo vai pelo mesmo atalho da casa ---
+const ROTINAS_KEY = "felyx_lite_rotinas";
+function lerRotinas() { try { return JSON.parse(localStorage.getItem(ROTINAS_KEY) || "{}"); } catch (e) { return {}; } }
+function gravarRotinas(r) { try { localStorage.setItem(ROTINAS_KEY, JSON.stringify(r)); } catch (e) {} }
+const espera = (ms) => new Promise((ok) => setTimeout(ok, ms));
+function acharRotina(nome) { return Object.keys(lerRotinas()).find((n) => n.toLowerCase() === String(nome || "").toLowerCase()); }
+
+async function salvarRotina({ nome, passos }) {
+  const r = lerRotinas(); r[nome] = { passos: passos || [] }; gravarRotinas(r);
+  casaEl.textContent = `✓ rotina ${nome} salva`;
+  return { ok: true };
+}
+async function apagarRotina({ nome }) {
+  const r = lerRotinas(), n = acharRotina(nome); if (n) delete r[n]; gravarRotinas(r);
+  casaEl.textContent = n ? `✓ rotina ${n} apagada` : "";
+  return { ok: !!n };
+}
+async function executarRotina({ nome }) {
+  const n = acharRotina(nome);
+  if (!n) return { ok: false, erro: "Rotina não encontrada: " + nome };
+  casaEl.textContent = `rotina ${n}…`;
+  const passos = [];
+  for (const p of lerRotinas()[n].passos) {
+    const j = await app({ acao: "comando", token: SESSAO, texto: textoComando(p.dispositivo, p.acao) });
+    passos.push({ ...p, ok: !!j.ok, resposta: j.text || j.mensagem || "" });
+    await espera(1500); // deixa a cena terminar antes do ajuste seguinte
+  }
+  const ok = passos.every((p) => p.ok);
+  casaEl.textContent = ok ? `✓ rotina ${n}` : `✗ rotina ${n}: algum passo falhou`;
+  return { ok, rotina: n, passos };
+}
+
+const FERRAMENTAS = { controlar_casa: controlarCasa, buscar_informacao: buscarInformacao, consultar_cerebro: consultarCerebro,
+  salvar_rotina: salvarRotina, apagar_rotina: apagarRotina, executar_rotina: executarRotina };
+const DEMORADAS = new Set(["buscar_informacao", "consultar_cerebro", "executar_rotina"]);
+async function executar(call) {
+  if (DEMORADAS.has(call.name)) iniciarTeclado();
+  let response;
+  try { response = await FERRAMENTAS[call.name](call.args || {}); }
+  catch (e) { response = { erro: e.message }; casaEl.textContent = ""; }
+  return { id: call.id, name: call.name, response };
+}
+
+// --- sessão com o Gemini ---
+let iniciando = false;   // dois toques seguidos não abrem duas sessões (nem duas vozes no desbloqueio)
+async function start() {
+  if (ws || iniciando) return;
+  if (!SESSAO) return mostrarLogin("");
+  iniciando = true;
+  setMode("idle", "");
+  const iris = felyxIris.desbloquear(document.getElementById("orbBox"));
+  micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  const [tr, lista] = await Promise.all([
+    fetch(TOKEN_URL + "?s=" + encodeURIComponent(SESSAO), { cache: "no-store" }),
+    app({ acao: "casa", token: SESSAO }).catch(() => null),
+  ]);
+  if (tr.status === 401) { salvarSessao(""); throw new Error("Entre de novo para usar a voz."); }
+  const tk = await tr.json();
+  if (!tk.token) throw new Error("sem token de voz");
+  if (lista && lista.ok) casa = { cenas: lista.cenas || [], desativaveis: lista.desativaveis || [], aparelhos: (lista.aparelhos || []).map((a) => a.nome) };
+  casaEl.textContent = lista && lista.ponte && lista.ponte.online ? "casa conectada" : "casa offline";
+
+  audioCtx = new AudioContext();
+  outAnalyser = audioCtx.createAnalyser(); outAnalyser.fftSize = 1024;
+  outAnalyser.connect(audioCtx.destination);
+  await audioCtx.audioWorklet.addModule(URL.createObjectURL(new Blob([MIC_WORKLET], { type: "text/javascript" })));
+  micNode = new AudioWorkletNode(audioCtx, "mic-processor");
+  audioCtx.createMediaStreamSource(micStream).connect(micNode);
+
+  const rotinas = Object.entries(lerRotinas()).map(([n, r]) => `${n}: ` + r.passos.map((p) => `${p.acao} ${p.dispositivo}`).join(", depois ")).join("\n");
+  const nomes = "Rotinas salvas:\n" + (rotinas || "nenhuma") + "\n\nAparelhos: " + casa.aparelhos.join(", ") + "\nCenas: " + casa.cenas.join(", ");
+  ws = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=" + encodeURIComponent(tk.token));
+  ws.onopen = () => ws.send(JSON.stringify({ setup: {
+    model: "models/" + MODEL,
+    generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
+    systemInstruction: { parts: [{ text: SYSTEM + nomes }] },
+    tools: TOOLS,
+    inputAudioTranscription: {}, outputAudioTranscription: {},
+  } }));
+  ws.onmessage = async (e) => {
+    const msg = JSON.parse(typeof e.data === "string" ? e.data : await e.data.text());
+    if (msg.setupComplete) {
+      await iris;
+      ws.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Mensagem automática do sistema: a sessão acabou de abrir. Diga apenas, com calma e simpatia: \"" + cumprimento() + "\" e nada mais. Não chame nenhuma função." }] }], turnComplete: true } }));
+      setMode("listening", "Ouvindo");
+      micNode.port.onmessage = (ev) => {
+        const pcm = new Int16Array(ev.data);
+        let sum = 0; for (const v of pcm) sum += (v / 0x8000) ** 2;
+        level = Math.min(1, Math.sqrt(sum / pcm.length) * 6);
+        if (ws?.readyState !== 1) return;
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(ev.data)));
+        ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64, mimeType: "audio/pcm;rate=16000" } } }));
+      };
+    }
+    if (msg.toolCall) {
+      const functionResponses = await Promise.all(msg.toolCall.functionCalls.map(executar));
+      ws?.send(JSON.stringify({ toolResponse: { functionResponses } }));
+    }
+    const sc = msg.serverContent;
+    if (!sc) return;
+    if (sc.interrupted) { pararTeclado(); stopPlayback(); setMode("listening", "Ouvindo"); }
+    for (const p of sc.modelTurn?.parts || []) {
+      if (p.inlineData) { setMode("speaking", "Falando"); playChunk(p.inlineData.data); }
+    }
+  };
+  ws.onclose = (e) => { stop(); setMode("idle", e.code === 1000 ? "Toque no Felyx para começar" : "Conexão caiu — toque para reconectar"); };
+}
+
+function stop() {
+  iniciando = false;
+  pararTeclado();
+  micStream?.getTracks().forEach((t) => t.stop());
+  stopPlayback(); audioCtx?.close();
+  ws = null; audioCtx = null; outAnalyser = null; micStream = null; level = 0;
+}
+
+orb.addEventListener("click", () => {
+  if (ws) { ws.close(1000); } else if (!iniciando) { felyxIris.preparar(); start().catch((err) => { stop(); setMode("idle", err.message); if (!SESSAO) mostrarLogin(err.message); }); }
+});
+</script>
+</body>
+</html>
