@@ -409,6 +409,8 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 
 <div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
 
+<script src="../iris-sons.js"></script>
+<script src="../iris.js"></script>
 <script>
 'use strict';
 /* ===================== configuração ===================== */
@@ -1049,6 +1051,7 @@ let conv = null;
 const ESTADO = { listening: 'diga “Félix” e fale', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
 function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Felyx'); }); }
 function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
+let irisFeita = false;
 async function iniciarVoz(){
   if (conv) return;
   if (!(await permissaoIA())){ estado('idle', 'a voz precisa da sua permissão'); toast(SEM_IA); return; }
@@ -1058,21 +1061,22 @@ async function iniciarVoz(){
   g.onClose = (reason) => { FelyxAvatar.fechar(); if (conv !== g) return; conv = null; estado('idle', reason ? 'conversa encerrada' : ''); };
   g.onBrain = (p, r) => { bolha(p, 'me'); bolha(r || 'Não consegui consultar o cérebro agora.', 'fx'); };
   try{
-    const rosto = FelyxAvatar.abrir();   // o rosto conecta junto com a voz (leva uns 7 s)
-    await g.start();
+    // na primeira conversa desde que o app abriu: desbloqueio de íris (radar em quem está diante da tela)
+    const iris = irisFeita ? null : felyxIris.desbloquear($('#vFelyx .stage'));
+    irisFeita = true;
+    const rosto = FelyxAvatar.abrir();   // o rosto conecta junto com a voz (leva uns 7 s), escondido pela íris
+    await Promise.all([g.start(), iris]);
     conv = g; estado('listening');
-    await Promise.race([rosto, new Promise((ok) => setTimeout(ok, 10000))]);   // a saudação já sai pela boca do avatar
+    await Promise.race([rosto, new Promise((ok) => setTimeout(ok, 4000))]);
     if (conv !== g) return;
-    const bv = store.get('felyx.bv', true), hoje = new Date().toDateString();
-    if (bv && store.get('felyx.bvDia', '') !== hoje){ store.set('felyx.bvDia', hoje); g.pedir(saudacao() + ', Félix.'); }
-    else g.ler('Às suas ordens' + (primeiroNome() ? ', ' + primeiroNome() : '') + '.');
+    g.ler(saudacao() + (primeiroNome() ? ', ' + primeiroNome() : '') + '.');   // entra já cumprimentando
   }catch(e){
     g.teardown('');
     if (e && e.sessao){ estado('idle', 'sessão expirada: entre de novo'); sessaoCaiu({ status: 401 }, null); return; }
     estado('idle', (e && e.name === 'NotAllowedError') ? 'microfone bloqueado: libere nas permissões' : 'não consegui conectar a voz');
   }
 }
-function alternarVoz(){ if (conv){ conv.end(); return; } iniciarVoz(); }
+function alternarVoz(){ if (conv){ conv.end(); return; } try{ felyxIris.preparar(); }catch(e){} iniciarVoz(); }
 $('#mic').addEventListener('click', alternarVoz);
 document.addEventListener('click', (e) => { if (e.target.closest('[data-falar]')){ if ($('#app').classList.contains('l-phone')) ir('vFelyx'); alternarVoz(); } });
 document.addEventListener('keydown', (e) => {
@@ -1085,7 +1089,7 @@ $('#ajIA').addEventListener('change', (e) => { if (e.target.checked){ e.target.c
 
 /* o app nativo pode pedir ações (atalhos do ícone, Siri, notificações) */
 window.felyxNativo = function(acao, dado){
-  if (acao === 'falar'){ ir('vFelyx'); iniciarVoz(); }
+  if (acao === 'falar'){ ir('vFelyx'); try{ felyxIris.preparar(); }catch(e){} iniciarVoz(); }
   else if (acao === 'cena' && dado) comandar('ativa a cena ' + dado);
   else if (acao === 'comando' && dado) comandar(String(dado));
   else if (acao === 'aba' && dado) ir(dado);

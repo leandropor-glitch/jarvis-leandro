@@ -82,7 +82,7 @@
         if (a !== b) return msg('As senhas não são iguais.');
         try {
           const j = await api('senha', { telefone: tel, ticket, senha: a, aparelho: opcoes.aparelho || 'Felyx web' });
-          if (j.ok) { fechar(); if (opcoes.aoEntrar) opcoes.aoEntrar(j); } else msg(j.mensagem || 'Não deu certo.');
+          if (j.ok) { try { localStorage.setItem('felyx_nome', j.nome || ''); } catch (x) {} fechar(); if (opcoes.aoEntrar) opcoes.aoEntrar(j); } else msg(j.mensagem || 'Não deu certo.');
         } catch (err) { msg('Sem conexão.'); }
       };
     }

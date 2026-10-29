@@ -58,6 +58,8 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/dist/livekit-client.umd.js"></script>
 <script src="esqueci-senha.js"></script>
+<script src="iris-sons.js"></script>
+<script src="iris.js"></script>
 <script>
 // Felyx Pro: o mesmo Felyx Lite (Gemini Live, voz Algieba, casa, rotinas, mercado, cérebro) com o rosto ao vivo do LiveAvatar.
 // O LiveAvatar roda em modo LITE: só faz o vídeo e a boca. A voz do Gemini não toca aqui; vai pelo WebSocket da sessão
@@ -166,6 +168,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     const j = await app({ acao: "entrar", telefone: $("loginTel").value, senha: $("loginSenha").value, aparelho: "Felyx Pro" });
     if (!j.ok) { erro.textContent = j.erro === "sem_senha" ? "Crie sua senha primeiro no app Felyx AI Vinci." : (j.mensagem || "Não deu certo."); return; }
     salvarSessao(j.token);
+    try { localStorage.setItem("felyx_nome", j.nome || ""); } catch (e) {}
     $("login").dataset.on = "0";
     stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}` : "";
   } catch (err) { erro.textContent = "Sem conexão. Tente de novo."; }
@@ -180,6 +183,10 @@ salvarSessao(SESSAO);
 if (!SESSAO) mostrarLogin("");
 
 function setState(t) { stateEl.textContent = t; }
+function saudacaoAgora() { const h = new Date().getHours(); return h >= 5 && h < 12 ? "Bom dia" : h >= 12 && h < 18 ? "Boa tarde" : "Boa noite"; }
+function nomeSalvo() { try { return localStorage.getItem("felyx_nome") || ""; } catch (e) { return ""; } }
+function cumprimento() { const n = nomeSalvo(); return saudacaoAgora() + (n ? ", " + n.split(" ")[0] : "") + "."; }
+
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random());
 
 // --- microfone: PCM 16-bit 16 kHz em blocos de ~100 ms ---
@@ -394,7 +401,8 @@ async function start() {
   if (ws) return;
   if (!SESSAO) return mostrarLogin("");
   $("comecar").hidden = true;
-  setState("Chamando o Felyx…");
+  setState("");
+  const iris = felyxIris.desbloquear(document.querySelector(".quadro"));   // o rosto conecta enquanto a íris é lida
   audioCtx = new AudioContext();
   audioEl.play().catch(() => {});
   micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
@@ -426,6 +434,8 @@ async function start() {
   ws.onmessage = async (e) => {
     const msg = JSON.parse(typeof e.data === "string" ? e.data : await e.data.text());
     if (msg.setupComplete) {
+      await iris;
+      ws.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Mensagem automática do sistema: a sessão acabou de abrir. Diga apenas, com calma e simpatia: \"" + cumprimento() + "\" e nada mais. Não chame nenhuma função." }] }], turnComplete: true } }));
       setState("Pode falar");
       $("encerrar").hidden = false;
       ultimoUso = Date.now();
@@ -464,7 +474,7 @@ function stop(motivo) {
   setState(motivo || "");
 }
 
-$("comecar").addEventListener("click", () => start().catch((err) => { stop(err.message); if (!SESSAO) mostrarLogin(err.message); }));
+$("comecar").addEventListener("click", () => { felyxIris.preparar(); start().catch((err) => { stop(err.message); if (!SESSAO) mostrarLogin(err.message); }); });
 $("encerrar").addEventListener("click", () => stop("Até logo."));
 addEventListener("pagehide", () => { if (avatar) fecharAvatar(); });
 </script>

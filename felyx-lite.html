@@ -30,7 +30,7 @@
 </head>
 <body>
 <main>
-  <canvas id="orb" width="900" height="900" aria-label="Toque para falar com o Felyx"></canvas>
+  <div id="orbBox" style="position:relative;border-radius:6%;overflow:hidden"><canvas id="orb" width="900" height="900" aria-label="Toque para falar com o Felyx" style="display:block"></canvas></div>
   <div id="state">Toque no Felyx para começar</div>
   <div id="caption"></div>
   <div id="casa"></div>
@@ -47,6 +47,8 @@
   </form>
 </div>
 <script src="esqueci-senha.js"></script>
+<script src="iris-sons.js"></script>
+<script src="iris.js"></script>
 <script>
 // Felyx Lite: o Felyx no Gemini Live, sem WhatsApp e sem o fluxo completo.
 // Login e casa pelo n8n (felix/app), token temporário do Gemini (felix/token), mercado e notícias do painel,
@@ -145,6 +147,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       senha: document.getElementById("loginSenha").value, aparelho: "Felyx Lite" });
     if (!j.ok) { erro.textContent = j.erro === "sem_senha" ? "Crie sua senha primeiro no app Felyx AI Vinci." : (j.mensagem || "Não deu certo."); return; }
     salvarSessao(j.token);
+    try { localStorage.setItem("felyx_nome", j.nome || ""); } catch (e) {}
     document.getElementById("login").dataset.on = "0";
     stateEl.textContent = j.nome ? `Olá, ${j.nome.split(" ")[0]}. Toque no Felyx` : "Toque no Felyx para começar";
   } catch (err) { erro.textContent = "Sem conexão. Tente de novo."; }
@@ -159,6 +162,10 @@ salvarSessao(SESSAO);
 if (!SESSAO) mostrarLogin("");
 
 function setMode(m, label) { mode = m; stateEl.textContent = label; }
+function saudacaoAgora() { const h = new Date().getHours(); return h >= 5 && h < 12 ? "Bom dia" : h >= 12 && h < 18 ? "Boa tarde" : "Boa noite"; }
+function nomeSalvo() { try { return localStorage.getItem("felyx_nome") || ""; } catch (e) { return ""; } }
+function cumprimento() { const n = nomeSalvo(); return saudacaoAgora() + (n ? ", " + n.split(" ")[0] : "") + "."; }
+
 
 // --- V da Vinci (proporções do logo oficial) ---
 const V = [[0, 0], [0.5, 0.625], [1, 0], [1, 0.372], [0.5, 1], [0, 0.372]];
@@ -427,7 +434,8 @@ async function executar(call) {
 async function start() {
   if (ws) return;
   if (!SESSAO) return mostrarLogin("");
-  setMode("idle", "Conectando…");
+  setMode("idle", "");
+  const iris = felyxIris.desbloquear(document.getElementById("orbBox"));
   micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
   const [tr, lista] = await Promise.all([
     fetch(TOKEN_URL + "?s=" + encodeURIComponent(SESSAO), { cache: "no-store" }),
@@ -459,6 +467,8 @@ async function start() {
   ws.onmessage = async (e) => {
     const msg = JSON.parse(typeof e.data === "string" ? e.data : await e.data.text());
     if (msg.setupComplete) {
+      await iris;
+      ws.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: "Mensagem automática do sistema: a sessão acabou de abrir. Diga apenas, com calma e simpatia: \"" + cumprimento() + "\" e nada mais. Não chame nenhuma função." }] }], turnComplete: true } }));
       setMode("listening", "Ouvindo");
       micNode.port.onmessage = (ev) => {
         const pcm = new Int16Array(ev.data);
@@ -491,7 +501,7 @@ function stop() {
 }
 
 orb.addEventListener("click", () => {
-  if (ws) { ws.close(1000); } else { start().catch((err) => { stop(); setMode("idle", err.message); if (!SESSAO) mostrarLogin(err.message); }); }
+  if (ws) { ws.close(1000); } else { felyxIris.preparar(); start().catch((err) => { stop(); setMode("idle", err.message); if (!SESSAO) mostrarLogin(err.message); }); }
 });
 </script>
 </body>
