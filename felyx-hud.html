@@ -281,7 +281,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
         <div class="editor" id="editor" hidden>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
-          <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Closet"></label>
+          <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
           <datalist id="phrases"></datalist>
           <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">esvaziar</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
           <div class="hint">a frase é mandada ao cérebro como se você tivesse falado. fica salvo neste aparelho.</div>
@@ -730,7 +730,7 @@ const DEFAULT_TILES = [
   { n:'Café',           f:'ligar o interruptor Café', f2:'desligar o interruptor Café' },
   { n:'Nespresso',      f:'ligar a Nespresso', f2:'desligar a Nespresso' },
   { n:'Cama',           f:'ativar a cena Cama' },
-  { n:'Closet',         f:'ligar o interruptor Closet', f2:'desligar o interruptor Closet' },
+  { n:'Closet',         f:'ativar a cena Closet' },
   { n:'TV Suíte',       f:'ativar a cena TV Suíte' },
   { n:'Master OFF',     f:'ativar a cena Master OFF' },
   { n:'Porta',          f:'ativar a cena Porta' },
@@ -738,7 +738,7 @@ const DEFAULT_TILES = [
   { n:'Cortina dir.',   f:'ativar a cena CortDir' },
   { n:'Varanda',        f:'ligar a luz da Varanda', f2:'desligar a luz da Varanda' },
   { n:'Luminárias',     f:'ativar a cena Luminárias' },
-  { n:'Mesa',           f:'ligar o interruptor Mesa', f2:'desligar o interruptor Mesa' },
+  { n:'Mesa',           f:'ativar a cena Mesa' },
   { n:'Boa Noite',      f:'ativar a cena Boa Noite' },
   { n:'Lustre',         f:'ligar o Lustre', f2:'desligar o Lustre' },
 ];
