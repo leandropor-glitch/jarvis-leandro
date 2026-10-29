@@ -360,6 +360,7 @@ async function abrirAvatar() {
   if (r.status === 401 || j.relogar) { salvarSessao(""); throw new Error("Entre de novo para chamar o Felyx."); }
   if (!j.ok || !j.livekit_url || !j.ws_url) throw new Error("O avatar não abriu agora. Tente de novo.");
   avatar = { id: j.session_id, token: j.session_token, pronto: false };
+  if (j.nome) try { localStorage.setItem("felyx_nome", j.nome); } catch (e) {}
 
   const LK = window.LivekitClient;
   room = new LK.Room({ adaptiveStream: true });
