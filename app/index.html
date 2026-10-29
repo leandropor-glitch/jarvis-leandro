@@ -1058,8 +1058,11 @@ async function iniciarVoz(){
   g.onClose = (reason) => { FelyxAvatar.fechar(); if (conv !== g) return; conv = null; estado('idle', reason ? 'conversa encerrada' : ''); };
   g.onBrain = (p, r) => { bolha(p, 'me'); bolha(r || 'Não consegui consultar o cérebro agora.', 'fx'); };
   try{
+    const rosto = FelyxAvatar.abrir();   // o rosto conecta junto com a voz (leva uns 7 s)
     await g.start();
-    conv = g; FelyxAvatar.abrir(); estado('listening');
+    conv = g; estado('listening');
+    await Promise.race([rosto, new Promise((ok) => setTimeout(ok, 10000))]);   // a saudação já sai pela boca do avatar
+    if (conv !== g) return;
     const bv = store.get('felyx.bv', true), hoje = new Date().toDateString();
     if (bv && store.get('felyx.bvDia', '') !== hoje){ store.set('felyx.bvDia', hoje); g.pedir(saudacao() + ', Félix.'); }
     else g.ler('Às suas ordens' + (primeiroNome() ? ', ' + primeiroNome() : '') + '.');

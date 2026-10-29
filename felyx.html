@@ -1355,12 +1355,13 @@ async function start(){
   try{
     const boot = bootSequence();
     const textoBV = pedirBoasVindas();
+    const rosto = FelyxAvatar.abrir();   // o rosto conecta junto com a voz (leva uns 7 s)
     await g.start();
     await boot;
     conv = g;
-    FelyxAvatar.abrir();
     setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=false;
     const segs = await textoBV;
+    await Promise.race([rosto, new Promise(ok=>setTimeout(ok, 10000))]);   // a abertura já sai pela boca do avatar
     if(conv !== g) return;
     iniciarAcompanhamento(segs);
     g.sayText(segs.map(s=>s.texto).join(' '));
