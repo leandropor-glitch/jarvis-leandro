@@ -224,6 +224,19 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   .news{min-height:240px}
   .tile{min-height:44px;font-size:.72rem}
 }
+/* com o rosto ao vivo em tela estreita: o Felyx fica preso no alto enquanto fala; mercado, notícias e cards rolam por baixo */
+@media (max-width:1100px){
+  html,body{overflow-x:clip}   /* "hidden" viraria caixa de rolagem e quebraria o sticky */
+  #hud.com-rosto .stage{grid-template-areas:"center center" "deck deck" "left right"}
+  #hud.com-rosto .center{display:contents}
+  #hud.com-rosto .orbWrap{grid-area:center;justify-self:center;width:min(100%,71vh,960px);position:sticky;top:0;z-index:6;background:var(--bg);box-shadow:0 12px 16px var(--bg)}
+  #hud.com-rosto .deck{grid-area:deck;position:relative;inset:auto;flex-direction:column;width:100%;gap:8px}
+  #hud.com-rosto .card{width:100%}
+  #hud.com-rosto .card[data-slot="1"]{margin-left:0}
+}
+@media (max-width:700px){
+  #hud.com-rosto .stage{grid-template-areas:"center" "deck" "right" "left"}
+}
 @media (max-width:520px){
   #dateLabel{display:none}
   .status{max-width:60vw}
@@ -1006,12 +1019,19 @@ async function pedirBoasVindas(){
   }catch(e){}
   return boasVindasLocal(sd);
 }
+// com o rosto ao vivo, o quadro do Felyx fica preso no alto: rola só até o painel aparecer logo abaixo dele
+function rolarAte(el){
+  const quadro = document.getElementById('hud').classList.contains('com-rosto') && document.querySelector('.orbWrap');
+  if(!quadro) return el.scrollIntoView({ behavior:'smooth', block:'center' });
+  const base = quadro.getBoundingClientRect().bottom + 12;
+  window.scrollBy({ top: el.getBoundingClientRect().top - base, behavior:'smooth' });
+}
 const PANELS = { mercado:'market', politica:'newsPol', tecnologia:'newsTec', comandos:'matrix' };
 function focar(seg){
   Object.values(PANELS).forEach(id=>{ const el = document.getElementById(id); if(el) el.dataset.focus = '0'; });
   if(!seg) return;
   const id = PANELS[seg.alvo]; const el = id && document.getElementById(id);
-  if(el){ el.dataset.focus = '1'; if(matchMedia('(max-width:1100px)').matches) el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  if(el){ el.dataset.focus = '1'; if(matchMedia('(max-width:1100px)').matches) rolarAte(el); }
   if(seg.alvo === 'politica' && seg.noticia != null) newsPol.show(seg.noticia);
   if(seg.alvo === 'tecnologia' && seg.noticia != null) newsTec.show(seg.noticia);
 }
@@ -1036,7 +1056,7 @@ const MODEL = 'gemini-3.8-live';
 const VOICE = 'Algieba';
 const SYSTEM = `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
 Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, cheio de energia, direto e com bom humor. Frases curtas, próprias para serem ouvidas.
-Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis" em nenhuma situação; se o usuário disser "Jarvis", entenda que está falando com você, o Félix, e não repita esse nome. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte".
+Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis" em nenhuma situação; se o usuário disser "Jarvis", entenda que está falando com você, o Félix, e não repita esse nome. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi".
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto, nem em piada. O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci e responda falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, bitcoin, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, palavra por palavra, sem resumir, sem inventar e sem acrescentar nada.
