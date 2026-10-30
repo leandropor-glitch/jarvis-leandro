@@ -764,7 +764,14 @@ function sessaoCaiu(r, j){
 // nada vai para os serviços de IA de terceiros antes de a pessoa tocar em "Permitir"; a escolha fica por número
 function chaveIA(){ return 'felyx.ia.' + digitos(sessao && sessao.telefone); }
 function iaAceita(){ return store.get(chaveIA(), null) === true; }
-function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; avisarNativo('ia', { aceito: v === true }); }
+function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; avisarNativo('ia', { aceito: v === true }); if (v === true) irParaGen(); }
+// cérebro do app: Félix GEN (Gemini, ferramentas na própria página), pedido do Leandro em 30/10.
+// A conta de demonstração da revisão das lojas continua na tela clássica; ?cerebro=claude também volta para ela.
+function irParaGen(){
+  if (!sessao || !sessao.token || sessao.demo || !iaAceita() || params.get('cerebro') === 'claude') return false;
+  try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
+  location.replace('gen.html' + location.search); return true;
+}
 let iaPedido = null;
 function permissaoIA(){
   if (iaAceita()) return Promise.resolve(true);
@@ -1108,6 +1115,7 @@ async function abrirApp(){
   const t = digitos(sessao.telefone); $('#ajTel').textContent = t ? '+' + t.slice(0, 2) + ' ' + t.slice(2, 4) + ' ' + t.slice(4, -4) + '-' + t.slice(-4) : '';
   $('#versao').textContent = 'Felyx AI Vinci · versão ' + VERSAO + (PLAT ? ' · ' + PLAT : '');
   avisarNativo('login', { nome: sessao.nome, token: sessao.token });
+  if (irParaGen()) return;
   layout(); estado('idle', primeiroNome() ? saudacao().toUpperCase() + ', ' + primeiroNome().toUpperCase() : '');
   $('#saud').textContent = saudacao() + (primeiroNome() ? ', ' + primeiroNome() : '') + '.';
   carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
