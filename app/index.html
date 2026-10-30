@@ -121,6 +121,7 @@ a{color:var(--acc)}
 .iaBox{width:min(520px,100%);padding:24px;display:flex;flex-direction:column;gap:14px;margin:auto}
 .iaBox h1{margin:0;font-size:26px;font-weight:500}
 .iaBox p,.iaBox li{margin:0;color:var(--soft);font-size:15px;line-height:21px}
+.iaBox .iaNota{font-size:13px;line-height:18px}
 .iaBox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
 .iaBox b{color:var(--ink);font-weight:600}
 .iaBox a{font-size:14px}
@@ -362,7 +363,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
     </div>
     <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
       <span class="kick">Inteligência artificial</span>
-      <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px">Enviar voz ao Google (Gemini) e perguntas à Anthropic (Claude) <input type="checkbox" id="ajIA" style="width:22px;height:22px;flex:none;accent-color:var(--acc)"></label>
+      <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px">Conversar com o Felyx (voz pelo Google Gemini) <input type="checkbox" id="ajIA" style="width:22px;height:22px;flex:none;accent-color:var(--acc)"></label>
       <a href="privacidade.html" target="_blank" rel="noopener" style="font-size:14px">Política de privacidade</a>
     </div>
     <button class="btn ghost" id="bSair" type="button">Sair deste aparelho</button>
@@ -394,15 +395,12 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 <section id="ia" hidden role="dialog" aria-modal="true" aria-labelledby="iaTit">
   <div class="iaBox card">
     <span class="kick">Felyx · Vinci AI</span>
-    <h1 id="iaTit">Antes de conversar</h1>
-    <p>Para entender e responder, o Felyx usa serviços de inteligência artificial de outras empresas. Com a sua permissão, o app envia:</p>
-    <ul>
-      <li><b>Para o Google (Gemini):</b> o áudio do microfone, só enquanto a conversa por voz está aberta. Serve para reconhecer a sua fala e criar a voz do Felyx. O app não grava esse áudio.</li>
-      <li><b>Para a Anthropic (Claude):</b> o texto do que você pergunta ou pede, por voz ou escrito, e o seu primeiro nome. Passa pelo servidor da Vinci (n8n) e serve para gerar a resposta e acionar a casa.</li>
-    </ul>
-    <p>Nenhum desses dados é usado para anúncios nem vendido. Você pode retirar a permissão a qualquer momento em Ajustes. Sem ela, a casa, as notícias e o mercado continuam funcionando; só a conversa com o Felyx fica desligada.</p>
-    <a href="privacidade.html" target="_blank" rel="noopener">Ler a política de privacidade</a>
-    <button class="btn" id="iaSim" type="button">Permitir</button>
+    <h1 id="iaTit">Vamos conversar?</h1>
+    <p>Eu sou o Felyx. Para ouvir você e responder com a minha voz, uso a inteligência do <b>Google (Gemini)</b>: a sua voz vai para lá só enquanto estamos conversando, e nada fica gravado.</p>
+    <p id="iaClaude" hidden>Quando você me pede alguma coisa, o texto do pedido e o seu primeiro nome também passam pela <b>Anthropic (Claude)</b>, pelo servidor da Vinci, para eu pensar na resposta e cuidar da casa.</p>
+    <p class="iaNota">Nada disso é vendido nem usado para anúncios. Você muda de ideia quando quiser em Ajustes, e a casa, as notícias e o mercado funcionam de qualquer jeito.</p>
+    <a href="privacidade.html" target="_blank" rel="noopener">Detalhes na política de privacidade</a>
+    <button class="btn" id="iaSim" type="button">Vamos conversar</button>
     <button class="btn ghost" id="iaNao" type="button">Agora não</button>
   </div>
 </section>
@@ -778,6 +776,7 @@ let iaPedido = null;
 function permissaoIA(){
   if (iaAceita()) return Promise.resolve(true);
   if (iaPedido) return iaPedido;
+  $('#iaClaude').hidden = !(sessao && sessao.demo) && params.get('cerebro') !== 'claude';   // no GEN só o Google recebe dados
   $('#ia').hidden = false; setTimeout(() => $('#iaSim').focus(), 50);
   iaPedido = new Promise((ok) => {
     const fim = (v) => { $('#ia').hidden = true; iaPedido = null; gravarIA(v); ok(v); };
