@@ -5,7 +5,7 @@ Chamar alguém pelo nome errado é ofensa. Vale para todos os Félix (GEN, FULL,
 
 - **Félix**: a marca se escreve **Felyx** (F-E-L-Y-X) nas telas, nos botões e no código, e se fala sempre **Félix**, como o nome em português. Nunca "Felics", "Felis" nem soletrado.
 - **Vinci** (a empresa, Vinci Automação, e Leonardo da Vinci): sempre em italiano, **Víntchi**. Nunca "Vince", "Vínsi" nem "Vinssi". Quando o Leandro fala "vinte" ou "20" sobre a empresa, ele quer dizer Vinci.
-- **Respostas ao Leandro**: ele ouve o que você escreve em voz alta. No texto corrido escreva **Félix** e **Víntchi**. Nomes de arquivo e de workflow ficam como estão.
+- **Respostas ao Leandro**: no texto escreva **Félix** e **Vinci**. **Víntchi** é só a pronúncia: vai nas instruções de voz (Gemini, TTS, avatar), nunca no texto escrito.
 - **Onde a regra está gravada**:
   - no prompt de cada página de voz (`felyx-vinci-site/{gen,full,pro,v}.html` e `jarvis-leandro/app/index.html`);
   - na voz dos áudios do WhatsApp: o nó Gemini TTS troca Felyx por Félix e Vinci por Víntchi nos workflows "Felyx — WhatsApp" e "Felyx — mandar áudio".
