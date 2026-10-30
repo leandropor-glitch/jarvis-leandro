@@ -1064,7 +1064,7 @@ async function iniciarVozDeVerdade(){
   estado('boot');
   g.onState = (s) => { if (conv === g) estado(s); };
   g.onClose = (reason) => { FelyxAvatar.fechar(); if (conv !== g) return; conv = null; estado('idle', reason ? 'conversa encerrada' : ''); };
-  g.onBrain = (p, r) => { bolha(p, 'me'); bolha(r || 'Não consegui consultar o cérebro agora.', 'fx'); };
+  g.onBrain = () => {};   // na voz, sem legenda: o Félix só fala (regra do Leandro). O texto aparece só na conversa digitada.
   try{
     // na primeira conversa desde que o app abriu: desbloqueio de íris (radar em quem está diante da tela)
     const iris = irisFeita ? null : felyxIris.desbloquear($('#vFelyx .stage'));
