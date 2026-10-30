@@ -12,6 +12,8 @@ Chamar alguém pelo nome errado é ofensa. Vale para todos os Félix (GEN, FULL,
   - Página ou fluxo novo que fale precisa ter a mesma regra.
 
 ## Outras regras
+- Segurança (câmeras, fechaduras, maçanetas, alarmes): só com API oficial do fabricante. Biblioteca não oficial nunca, porque está em jogo o nome, a marca e a reputação do Leandro.
+- Alerta de bebê ou de câmera: alarme alto e imagem da câmera na hora, sem conversa com o Félix.
 - O rosto do Félix é só LiveAvatar. Nunca outro avatar que mexa a boca errado.
 - Falha nunca vai para o cliente. O Félix ganha tempo ("deixa eu dar uma olhadinha aqui") e manda a falha em silêncio pelo canal interno (workflow "Felyx — falhas").
 - A palavra "Alexa" não existe para o cliente: o sistema da casa se chama Vinci.
