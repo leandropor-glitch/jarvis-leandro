@@ -54,13 +54,25 @@
   function radar(alvo) {
     if (getComputedStyle(alvo).position === 'static') alvo.style.position = 'relative';
     const tela = document.createElement('div');
-    tela.style.cssText = 'position:absolute;inset:0;z-index:20;background:#000;border-radius:inherit;overflow:hidden;opacity:0;transition:opacity .35s;pointer-events:none';
-    const cv = document.createElement('canvas'), rot = document.createElement('div');
+    // fundo preto opaco entrando rápido: o rosto não aparece por baixo do radar
+    tela.style.cssText = 'position:absolute;inset:0;z-index:20;background:#000;border-radius:inherit;overflow:hidden;opacity:0;transition:opacity .18s;pointer-events:none';
+    const cv = document.createElement('canvas');
     cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
-    rot.style.cssText = 'position:absolute;left:0;right:0;bottom:8%;text-align:center;font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.32em;text-transform:uppercase;color:#d6ff1a;text-shadow:0 0 12px rgba(214,255,26,.6)';
-    tela.append(cv, rot); alvo.appendChild(tela);
+    tela.append(cv); alvo.appendChild(tela);
     requestAnimationFrame(() => { tela.style.opacity = '1'; });
-    const c2 = cv.getContext('2d'); let fase = 'lendo', t0 = performance.now(), vivo = true, sucessoEm = 0;
+    const c2 = cv.getContext('2d'); let fase = 'lendo', t0 = performance.now(), vivo = true, sucessoEm = 0, legenda = '';
+    // a legenda é desenhada no próprio radar, numa linha só, no tamanho que couber no círculo (no iPhone o rosto é pequeno)
+    function escrever(W, H, cx, cy, R, dpr) {
+      if (!legenda) return;
+      const txt = legenda.toUpperCase(), y = cy + R * 0.66, larguraMax = 2 * Math.sqrt(Math.max(0, R * R - (y - cy) ** 2)) * 0.86;
+      let tam = Math.max(8 * dpr, R * 0.1), esp = 0.22;
+      const medir = () => { c2.font = `600 ${tam}px ui-monospace, Menlo, monospace`; return c2.measureText(txt).width + txt.length * tam * esp; };
+      while (medir() > larguraMax && tam > 6 * dpr) { tam *= 0.92; esp = Math.max(0.08, esp * 0.9); }
+      c2.save(); c2.textAlign = 'left'; c2.textBaseline = 'middle'; c2.fillStyle = '#d6ff1a'; c2.shadowColor = 'rgba(214,255,26,.6)'; c2.shadowBlur = 10 * dpr;
+      let x = cx - medir() / 2 + tam * esp / 2;
+      for (const ch of txt) { c2.fillText(ch, x, y); x += c2.measureText(ch).width + tam * esp; }
+      c2.restore();
+    }
     const pontos = Array.from({ length: 14 }, () => ({ a: Math.random() * Math.PI * 2, r: 0.25 + Math.random() * 0.7, v: 0 }));
     function desenhar(agora) {
       if (!vivo) return;
@@ -90,11 +102,12 @@
       c2.beginPath(); c2.arc(cx, cy, rm, 0, Math.PI * 2); c2.stroke();
       for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + (ok ? 0 : t * 0.8); c2.beginPath(); c2.moveTo(cx + Math.cos(a) * rm * 1.25, cy + Math.sin(a) * rm * 1.25); c2.lineTo(cx + Math.cos(a) * rm * 1.8, cy + Math.sin(a) * rm * 1.8); c2.stroke(); }
       if (ok) { const k = Math.min(1, (agora - sucessoEm) / 500); c2.strokeStyle = cor(0.6 * (1 - k)); c2.lineWidth = 2 * dpr; c2.beginPath(); c2.arc(cx, cy, rm + R * 0.8 * k, 0, Math.PI * 2); c2.stroke(); }
+      escrever(W, H, cx, cy, R, dpr);
       requestAnimationFrame(desenhar);
     }
     requestAnimationFrame(desenhar);
     return {
-      texto(t) { rot.textContent = t; },
+      texto(t) { legenda = t; },
       validar() { fase = 'ok'; sucessoEm = performance.now(); },
       async sair() { tela.style.transition = 'opacity .8s'; tela.style.opacity = '0'; await espera(820); vivo = false; tela.remove(); },
     };
@@ -108,7 +121,7 @@
   async function rodar(alvo) {
     preparar();
     const r = radar(alvo);
-    r.texto('efetuando desbloqueio de íris');
+    r.texto('desbloqueio de íris');
     await tocar('anuncio');
     r.texto('lendo íris');
     varredura(2.4); await espera(2450);
