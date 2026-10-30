@@ -463,11 +463,13 @@ let sessao = store.get('felyx.sessao', null);   // { token, nome, telefone }
 function primeiroNome(){ return (sessao && sessao.nome) ? sessao.nome.split(' ')[0] : ''; }
 
 /* ===================== login ===================== */
+// conta de demonstração das lojas: qualquer forma do número só com zeros (com +55, com o 9 a mais) vira 0000000000
+function telLogin(v){ const d = digitos(v); return /^(55)?0{10,11}$/.test(d) ? '0000000000' : d; }
 const L = { tel: '', ticket: '' };
 function mostraForm(id){ ['fTel', 'fCod', 'fSenha'].forEach((f) => { $('#' + f).hidden = f !== id; }); const first = $('#' + id + ' input'); if (first) setTimeout(() => first.focus(), 50); }
 function msg(id, t, ok){ const el = $('#' + id); el.textContent = t || ''; el.classList.toggle('ok', !!ok); }
 async function pedirCodigo(){
-  L.tel = digitos($('#tel').value);
+  L.tel = telLogin($('#tel').value);
   if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
   msg('mTel', 'Mandando o código…', true);
   try{
@@ -487,7 +489,7 @@ $('#bReenviar').addEventListener('click', async () => { msg('mCod', 'Reenviando�
 $('#bVoltar1').addEventListener('click', () => mostraForm('fTel'));
 $('#fTel').addEventListener('submit', async (e) => {
   e.preventDefault();
-  L.tel = digitos($('#tel').value);
+  L.tel = telLogin($('#tel').value);
   const senha = $('#senha').value;
   if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
   if (!senha){ msg('mTel', 'Digite a sua senha. Ainda não tem? Toque em "Primeiro acesso".'); return; }
