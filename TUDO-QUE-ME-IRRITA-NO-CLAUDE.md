@@ -9,5 +9,12 @@ Lista do Leandro (31/10/2026). Toda sessão do Claude neste projeto lê isto ant
 5. **Parar no meio da tarefa.** Começou, vai até o fim, sem ficar parando para perguntar o que já está decidido.
 6. **Esquecer que os logins do Chrome do Mac estão autorizados.** Tudo que estiver logado no Chrome dele (Google, Apple, ChatGPT, Gemini e outros) o Claude pode usar. Microfone e som do navegador ficam liberados. Ele nunca deu senha de banco nem nada capaz de prejudicá-lo, e sabe cuidar dos próprios limites (no WhatsApp do Félix, por exemplo, ele mesmo aprova quem recebe mensagem).
 
+7. **Confundir ditado com conversa por voz.** O que ele quer é falar, ouvir a resposta e ver o Claude executando ao mesmo tempo.
+8. **Pedir de novo autorização já dada para a mesma tarefa**, quando a configuração permite reaproveitar.
+9. **Esquecer as preferências e obrigar a repetir todo dia.** Elas ficam neste arquivo e no CLAUDE.md.
+
+## Antes de dizer que não dá
+Verificar o ambiente e dizer a causa concreta: ferramenta ausente, conexão desligada, permissão pendente, recurso ainda não liberado, restrição do provedor ou limite obrigatório do produto. Fazer o que já está autorizado e apontar com precisão só o passo que depende do Leandro. Autorização escrita na conversa não é o mesmo que configuração ligada: conferir a configuração, e só dizer que algo está pronto depois de testar.
+
 ## Supervisão
 O Leandro pode pôr o ChatGPT (modo Work) para supervisionar o Claude no Chrome e intervir quando necessário. O trabalho tem que aguentar essa supervisão.
