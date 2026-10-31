@@ -1,0 +1,15 @@
+# Soma o consumo mensal de tokens a partir do JSON do mês (uso: python3 resumo.py 2026-10.json [orcamento_tokens])
+import json, sys
+d = json.load(open(sys.argv[1]))
+orc = float(sys.argv[2]) if len(sys.argv) > 2 else d.get('orcamento_mensal_tokens')
+com = [s for s in d['sessoes'] if not s.get('sem_dados')]
+soma = lambda k: sum(s.get(k) or 0 for s in com)
+novos = soma('entrada') + soma('saida') + soma('cache_escrita')
+total = novos + soma('cache_leitura')
+custo = sum(s['custo_usd'] for s in com if s.get('custo_usd') is not None)
+print(f"Mês {d['mes']} · {len(com)} sessões com dados, {len(d['sessoes']) - len(com)} sem dados")
+print(f"Entrada {soma('entrada'):,} · Saída {soma('saida'):,} · Cache escrito {soma('cache_escrita'):,} · Cache lido {soma('cache_leitura'):,}".replace(',', '.'))
+print(f"Tokens processados (tudo): {total:,}".replace(',', '.'))
+print(f"Tokens novos (sem cache lido): {novos:,}".replace(',', '.'))
+print(f"Custo de referência informado: US$ {custo:.2f} (sessões de nuvem)")
+print(f"Percentual do mês: {100 * total / orc:.1f}% de {orc:,.0f} tokens".replace(',', '.') if orc else "Percentual do mês: indisponível (falta o orçamento mensal de tokens)")
