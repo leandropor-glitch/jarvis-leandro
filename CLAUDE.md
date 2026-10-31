@@ -11,6 +11,9 @@ Chamar alguém pelo nome errado é ofensa. Vale para todos os Félix (GEN, FULL,
   - na voz dos áudios do WhatsApp: o nó Gemini TTS troca Felyx por Félix e Vinci por Víntchi nos workflows "Felyx — WhatsApp" e "Felyx — mandar áudio".
   - Página ou fluxo novo que fale precisa ter a mesma regra.
 
+## Como trabalhar com o Leandro
+Leia `TUDO-QUE-ME-IRRITA-NO-CLAUDE.md` antes de responder. Resumo: trabalho ao vivo, o Claude faz (clica, digita, abre o Chrome, o terminal ou um site) em vez de passar a tarefa de volta; nunca "não consigo" antes de tentar; vai até o fim da tarefa.
+
 ## Outras regras
 - Segurança (câmeras, fechaduras, maçanetas, alarmes): só com API oficial do fabricante. Biblioteca não oficial nunca, porque está em jogo o nome, a marca e a reputação do Leandro.
 - Alerta de bebê ou de câmera: alarme alto e imagem da câmera na hora, sem conversa com o Félix.
