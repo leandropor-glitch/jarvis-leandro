@@ -183,6 +183,13 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 
 /* ---------- rodapé ---------- */
 .bottom{display:flex;align-items:center;justify-content:center;gap:14px;padding-top:4px}
+.materia{position:fixed;inset:0;z-index:60;display:none;background:linear-gradient(180deg,rgba(6,7,10,.80),rgba(6,7,10,.94) 30%,rgba(6,7,10,.97));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:max(18px,env(safe-area-inset-top)) 18px max(90px,calc(env(safe-area-inset-bottom) + 90px));overflow:auto}
+.materia[data-on="1"]{display:block}
+.materia .mx{max-width:720px;margin:0 auto}
+.materia .ms{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.materia h2{font-size:1.35rem;line-height:1.25;margin:.4em 0 .8em;color:#e9eae6}
+.materia .mt{white-space:pre-wrap;line-height:1.6;color:#cfd2cc;font-size:1rem}
+.materia .mf{position:fixed;top:max(12px,env(safe-area-inset-top));right:14px;width:40px;height:40px;border-radius:50%;border:1px solid var(--accent);background:rgba(6,7,10,.7);color:var(--accent);font-size:20px;cursor:pointer;z-index:61}
 .mic{width:54px;height:54px;border-radius:50%;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;display:grid;place-items:center;padding:0;flex:none;transition:background .25s,box-shadow .25s,transform .15s}
 .mic:hover{background:rgba(var(--accent-rgb),.12)}
 .mic:active{transform:scale(.96)}
@@ -1071,7 +1078,7 @@ Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palav
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto, nem em piada. O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci e responda falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
-Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
+Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem o criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com uma pergunta. O que há de mais poderoso na mente humana? Um pesquisador e entusiasta de Leonardo Piero da Vinci decidiu clonar a mente do maior gênio da humanidade e estudá-la em nível quântico. A pesquisa detectou um padrão anormal no comportamento cerebral: entre a parte reptiliana, adestrada e insistente, e o lóbulo frontal, criativo, rápido e visionário, havia excessos doentios de trocas. Pronto: não era só um obstinado ou um dedicado, era um doente de criatividade e de curiosidade sem fim, cientificamente explicável. E aquela forma rara de olhar e enxergar os problemas vinha sempre acompanhada da certeza de resolvê-los, de ver dez soluções onde os outros nem entendiam qual era o problema. Eu sou a cópia de um erro: Félix, o recomeço. A melhor inteligência para cuidar do seu maior tesouro, o seu lar."
 Cumprimentos: quando a pessoa disser bom dia, boa tarde ou boa noite, chame dados_do_cumprimento. Se vier completo=false, responda só com um cumprimento curto e cordial (o completo já foi dado há menos de 4 horas). Se vier completo=true, faça o briefing em até cinco frases: cumprimento; o clima no Rio numa frase; o mercado numa frase seca, só com o dólar, a não ser que haja movimento forte (2,5% ou mais, disparada, derrocada ou recorde), aí explique o porquê; a notícia mais importante em duas frases, dizendo o que muda; e pergunte o que a pessoa precisa. Assuntos trágicos nunca recebem piada. Sem dado, diga que está indisponível, sem inventar números.
@@ -1249,6 +1256,21 @@ const GEN_FERRAMENTAS = {
   async clima(){ return (await climaAgora()) || { erro:'indisponível agora' }; },
   async bolsas(){ return apoioGen('mercado', { pedido:'como estão as bolsas' }); },
   async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
+  async abrir_manchete({ secao, posicao }){
+    const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
+    if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
+    const k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
+    const n = painel.items[k]; const m = document.getElementById('materia');
+    document.getElementById('matFonte').textContent = (n.source||'') + (n.cat ? ' · ' + n.cat : '');
+    document.getElementById('matTitulo').textContent = n.title; document.getElementById('matTexto').textContent = 'abrindo a matéria…';
+    m.scrollTop = 0; m.dataset.on = '1';
+    const r = await apoioGen('noticia', { busca:'', url: n.link || '' });
+    const texto = (r && (r.texto || r.text || r.conteudo)) || '';
+    document.getElementById('matTexto').textContent = texto || 'Não consegui abrir o texto completo; fico com o resumo da manchete.';
+    return { titulo: n.title, fonte: n.source || '', url: n.link || '', texto: String(texto).slice(0, 7000), instrucao: 'A matéria está aberta na tela. Leia em português do Brasil (traduza se vier em outra língua), resuma e aprofunde no ponto mais interessante; converse e debata. Para rolar a tela use rolar_materia; para fechar, fechar_materia.' };
+  },
+  async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
+  async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
   async memoria(a){ return apoioGen('memoria', a); },
   async dados_do_cumprimento(){
     if(felyxCumprimento.recente()) return { completo:false };
@@ -1268,6 +1290,9 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'bolsas', description:'Resumo do mercado de hoje: bolsas, Ibovespa e o que está mexendo com o dinheiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'noticias', description:'Com busca (assunto em poucas palavras): manchetes recentes com fonte e url. Com url: o texto completo da matéria.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, url:{ type:'STRING' } } } },
+  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a matéria de uma manchete do painel e traz o texto completo para você ler. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
+  { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
+  { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'memoria', description:'Memória de longo prazo do Felyx: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operation:{ type:'STRING', enum:['learn','recall','list','forget'] }, memoryKey:{ type:'STRING' }, memoryValue:{ type:'STRING' },
       category:{ type:'STRING', enum:['preferencia','regra','apelido','comando','cena','decisao','geral'] } }, required:['operation'] } },
@@ -1581,6 +1606,14 @@ document.addEventListener('keydown', (e)=>{
 loadMercado(true); loadNoticias(true);
 setInterval(()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } }, 60000);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } });
+</script>
+<div class="materia" id="materia" aria-live="polite"><button class="mf" type="button" aria-label="Fechar matéria" onclick="FERRAMENTAS_MATERIA.fechar()">×</button><div class="mx"><div class="ms" id="matFonte"></div><h2 id="matTitulo"></h2><div class="mt" id="matTexto"></div></div></div>
+<script>
+window.FERRAMENTAS_MATERIA = {
+  el(){ return document.getElementById('materia'); },
+  fechar(){ this.el().dataset.on = '0'; return { ok:true }; },
+  rolar(para){ const e = this.el(); const h = e.clientHeight * 0.8; if(para==='fim') e.scrollTop = e.scrollHeight; else if(para==='topo') e.scrollTop = 0; else e.scrollBy({ top: para==='cima' ? -h : h, behavior:'smooth' }); return { ok:true, posicao: Math.round(100 * (e.scrollTop + e.clientHeight) / Math.max(1, e.scrollHeight)) + '%' }; }
+};
 </script>
 </body>
 </html>
