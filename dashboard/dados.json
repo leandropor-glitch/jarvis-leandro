@@ -1,0 +1,143 @@
+{
+ "atualizado": "2026-11-01T09:40:00-03:00",
+ "claude": {
+  "plano": "Pro",
+  "sessao_pct": 88,
+  "semana_pct": 99,
+  "renova_sessao": "2026-11-01T12:10:00-03:00",
+  "renova_semana": "2026-11-03T08:00:00-03:00",
+  "por_produto": {
+   "Claude Code": 79,
+   "Cowork": 19,
+   "Conversas": 1,
+   "Outro": 1
+  }
+ },
+ "n8n": {
+  "plano": "Pro",
+  "limite_mes": 10000,
+  "execucoes_mes": 160,
+  "renova": "2026-11-03",
+  "por_hora": [
+   [
+    "00h",
+    20
+   ],
+   [
+    "01h",
+    15
+   ],
+   [
+    "02h",
+    14
+   ],
+   [
+    "03h",
+    15
+   ],
+   [
+    "04h",
+    15
+   ],
+   [
+    "05h",
+    14
+   ],
+   [
+    "06h",
+    15
+   ],
+   [
+    "07h",
+    16
+   ],
+   [
+    "08h",
+    33
+   ]
+  ],
+  "base_por_hora": 14
+ },
+ "apis_30d": [
+  {
+   "nome": "Anthropic (cérebro do Félix)",
+   "uso": "7,35 mi tokens de entrada · 120 mil de saída",
+   "custo": "US$ 6,53",
+   "saldo": "US$ 13,83"
+  },
+  {
+   "nome": "OpenAI",
+   "uso": "1,67 mi tokens · 334 pedidos",
+   "custo": "US$ 0,00 em nov (limite US$ 100)",
+   "saldo": "US$ 9,75"
+  },
+  {
+   "nome": "Gemini (voz)",
+   "uso": "até 32 pedidos/dia · nível gratuito",
+   "custo": "US$ 0",
+   "saldo": "erros 429 de limite"
+  }
+ ],
+ "renovacoes": [
+  {
+   "servico": "n8n Pro",
+   "data": "2026-11-03",
+   "valor": "R$ 375"
+  },
+  {
+   "servico": "Claude — semana",
+   "data": "2026-11-03",
+   "valor": "limite semanal"
+  },
+  {
+   "servico": "LiveAvatar Essential",
+   "data": "2026-11-06",
+   "valor": "US$ 99"
+  },
+  {
+   "servico": "Google AI Pro",
+   "data": "2026-11-08",
+   "valor": "R$ 96,99"
+  },
+  {
+   "servico": "ChatGPT Plus (Pix)",
+   "data": "2026-11-11",
+   "valor": "R$ 103,40"
+  },
+  {
+   "servico": "CapCut Pro",
+   "data": "2026-11-11",
+   "valor": "—"
+  },
+  {
+   "servico": "GoDaddy e-mail suporte@",
+   "data": "2026-11-20",
+   "valor": "—"
+  },
+  {
+   "servico": "Claude Pro",
+   "data": "2026-11-21",
+   "valor": "R$ 110"
+  },
+  {
+   "servico": "iCloud+ 2 TB",
+   "data": "2026-11-25",
+   "valor": "R$ 66,90"
+  },
+  {
+   "servico": "Apple Developer",
+   "data": "2027-02-22",
+   "valor": "US$ 99"
+  },
+  {
+   "servico": "Wix Premium",
+   "data": "2027-04-12",
+   "valor": "—"
+  },
+  {
+   "servico": "Domínio vinciautomacao.com (Wix)",
+   "data": "2027-10-05",
+   "valor": "—"
+  }
+ ]
+}
