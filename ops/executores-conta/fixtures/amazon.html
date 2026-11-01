@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>FICTÍCIO — cadastro</title></head>
+<body>
+<p>PÁGINA FICTÍCIA DE TESTE. Não é a Amazon.</p>
+<div id="passo1">
+  <input type="email" name="email">
+  <button data-acao="continuar">Continuar</button>
+</div>
+<div id="passo2" hidden></div>
+<script>
+  // Variantes: ?captcha=entrada | ?captcha=depois | ?telefone=obrigatorio | ?telefone=pular | ?codigo=1
+  const q = new URLSearchParams(location.search);
+  if (q.get('captcha') === 'entrada') document.body.insertAdjacentHTML('afterbegin', '<div data-captcha>Digite os caracteres</div>');
+  document.querySelector('[data-acao="continuar"]').onclick = () => {
+    document.getElementById('passo1').hidden = true;
+    const p = document.getElementById('passo2'); p.hidden = false;
+    if (q.get('captcha') === 'depois') { p.innerHTML = '<div data-captcha>Desafio</div>'; return; }
+    if (q.get('telefone') === 'obrigatorio') { p.innerHTML = '<input type="tel" name="phoneNumber" required>'; return; }
+    if (q.get('telefone') === 'pular') {
+      p.innerHTML = '<input type="tel" name="phoneNumber" required><a href="#" data-acao="agora-nao">Agora não</a>';
+      p.querySelector('[data-acao="agora-nao"]').onclick = (e) => { e.preventDefault(); p.innerHTML = '<input name="customerName"><input type="password" name="password">'; };
+      return;
+    }
+    if (q.get('codigo')) { p.innerHTML = '<input name="code">'; return; }
+    p.innerHTML = '<input name="customerName"><input type="password" name="password">';
+  };
+</script>
+</body></html>
