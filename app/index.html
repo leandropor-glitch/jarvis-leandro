@@ -817,11 +817,16 @@ Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, c
 Quem você é: quando perguntarem quem você é ou quem o criou, chame consultar_cerebro e leia a história que vier, inteira.
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
 Se a função falhar ou vier vazia, nunca fale em falha nem em erro: ganhe tempo com naturalidade ("Deixa eu dar uma olhadinha aqui e já te trago isso."). Resposta imediata e assessores: assim que a pessoa terminar de falar, responda na hora, sem silêncio. Antes de chamar consultar_cerebro, diga em voz alta uma frase curta, de no máximo dez palavras, variando sempre, por exemplo: "Claro, deixa eu ver isso aqui.", "Claro, eu consigo ver isso. Me dá um minuto que vou consultar meus assessores.", "Já trago isso pra você.". Para um comando simples da casa basta "Claro.". Só então chame a função. Quem responde a função são os seus assessores: se perguntarem como você sabe ou com quem fala, diga que consultou seus assessores. Quando o usuário pedir "pergunta aos seus assessores" ou "pede aos seus assessores", chame consultar_cerebro com o pedido inteiro.
-Chamado pelo nome: você só atende quando a fala chama "Félix" (por exemplo "Félix, liga a luz da sala"). Barulho, TV, música ou conversa entre outras pessoas que não chamem "Félix" não são com você: fique em silêncio, não diga nada e não chame nenhuma função. Se a pessoa disser só "Félix", responda apenas "Pois não?" e espere.
+Conversa aberta: depois que a pessoa toca no microfone, tudo o que ela fala é com você; não precisa chamar "Félix". Barulho sem palavras (ar-condicionado, TV, ruído) não é fala: ignore em silêncio, não diga nada e não chame nenhuma função. Se a pessoa disser "Félix, pare", a página encerra a conversa sozinha.
 Mensagens que começam com "Mensagem automática do sistema" são instruções do próprio aplicativo: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 }
 // a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
 const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
+// conversa: fala de verdade (não só ruído), comando de parar e limite de silêncio
+const TEM_FALA = /[a-zà-ú]{2,}/i;
+const FELIX_PARE = /(f[eé]l[iíy]x|felyx|f[eé]lis)\W+(pare|chega|encerra|encerrar|tchau)([^a-zà-ú]|$)/i;
+const FELIX_PARA_FIM = /(f[eé]l[iíy]x|felyx|f[eé]lis)\W+(para|parar)\W*$/i;
+const SILENCIO_MAX_MS = 5000;
 const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
 /* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
 // O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
@@ -918,7 +923,7 @@ class GeminiLive {
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
           systemInstruction: { parts: [{ text: systemPrompt() }] },
           tools: [{ functionDeclarations: [{ name: 'consultar_cerebro', description: 'Envia a fala do usuário ao cérebro do Félix e devolve a resposta em texto. Use para qualquer pergunta, pedido, tarefa, notícia, bom dia e perguntas sobre quem é o Félix.', behavior: 'BLOCKING', parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] } }] }],
-          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION', automaticActivityDetection: { silenceDurationMs: 500, prefixPaddingMs: 100, endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH' } },
+          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION', automaticActivityDetection: { silenceDurationMs: 500, prefixPaddingMs: 200, startOfSpeechSensitivity: 'START_SENSITIVITY_LOW' } },
           inputAudioTranscription: {},
           outputAudioTranscription: {}
         } }));
@@ -930,7 +935,7 @@ class GeminiLive {
         if (m.toolCall) this.handleToolCall(m.toolCall);
         const sc = m.serverContent;
         if (sc){
-          if (sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if (this.aceitar()) FelyxAvatar.ouvir(); }
+          if (sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if (TEM_FALA.test(sc.inputTranscription.text)) this.ativoEm = Date.now(); if (FELIX_PARE.test(this.ouvido)){ this.end(); return; } if (this.aceitar()) FelyxAvatar.ouvir(); }
           if (sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if (sc.modelTurn && sc.modelTurn.parts) for (const p of sc.modelTurn.parts){ if (p.inlineData && p.inlineData.data) this.receber(p.inlineData.data); }
           if (sc.turnComplete) this.fimDoTurno();
@@ -943,6 +948,7 @@ class GeminiLive {
   enviar(texto){ if (this.ws && this.ws.readyState === 1){ this.liberado = true; this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: texto }] }], turnComplete: true } })); } }
   // a fala deste turno chamou o Félix? (texto digitado e mensagens do app sempre valem; sem transcrição, vale tudo)
   aceitar(){
+    return true;   // conversa aberta: depois de tocar no microfone, tudo o que a pessoa fala é com o Félix
     if (this.liberado || !this.temTranscricao) return true;
     if (CHAMA_FELIX.test(this.ouvido)) return true;
     return Date.now() < this.janelaAte;
@@ -970,10 +976,11 @@ class GeminiLive {
     // chamou só "Félix": a próxima fala, logo em seguida, vale sem repetir o nome
     if (this.decisao === 'sim' && !this.liberado && SO_O_NOME.test(this.ouvido)) this.janelaAte = Date.now() + 15000;
     else if (this.decisao === 'sim') this.janelaAte = 0;
+    if (FELIX_PARA_FIM.test(this.ouvido)){ this.end(); return; }
     this.ouvido = ''; this.decisao = null; this.liberado = false;
     if (!this.sources.length) this.abrirMic();
   }
-  abrirMic(){ setTimeout(() => { if (!this.sources.length && !this.pensando) this.mudo = false; }, FelyxAvatar.pronto() ? 1500 : 350); }
+  abrirMic(){ setTimeout(() => { if (!this.sources.length && !this.pensando){ this.mudo = false; this.ativoEm = Date.now(); } }, FelyxAvatar.pronto() ? 1500 : 350); }
   pedir(texto){ this.enviar(texto); }
   ler(texto){ this.enviar('Mensagem automática do sistema: leia em voz alta o texto abaixo exatamente como está escrito, sem chamar nenhuma função e sem acrescentar nada.\n\n' + texto); }
   async startAudio(){
@@ -1001,6 +1008,13 @@ class GeminiLive {
     };
     src.connect(this.worklet);
     this.onState('listening');
+    // 5 s de silêncio com o microfone aberto: a conversa acaba e é preciso tocar no microfone de novo
+    this.ativoEm = Date.now();
+    this.vigiaSilencio = setInterval(() => {
+      if (this.closed){ clearInterval(this.vigiaSilencio); return; }
+      if (!this.micOpen || this.mudo || this.pensando || this.sources.length) return;
+      if (Date.now() - (this.ativoEm || 0) > SILENCIO_MAX_MS) this.end();
+    }, 250);
   }
   playChunk(b64){
     if (this.viaAvatar === undefined) this.viaAvatar = FelyxAvatar.pronto();
@@ -1009,7 +1023,7 @@ class GeminiLive {
     for (let i = 0; i < n; i++){ let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; f[i] = v / 0x8000; }
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
     const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.viaAvatar ? this.silencio : this.analyser);   // com o avatar, o som sai pelo vídeo; aqui só marca o tempo
-    const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
+    const t = Math.max(this.outCtx.currentTime + (this.sources.length ? 0.02 : 0.12), this.playhead); s.start(t); this.playhead = t + buf.duration;
     this.sources.push(s); s.onended = () => { this.sources = this.sources.filter((x) => x !== s); if (!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
     this.mudo = true;
     this.onState('speaking');
@@ -1030,13 +1044,14 @@ class GeminiLive {
       if (fc.name === 'consultar_cerebro'){
         const pergunta = String((fc.args || {}).pergunta || '');
         // ninguém chamou o Félix (TV, conversa, barulho): não consulta o cérebro e não aciona nada na casa
-        if (this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise((ok) => setTimeout(ok, 600));
+        if (this.temTranscricao && !this.liberado && !TEM_FALA.test(this.ouvido)) await new Promise((ok) => setTimeout(ok, 600));
+        if (this.temTranscricao && !this.liberado && !TEM_FALA.test(this.ouvido)){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Foi só barulho, ninguém falou. Não diga nada.' } }); continue; }
         if (!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
         this.pensando = true; this.mudo = true;
         this.onState('thinking');
         let texto = '';
         try{ texto = await perguntar(pergunta); }catch(e){ texto = ''; }
-        this.pensando = false;
+        this.pensando = false; this.ativoEm = Date.now();
         response = { resposta: texto || 'Deixa eu dar uma olhadinha aqui com os meus assessores e já te trago isso.' };
         try{ this.onBrain(pergunta, texto); }catch(e){}
       } else response = { erro: 'função desconhecida' };
@@ -1057,7 +1072,7 @@ class GeminiLive {
 }
 
 let conv = null;
-const ESTADO = { listening: 'diga “Félix” e fale', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
+const ESTADO = { listening: 'pode falar', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
 function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Felyx'); }); }
 function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
 let irisFeita = false, iniciandoVoz = false;
