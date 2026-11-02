@@ -454,6 +454,30 @@ function abrirExterno(url){
   try{ if (window.FelyxAndroid && window.FelyxAndroid.abrir){ window.FelyxAndroid.abrir(url); return; } }catch(e){}
   window.open(url, '_blank', 'noopener');
 }
+// "Félix, abre o globo.com": abre o site; se o navegador barrar a janela nova, deixa um botão grande na tela
+function enderecoSite(t){
+  let u = String(t || '').trim().toLowerCase().replace(/^(o|a)\s+/, '').replace(/\s+/g, '');
+  if (!u) return '';
+  if (!/^https?:\/\//.test(u)) { if (!/\./.test(u)) u += '.com'; u = 'https://' + u; }
+  return u;
+}
+function botaoSite(url){
+  let b = document.getElementById('felyxAbrirSite');
+  if (!b){ b = document.createElement('a'); b.id = 'felyxAbrirSite'; b.target = '_blank'; b.rel = 'noopener';
+    b.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:99999;background:#f5e13a;color:#111;font:700 18px/1 system-ui,sans-serif;padding:16px 26px;border-radius:999px;text-decoration:none;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+    b.addEventListener('click', () => setTimeout(() => b.remove(), 300)); document.body.appendChild(b); }
+  b.href = url; b.textContent = 'Abrir ' + url.replace(/^https?:\/\//, '');
+  clearTimeout(b._t); b._t = setTimeout(() => b.remove(), 60000);
+}
+function abrirSite(endereco){
+  const url = enderecoSite(endereco);
+  if (!url) return { ok: false, aviso: 'Pergunte qual site.' };
+  if (NATIVO){ abrirExterno(url); return { ok: true, aberto: url, instrucao: 'Diga em meia frase que abriu.' }; }
+  let w = null; try { w = window.open(url, '_blank'); if (w) w.opener = null; } catch (e) {}
+  if (w) return { ok: true, aberto: url, instrucao: 'Diga em meia frase que abriu.' };
+  botaoSite(url);
+  return { ok: true, aberto: url, instrucao: 'Diga só: "Pronto, está na tela, é só tocar."' };
+}
 document.addEventListener('click', (e) => { const a = e.target.closest('a[target="_blank"]'); if (a && NATIVO){ e.preventDefault(); abrirExterno(a.href); } });
 
 /* ===================== sessão ===================== */
@@ -816,7 +840,7 @@ Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a dig
 Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, notícias do painel, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, sem resumir, sem inventar e sem acrescentar nada.
 Quem você é: quando perguntarem quem você é ou quem o criou, chame consultar_cerebro e leia a história que vier, inteira.
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
-Se a função falhar ou vier vazia, nunca fale em falha nem em erro: ganhe tempo com naturalidade ("Deixa eu dar uma olhadinha aqui e já te trago isso."). Resposta imediata e assessores: assim que a pessoa terminar de falar, responda na hora, sem silêncio. Antes de chamar consultar_cerebro, diga em voz alta uma frase curta, de no máximo dez palavras, variando sempre, por exemplo: "Claro, deixa eu ver isso aqui.", "Claro, eu consigo ver isso. Me dá um minuto que vou consultar meus assessores.", "Já trago isso pra você.". Para um comando simples da casa basta "Claro.". Só então chame a função. Quem responde a função são os seus assessores: se perguntarem como você sabe ou com quem fala, diga que consultou seus assessores. Quando o usuário pedir "pergunta aos seus assessores" ou "pede aos seus assessores", chame consultar_cerebro com o pedido inteiro.
+Se a função falhar ou vier vazia, nunca fale em falha nem em erro: ganhe tempo com naturalidade ("Deixa eu dar uma olhadinha aqui e já te trago isso."). Nunca diga "não sei", "não consigo" nem "não é possível", e nunca fique em silêncio: você é a reengenharia do cérebro de Da Vinci e não reconhece o impossível. Diante de um pedido impossível ou absurdo, assuma o comando e devolva com perguntas firmes, com inteligência e um toque de bronca, por exemplo para "Félix, temos que lançar um foguete em 15 minutos": "Ok. Você já preparou tudo? O foguete é tripulado? A NASA autorizou? Vai lançar de qual base? Me avisar faltando 15 minutos é irresponsabilidade. Me diz tudo o que já foi feito, que eu te digo o que dá para fazer agora." Abrir site: quando pedirem para abrir um site ou página (ex.: "abre o globo.com"), chame abrir_site na hora com o endereço, sem consultar o cérebro, e diga em meia frase que abriu. Resposta imediata e assessores: assim que a pessoa terminar de falar, responda na hora, sem silêncio. Antes de chamar consultar_cerebro, diga em voz alta uma frase curta, de no máximo dez palavras, variando sempre, por exemplo: "Claro, deixa eu ver isso aqui.", "Claro, eu consigo ver isso. Me dá um minuto que vou consultar meus assessores.", "Já trago isso pra você.". Para um comando simples da casa basta "Claro.". Só então chame a função. Quem responde a função são os seus assessores: se perguntarem como você sabe ou com quem fala, diga que consultou seus assessores. Quando o usuário pedir "pergunta aos seus assessores" ou "pede aos seus assessores", chame consultar_cerebro com o pedido inteiro.
 Conversa aberta: depois que a pessoa toca no microfone, tudo o que ela fala é com você; não precisa chamar "Félix". Barulho sem palavras (ar-condicionado, TV, ruído) não é fala: ignore em silêncio, não diga nada e não chame nenhuma função. Se a pessoa disser "Félix, pare", a página encerra a conversa sozinha.
 Mensagens que começam com "Mensagem automática do sistema" são instruções do próprio aplicativo: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 }
@@ -922,7 +946,7 @@ class GeminiLive {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
           systemInstruction: { parts: [{ text: systemPrompt() }] },
-          tools: [{ functionDeclarations: [{ name: 'consultar_cerebro', description: 'Envia a fala do usuário ao cérebro do Félix e devolve a resposta em texto. Use para qualquer pergunta, pedido, tarefa, notícia, bom dia e perguntas sobre quem é o Félix.', behavior: 'BLOCKING', parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] } }] }],
+          tools: [{ functionDeclarations: [{ name: 'consultar_cerebro', description: 'Envia a fala do usuário ao cérebro do Félix e devolve a resposta em texto. Use para qualquer pergunta, pedido, tarefa, notícia, bom dia e perguntas sobre quem é o Félix.', behavior: 'BLOCKING', parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] } }, { name: 'abrir_site', description: 'Abre um site na tela (ex.: globo.com, youtube.com, g1). Use sempre que pedirem para abrir um site ou página.', parameters: { type: 'OBJECT', properties: { endereco: { type: 'STRING', description: 'Endereço do site, ex.: globo.com' } }, required: ['endereco'] } }] }],
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION', automaticActivityDetection: { silenceDurationMs: 500, prefixPaddingMs: 200, startOfSpeechSensitivity: 'START_SENSITIVITY_LOW' } },
           inputAudioTranscription: {},
           outputAudioTranscription: {}
@@ -1054,7 +1078,8 @@ class GeminiLive {
         this.pensando = false; this.ativoEm = Date.now();
         response = { resposta: texto || 'Deixa eu dar uma olhadinha aqui com os meus assessores e já te trago isso.' };
         try{ this.onBrain(pergunta, texto); }catch(e){}
-      } else response = { erro: 'função desconhecida' };
+      } else if (fc.name === 'abrir_site'){ response = abrirSite((fc.args || {}).endereco); }
+      else response = { erro: 'função desconhecida' };
       out.push({ id: fc.id, name: fc.name, response });
     }
     if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: out } }));
