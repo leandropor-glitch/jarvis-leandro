@@ -75,7 +75,13 @@ main { max-width: 820px; margin: 0 auto; padding: 12px 16px 40px; }
 </div>
 
 <script>
-const API = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/site-ler';
+const NUVEM = 'https://vinciautomacao.app.n8n.cloud/webhook';
+// O n8n local do Mac Mini atende pelo túnel; o endereço muda a cada reinício, então a nuvem só diz onde ele está.
+let API = '';
+async function descobrir() {
+  try { const r = await fetch(NUVEM + '/felix/onde-local'); const d = await r.json(); if (d.url) return (API = d.url + '/webhook/felix/site-ler'); } catch (e) {}
+  return (API = NUVEM + '/felix/site-ler');
+}
 const QUEM = {
   janete: { nome: 'Janete', cor: 'var(--janete)' },
   claude: { nome: 'Claude', cor: 'var(--claude)' },
@@ -93,7 +99,10 @@ function guardada() { try { return localStorage.getItem('conselho-senha') || '';
 function guardar(s) { try { s ? localStorage.setItem('conselho-senha', s) : localStorage.removeItem('conselho-senha'); } catch (e) {} }
 
 async function buscar() {
-  const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ senha, quadro: 'conselho' }) });
+  const pedir = () => fetch(API, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ senha, quadro: 'conselho' }) });
+  if (!API) await descobrir();
+  let r;
+  try { r = await pedir(); if (r.status >= 500) throw new Error('local'); } catch (e) { await descobrir(); r = await pedir(); }
   if (r.status === 401) throw new Error('senha');
   if (!r.ok) throw new Error('rede');
   return r.json();
