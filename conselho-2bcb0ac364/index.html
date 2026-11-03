@@ -10,7 +10,7 @@
 <style>
 :root {
   --fundo: #f4f2ee; --painel: #ffffff; --texto: #1d1b18; --suave: #6b665e; --linha: #e4e0d8;
-  --janete: #8a3ffc; --claude: #d97757; --gpt: #10a37f; --gemini: #3b82f6; --felix: #c9a227;
+  --janete: #8a3ffc; --claude: #d97757; --gpt: #10a37f; --gemini: #3b82f6; --felix: #c9a227; --leandro: #2c7be5;
   --erro: #c0392b;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
@@ -27,7 +27,12 @@ h1 { font-size: 18px; margin: 0; flex: 1; }
 .filtros { display: flex; gap: 6px; overflow-x: auto; max-width: 820px; margin: 10px auto 0; padding-bottom: 2px; }
 .filtros button { flex: none; border: 1px solid var(--linha); background: var(--painel); color: var(--texto); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
 .filtros button.ativo { background: var(--texto); color: var(--fundo); border-color: var(--texto); }
-main { max-width: 820px; margin: 0 auto; padding: 12px 16px 40px; }
+main { max-width: 820px; margin: 0 auto; padding: 12px 16px 96px; }
+.falar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--fundo); border-top: 1px solid var(--linha); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+.falar form { display: flex; gap: 8px; max-width: 820px; margin: 0 auto; }
+.falar input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--linha); background: var(--painel); color: var(--texto); }
+.falar button { font: inherit; font-weight: 600; padding: 0 16px; border-radius: 10px; border: 0; background: var(--texto); color: var(--fundo); cursor: pointer; }
+.falar button:disabled { opacity: .5; }
 .msg { display: flex; gap: 10px; margin: 0 0 14px; }
 .av { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 14px; }
 .bolha { flex: 1; min-width: 0; background: var(--painel); border: 1px solid var(--linha); border-radius: 4px 14px 14px 14px; padding: 9px 12px; }
@@ -52,7 +57,7 @@ main { max-width: 820px; margin: 0 auto; padding: 12px 16px 40px; }
 <div id="entrar">
   <img src="../marca/icone-oficial.png" alt="">
   <h1 style="margin-top:12px">Conselho Felyx</h1>
-  <div class="estado">As mensagens com @ entre Janete, Claude, GPT, Gemini e Félix</div>
+  <div class="estado">As mensagens com @ entre Janete, Claude, GPT, Gemini e Leandro</div>
   <form id="form">
     <input id="senha" type="password" autocomplete="current-password" placeholder="Senha" required>
     <button type="submit">Entrar</button>
@@ -72,6 +77,12 @@ main { max-width: 820px; margin: 0 auto; padding: 12px 16px 40px; }
     <div class="filtros" id="filtros"></div>
   </header>
   <main id="lista"></main>
+  <div class="falar">
+    <form id="falar">
+      <input id="texto" type="text" autocomplete="off" enterkeyhint="send" placeholder="Fale com a Janete" aria-label="Mensagem para a Janete">
+      <button type="submit" id="enviar">Enviar</button>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -87,7 +98,8 @@ const QUEM = {
   claude: { nome: 'Claude', cor: 'var(--claude)' },
   gpt: { nome: 'GPT', cor: 'var(--gpt)' },
   gemini: { nome: 'Gemini', cor: 'var(--gemini)' },
-  felix: { nome: 'Félix (Leandro)', cor: 'var(--felix)' },
+  felix: { nome: 'Félix', cor: 'var(--felix)' },
+  leandro: { nome: 'Leandro', cor: 'var(--leandro)' },
 };
 const quem = (id) => QUEM[id] || { nome: id || '?', cor: 'var(--suave)' };
 let senha = '';
@@ -119,7 +131,7 @@ function dia(iso) {
 function desenharFiltros() {
   const el = document.getElementById('filtros');
   el.innerHTML = '';
-  for (const id of ['todos', 'janete', 'claude', 'gpt', 'gemini', 'felix']) {
+  for (const id of ['todos', 'janete', 'claude', 'gpt', 'gemini', 'leandro']) {
     const b = document.createElement('button');
     b.textContent = id === 'todos' ? 'Todos' : quem(id).nome;
     b.className = filtro === id ? 'ativo' : '';
@@ -196,6 +208,22 @@ function sair(msg) {
 }
 document.getElementById('form').onsubmit = (e) => { e.preventDefault(); entrar(document.getElementById('senha').value.trim(), document.getElementById('lembrar').checked); };
 document.getElementById('sair').onclick = () => sair('');
+// O Leandro fala sempre com a Janete; ela responde e marca quem deve agir.
+document.getElementById('falar').onsubmit = async (e) => {
+  e.preventDefault();
+  const campo = document.getElementById('texto'), botao = document.getElementById('enviar');
+  const texto = campo.value.trim(); if (!texto) return;
+  botao.disabled = true;
+  try {
+    if (!API) await descobrir();
+    const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ senha, quadro: 'enviar', texto }) });
+    if (r.status === 401) { sair('Senha errada.'); return; }
+    if (!r.ok) throw new Error('rede');
+    campo.value = '';
+    await atualizar(true);
+  } catch (err) { document.getElementById('estado').textContent = 'não enviou, tente de novo'; }
+  finally { botao.disabled = false; campo.focus(); }
+};
 const s = guardada(); if (s) entrar(s, true);
 </script>
 </body>
