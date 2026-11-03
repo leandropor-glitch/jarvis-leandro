@@ -144,7 +144,8 @@ function desenharLimites(lista) {
     const h = el('h3'); const p = el('span', 'ponto'); p.style.background = COR[svc] || 'var(--suave)'; h.append(p, document.createTextNode(svc));
     c.appendChild(h);
     const pz = el('div', 'pizzas');
-    for (const l of linhas) pz.appendChild(pizza(l.pct, PERIODO[l.periodo] || l.periodo, l.estado === 'sem_limite' ? 'sem limite' : 'sem medidor'));
+    // Sem a pizza do dia: o Leandro pediu (03/11). Só sessão, semana e mês.
+    for (const l of linhas.filter((x) => x.periodo !== 'dia')) pz.appendChild(pizza(l.pct, PERIODO[l.periodo] || l.periodo, l.estado === 'sem_limite' ? 'sem limite' : 'sem medidor'));
     c.appendChild(pz);
     const medido = linhas.find((l) => l.estado === 'medido');
     if (medido) c.appendChild(el('div', 'nota', medido.detalhe + ' · lido ' + medido.lido_em));
