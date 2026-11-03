@@ -33,6 +33,8 @@ main { max-width: 820px; margin: 0 auto; padding: 12px 16px 96px; }
 .falar input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--linha); background: var(--painel); color: var(--texto); }
 .falar button { font: inherit; font-weight: 600; padding: 0 16px; border-radius: 10px; border: 0; background: var(--texto); color: var(--fundo); cursor: pointer; }
 .falar button:disabled { opacity: .5; }
+.falar .mic { padding: 0 12px; background: var(--painel); color: var(--texto); border: 1px solid var(--linha); font-size: 18px; }
+.falar .mic.gravando { background: #c8463b; color: #fff; border-color: #c8463b; }
 .msg { display: flex; gap: 10px; margin: 0 0 14px; }
 .av { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 14px; }
 .bolha { flex: 1; min-width: 0; background: var(--painel); border: 1px solid var(--linha); border-radius: 4px 14px 14px 14px; padding: 9px 12px; }
@@ -79,7 +81,8 @@ main { max-width: 820px; margin: 0 auto; padding: 12px 16px 96px; }
   <main id="lista"></main>
   <div class="falar">
     <form id="falar">
-      <input id="texto" type="text" autocomplete="off" enterkeyhint="send" placeholder="Fale com a Janete" aria-label="Mensagem para a Janete">
+      <button type="button" class="mic" id="mic" aria-label="Falar" title="Falar">🎙</button>
+      <input id="texto" type="text" autocomplete="off" enterkeyhint="send" placeholder="Fale com a Janete (ou @Gemini, @Claude…)" aria-label="Mensagem para o Conselho">
       <button type="submit" id="enviar">Enviar</button>
     </form>
   </div>
@@ -209,6 +212,23 @@ function sair(msg) {
 document.getElementById('form').onsubmit = (e) => { e.preventDefault(); entrar(document.getElementById('senha').value.trim(), document.getElementById('lembrar').checked); };
 document.getElementById('sair').onclick = () => sair('');
 // O Leandro fala sempre com a Janete; ela responde e marca quem deve agir.
+// Microfone: o navegador transcreve em português; o Leandro confere e aperta Enter.
+(() => {
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition, botao = document.getElementById('mic'), campo = document.getElementById('texto');
+  if (!R) { botao.hidden = true; return; }
+  let rec = null, base = '';
+  const parar = () => { if (rec) rec.stop(); };
+  botao.onclick = () => {
+    if (rec) return parar();
+    rec = new R(); rec.lang = 'pt-BR'; rec.continuous = true; rec.interimResults = true;
+    base = campo.value ? campo.value.trim() + ' ' : '';
+    rec.onresult = (ev) => { let t = ''; for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript; campo.value = (base + t.replace(/\barroba\s+/gi, '@')).replace(/\s+/g, ' ').trimStart(); };
+    rec.onend = () => { rec = null; botao.classList.remove('gravando'); campo.focus(); };
+    rec.onerror = () => parar();
+    botao.classList.add('gravando'); rec.start();
+  };
+  document.getElementById('falar').addEventListener('submit', parar, true);
+})();
 document.getElementById('falar').onsubmit = async (e) => {
   e.preventDefault();
   const campo = document.getElementById('texto'), botao = document.getElementById('enviar');
