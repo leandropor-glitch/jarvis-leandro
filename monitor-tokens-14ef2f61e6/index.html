@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Monitor de Tokens</title>
+<link rel="icon" href="../marca/icone-oficial.png">
+<style>
+:root {
+  --fundo: #f4f2ee; --painel: #ffffff; --texto: #1d1b18; --suave: #6b665e; --linha: #e4e0d8; --trilho: #ebe7df;
+  --ok: #2f9e6b; --atencao: #d39b1c; --perigo: #c8463b; --erro: #c0392b;
+  --claude: #d97757; --gpt: #10a37f; --gemini: #3b82f6; --avatar: #8a3ffc; --n8n: #ea4b71;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fundo: #121110; --painel: #1c1a18; --texto: #f1ede6; --suave: #a39e95; --linha: #2e2b27; --trilho: #2b2825;
+} }
+:root[data-theme="dark"] { --fundo: #121110; --painel: #1c1a18; --texto: #f1ede6; --suave: #a39e95; --linha: #2e2b27; --trilho: #2b2825; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--fundo); color: var(--texto); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+header { border-bottom: 1px solid var(--linha); padding: 12px 16px; }
+.topo { display: flex; align-items: center; gap: 10px; max-width: 980px; margin: 0 auto; }
+.topo img { width: 32px; height: 32px; border-radius: 8px; }
+h1 { font-size: 18px; margin: 0; flex: 1; }
+h2 { font-size: 15px; margin: 26px 0 10px; color: var(--suave); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.estado { font-size: 12px; color: var(--suave); }
+main { max-width: 980px; margin: 0 auto; padding: 4px 16px 48px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.cartao { background: var(--painel); border: 1px solid var(--linha); border-radius: 14px; padding: 14px; }
+.cartao h3 { margin: 0 0 2px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.ponto { width: 10px; height: 10px; border-radius: 50%; }
+.plano { font-size: 12px; color: var(--suave); margin-bottom: 10px; }
+.pizzas { display: flex; gap: 10px; justify-content: space-around; flex-wrap: wrap; }
+.pizza { text-align: center; font-size: 12px; color: var(--suave); width: 96px; }
+.pizza svg { display: block; margin: 0 auto 4px; }
+.pizza .num { font-size: 18px; font-weight: 700; fill: var(--texto); }
+.pizza .sem { font-size: 11px; fill: var(--suave); }
+.nota { font-size: 12px; color: var(--suave); margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+th { color: var(--suave); font-weight: 600; font-size: 12px; }
+.tabela { overflow-x: auto; background: var(--painel); border: 1px solid var(--linha); border-radius: 14px; padding: 4px 10px; }
+#entrar { max-width: 360px; margin: 18vh auto 0; padding: 0 16px; text-align: center; }
+#entrar img { width: 64px; border-radius: 14px; }
+#entrar input { width: 100%; font: inherit; font-size: 16px; padding: 12px; border-radius: 10px; border: 1px solid var(--linha); background: var(--painel); color: var(--texto); margin: 16px 0 10px; }
+#entrar button { width: 100%; font: inherit; font-weight: 600; padding: 12px; border-radius: 10px; border: 0; background: var(--texto); color: var(--fundo); cursor: pointer; }
+#entrar label { display: flex; gap: 8px; align-items: center; justify-content: center; font-size: 13px; color: var(--suave); margin-top: 12px; }
+#erro { color: var(--erro); font-size: 13px; min-height: 20px; margin-top: 8px; }
+.sair { border: 0; background: none; color: var(--suave); font: inherit; font-size: 12px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="entrar">
+  <img src="../marca/icone-oficial.png" alt="">
+  <h1 style="margin-top:12px">Monitor de Tokens</h1>
+  <div class="estado">Uso e limites de cada IA do Felyx</div>
+  <form id="form">
+    <input id="senha" type="password" autocomplete="current-password" placeholder="Senha" required>
+    <button type="submit">Entrar</button>
+    <label><input type="checkbox" id="lembrar" checked style="width:auto;margin:0"> Lembrar neste aparelho</label>
+  </form>
+  <div id="erro"></div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="topo">
+      <img src="../marca/icone-oficial.png" alt="">
+      <h1>Monitor de Tokens</h1>
+      <span class="estado" id="estado"></span>
+      <button class="sair" id="sair">Sair</button>
+    </div>
+  </header>
+  <main>
+    <h2>As IAs agora</h2>
+    <div class="grade" id="ias"></div>
+    <h2>Limites por período</h2>
+    <div class="grade" id="limites"></div>
+    <h2>Serviços e planos</h2>
+    <div class="tabela"><table><thead><tr><th>Serviço</th><th>Plano</th><th>Valor</th><th>Próxima cobrança</th><th>Uso</th></tr></thead><tbody id="servicos"></tbody></table></div>
+  </main>
+</div>
+
+<script>
+const API = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/site-ler';
+const COR = { Claude: 'var(--claude)', ChatGPT: 'var(--gpt)', GPT: 'var(--gpt)', Gemini: 'var(--gemini)', 'Live Avatar': 'var(--avatar)', n8n: 'var(--n8n)' };
+const PERIODO = { sessao: 'Sessão', dia: 'Dia', semana: 'Semana', mes: 'Mês' };
+let senha = '';
+
+function guardada() { try { return localStorage.getItem('monitor-senha') || ''; } catch (e) { return ''; } }
+function guardar(s) { try { s ? localStorage.setItem('monitor-senha', s) : localStorage.removeItem('monitor-senha'); } catch (e) {} }
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+function corDoUso(p) { return p >= 90 ? 'var(--perigo)' : p >= 70 ? 'var(--atencao)' : 'var(--ok)'; }
+function pizza(pct, rotulo, semTexto) {
+  const box = el('div', 'pizza');
+  const r = 34, c = 2 * Math.PI * r;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('width', 84); svg.setAttribute('height', 84); svg.setAttribute('viewBox', '0 0 84 84');
+  const trilho = document.createElementNS(ns, 'circle'); trilho.setAttribute('cx', 42); trilho.setAttribute('cy', 42); trilho.setAttribute('r', r); trilho.setAttribute('fill', 'none'); trilho.setAttribute('stroke', 'var(--trilho)'); trilho.setAttribute('stroke-width', 10);
+  svg.appendChild(trilho);
+  const t = document.createElementNS(ns, 'text'); t.setAttribute('x', 42); t.setAttribute('y', 48); t.setAttribute('text-anchor', 'middle');
+  if (typeof pct === 'number') {
+    const arco = document.createElementNS(ns, 'circle'); arco.setAttribute('cx', 42); arco.setAttribute('cy', 42); arco.setAttribute('r', r); arco.setAttribute('fill', 'none');
+    arco.setAttribute('stroke', corDoUso(pct)); arco.setAttribute('stroke-width', 10); arco.setAttribute('stroke-linecap', pct > 0 ? 'round' : 'butt');
+    arco.setAttribute('stroke-dasharray', `${Math.max(0, Math.min(100, pct)) / 100 * c} ${c}`); arco.setAttribute('transform', 'rotate(-90 42 42)');
+    svg.appendChild(arco);
+    t.setAttribute('class', 'num'); t.textContent = Math.round(pct) + '%';
+  } else { t.setAttribute('class', 'sem'); t.setAttribute('y', 46); t.textContent = semTexto || '—'; }
+  svg.appendChild(t);
+  box.append(svg, el('div', '', rotulo));
+  box.title = rotulo;
+  return box;
+}
+
+function desenharIas(lista) {
+  const alvo = document.getElementById('ias'); alvo.innerHTML = '';
+  const por = {};
+  for (const x of lista || []) (por[x.ia] = por[x.ia] || []).push(x);
+  for (const [ia, linhas] of Object.entries(por)) {
+    const c = el('div', 'cartao');
+    const h = el('h3'); const p = el('span', 'ponto'); p.style.background = COR[ia] || 'var(--suave)'; h.append(p, document.createTextNode(ia));
+    c.append(h, el('div', 'plano', 'Plano ' + linhas[0].plano + ' · lido ' + linhas[0].lido_em));
+    const pz = el('div', 'pizzas');
+    for (const l of linhas) pz.appendChild(pizza(l.usado_pct, (l.janela === '5 horas' ? 'Janela de 5 h' : 'Semana') + ' · zera ' + l.reinicia));
+    c.appendChild(pz);
+    alvo.appendChild(c);
+  }
+}
+
+function desenharLimites(lista) {
+  const alvo = document.getElementById('limites'); alvo.innerHTML = '';
+  const por = {};
+  for (const x of lista || []) (por[x.servico] = por[x.servico] || []).push(x);
+  for (const [svc, linhas] of Object.entries(por)) {
+    const c = el('div', 'cartao');
+    const h = el('h3'); const p = el('span', 'ponto'); p.style.background = COR[svc] || 'var(--suave)'; h.append(p, document.createTextNode(svc));
+    c.appendChild(h);
+    const pz = el('div', 'pizzas');
+    for (const l of linhas) pz.appendChild(pizza(l.pct, PERIODO[l.periodo] || l.periodo, l.estado === 'sem_limite' ? 'sem limite' : 'sem medidor'));
+    c.appendChild(pz);
+    const medido = linhas.find((l) => l.estado === 'medido');
+    if (medido) c.appendChild(el('div', 'nota', medido.detalhe + ' · lido ' + medido.lido_em));
+    alvo.appendChild(c);
+  }
+}
+
+function desenharServicos(lista) {
+  const alvo = document.getElementById('servicos'); alvo.innerHTML = '';
+  for (const s of lista || []) {
+    const tr = el('tr');
+    const valor = (s.moeda === 'USD' ? 'US$ ' : 'R$ ') + Number(s.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' / ' + (s.ciclo || 'mês');
+    const prox = s.proxima ? s.proxima.split('-').reverse().join('/') : '—';
+    tr.append(el('td', '', s.servico), el('td', '', s.plano), el('td', '', valor), el('td', '', prox), el('td', '', s.uso_base || s.uso || ''));
+    alvo.appendChild(tr);
+  }
+}
+
+async function buscar() {
+  const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: JSON.stringify({ senha, quadro: 'monitor' }) });
+  if (r.status === 401) throw new Error('senha');
+  if (!r.ok) throw new Error('rede');
+  return r.json();
+}
+
+async function atualizar() {
+  const estado = document.getElementById('estado');
+  try {
+    const d = await buscar();
+    const cj = d.conjuntos || {};
+    desenharIas(cj.ias && cj.ias.dados);
+    desenharLimites(cj.limites && cj.limites.dados);
+    desenharServicos(cj.servicos && cj.servicos.dados);
+    const quando = cj.ias && cj.ias.atualizado ? new Date(cj.ias.atualizado) : null;
+    estado.textContent = quando ? 'dados de ' + quando.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+  } catch (e) {
+    if (e.message === 'senha') { sair('Senha errada.'); return; }
+    estado.textContent = 'sem conexão, tentando de novo';
+  }
+}
+
+let relogio = null;
+async function entrar(s, lembrar) {
+  senha = s;
+  try { await buscar(); } catch (e) { document.getElementById('erro').textContent = e.message === 'senha' ? 'Senha errada.' : 'Sem conexão. Tente de novo.'; return; }
+  guardar(lembrar ? s : '');
+  document.getElementById('entrar').hidden = true;
+  document.getElementById('app').hidden = false;
+  await atualizar();
+  clearInterval(relogio);
+  relogio = setInterval(atualizar, 60000);
+}
+function sair(msg) {
+  clearInterval(relogio); guardar(''); senha = '';
+  document.getElementById('app').hidden = true;
+  document.getElementById('entrar').hidden = false;
+  document.getElementById('erro').textContent = msg || '';
+}
+document.getElementById('form').onsubmit = (e) => { e.preventDefault(); entrar(document.getElementById('senha').value.trim(), document.getElementById('lembrar').checked); };
+document.getElementById('sair').onclick = () => sair('');
+const s = guardada(); if (s) entrar(s, true);
+</script>
+</body>
+</html>
