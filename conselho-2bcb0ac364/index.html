@@ -91,11 +91,9 @@ main { max-width: 820px; margin: 0 auto; padding: 12px 16px 96px; }
 <script>
 const NUVEM = 'https://vinciautomacao.app.n8n.cloud/webhook';
 // O n8n local do Mac Mini atende pelo túnel; o endereço muda a cada reinício, então a nuvem só diz onde ele está.
-let API = '';
-async function descobrir() {
-  try { const r = await fetch(NUVEM + '/felix/onde-local'); const d = await r.json(); if (d.url) return (API = d.url + '/webhook/felix/site-ler'); } catch (e) {}
-  return (API = NUVEM + '/felix/site-ler');
-}
+// 04/11/2026 (ordem do Leandro): o Conselho é o da NUVEM. O Gemini e o GPT respondem lá pela API; o n8n local não é mais consultado aqui.
+let API = NUVEM + '/felix/site-ler';
+async function descobrir() { return API; }
 const QUEM = {
   janete: { nome: 'Janete', cor: 'var(--janete)' },
   claude: { nome: 'Claude', cor: 'var(--claude)' },
