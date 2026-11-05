@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0E1519">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Janete · Vinci</title>
+  <meta name="description" content="Converse com a Janete por texto ou voz.">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">V</span><span><b>VINCI</b><small>JANETE · CONSELHO</small></span></div>
+      <div class="top-actions"><span id="connection" class="connection" role="status"><i></i> Aguardando conexão</span><button id="logout" class="text-button" type="button" hidden>Sair</button></div>
+    </header>
+    <main class="layout" id="app" hidden>
+      <section class="stage" aria-labelledby="janete-title">
+        <div class="stage-heading"><span class="kicker">PERSONAGEM VINCI</span><span class="stage-tag">01 / JANETE</span></div>
+        <div class="portrait-wrap" id="portrait-wrap">
+          <div class="halo"></div><img class="portrait" src="janete.png" alt="Janete, mulher negra forte de duas maria-chiquinhas, expressão séria e braços cruzados">
+          <div class="portrait-glow"></div>
+        </div>
+        <div class="stage-bottom">
+          <div class="identity"><span class="kicker">PRESENÇA NO CONSELHO</span><h1 id="janete-title">Janete<span class="period">.</span></h1><p>Direta, forte e sempre pronta pra conversar.</p></div>
+          <div class="live-control"><div class="wave" id="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="live-state">Live desligada</span><button id="live-toggle" class="live-button" type="button">▶ Iniciar live</button></div>
+        </div>
+      </section>
+      <section class="chat" aria-label="Conversa com Janete">
+        <div class="chat-header"><div><span class="kicker">CANAL PRIVADO</span><h2>Conversa</h2></div><div class="view-switch" role="group" aria-label="Filtrar mensagens"><button id="filter-janete" class="active" type="button">Janete</button><button id="filter-all" type="button">Conselho</button></div></div>
+        <div id="notice" class="notice" role="alert" hidden></div>
+        <div id="messages" class="messages" aria-live="polite" aria-relevant="additions text"><div class="empty">Conectando ao Conselho…</div></div>
+        <div class="composer">
+          <div id="dictation-status" class="dictation-status" aria-live="polite">Escreva ou use o microfone. Na live, a conversa é por voz.</div>
+          <form id="send-form"><button id="mic" type="button" class="icon-button" title="Transcrever áudio do microfone" aria-label="Transcrever áudio do microfone">🎙</button><textarea id="draft" rows="2" placeholder="Fale com a Janete…" aria-label="Mensagem para Janete" maxlength="4000"></textarea><button id="send" type="submit" class="send-button">Enviar <span aria-hidden="true">↗</span></button></form>
+          <div class="composer-foot"><span>Enter envia · Shift+Enter quebra linha</span><span id="last-sync">Sem sincronização</span></div>
+        </div>
+      </section>
+    </main>
+    <section id="gate" class="gate" aria-labelledby="gate-title">
+      <div class="gate-card"><div class="gate-mark">V</div><span class="kicker">VINCI · ACESSO AO CONSELHO</span><h1 id="gate-title">Janete está aqui.</h1><p>Use a senha do Conselho para abrir a conversa.</p><form id="login-form"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required placeholder="Sua senha do Conselho"><button id="login" class="send-button" type="submit">Entrar <span aria-hidden="true">↗</span></button></form><p id="login-error" class="login-error" role="alert"></p><small>O acesso a esta página também depende da senha do Conselho. A senha não fica no código do GitHub.</small></div>
+    </section>
+    <footer>VINCI AUTOMAÇÃO <span>·</span> JANETE LIVE</footer>
+  </div>
+</body>
+</html>
