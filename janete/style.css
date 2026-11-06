@@ -8,3 +8,15 @@
 footer{height:30px;display:flex;align-items:center;justify-content:center;color:#63717a;letter-spacing:.18em;font-size:9px}footer span{color:var(--acc);padding:0 10px}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.stage{min-height:460px}.portrait-wrap{inset:45px 0 110px}.portrait{height:125%}.chat{min-height:580px}.stage-bottom{padding:25px}.topbar{height:65px}}@media(max-width:560px){.layout{padding:10px;gap:10px}.stage{min-height:390px}.portrait-wrap{inset:38px 0 105px}.stage-heading{padding:21px}.stage-bottom{padding:20px;gap:8px}.identity h1{font-size:47px}.identity p{font-size:10px}.chat{min-height:calc(100dvh - 180px)}.chat-header{padding:16px;height:75px}.messages{padding:17px 12px}.composer{padding:11px}.composer-foot span:first-child{display:none}.composer-foot{justify-content:flex-end}.send-button{padding:0 11px}.brand small{font-size:8px}.connection{font-size:10px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.brand-mark{clip-path:none;border-radius:11px}
+.portrait{height:145%;mix-blend-mode:lighten}
+.gate-screen{position:fixed;inset:0;z-index:1000;overflow:hidden;background:#030506;display:grid;place-items:center}
+.gate-avatar{position:absolute;left:50%;top:0;bottom:82px;height:min(88vh,940px);max-width:100vw;width:auto;object-fit:contain;object-position:center;transform:translateX(-50%);mix-blend-mode:lighten;filter:drop-shadow(0 15px 35px #0009);pointer-events:none}
+.gate-form{position:absolute;z-index:2;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(360px,calc(100vw - 42px));display:grid;gap:0}
+.gate-form input{height:54px;width:100%;border:1px solid #e1fe06a0;border-radius:14px;background:#0b1012e8;color:var(--ink);padding:0 18px;font-size:16px;letter-spacing:.04em;outline:0;box-shadow:0 0 28px #e1fe061c;backdrop-filter:blur(12px)}
+.gate-form input::placeholder{color:#c1cfd9b8;letter-spacing:.12em}
+.gate-form input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #e1fe0629,0 0 32px #e1fe0625}
+.gate-form input:disabled{opacity:.55}
+.gate-form .login-error{min-height:0;margin:0;padding:0;color:var(--err);font-size:12px;text-align:center}
+body:has(.gate-screen:not([hidden])){overflow:hidden}
+@media(max-width:560px){.gate-avatar{height:min(83vh,760px);bottom:94px;max-width:100vw}.gate-form{bottom:max(20px,env(safe-area-inset-bottom))}.gate-form input{height:52px}}
