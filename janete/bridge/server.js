@@ -15,6 +15,7 @@ const MESSAGES_FILE = path.join(DATA_DIR, "messages.jsonl");
 const OUTBOX_FILE = path.join(DATA_DIR, "outbox.json");
 const WEB_ORIGINS = new Set(["https://leandropor-glitch.github.io", "http://127.0.0.1:8765", "http://localhost:8765"]);
 const sessions = new Map();
+const loginAttempts = new Map();
 
 if (PASSWORD.length < 12 || !EXTENSION_TOKEN) {
   console.error("Configure JANETE_PASSWORD (mínimo 12 caracteres) e JANETE_EXTENSION_TOKEN no .env local. Nenhum segredo deve ir ao GitHub.");
@@ -27,6 +28,7 @@ if(!fs.existsSync(OUTBOX_FILE))fs.writeFileSync(OUTBOX_FILE,"[]\n",{mode:0o600})
 const passwordSalt=crypto.randomBytes(16);
 const passwordHash=crypto.scryptSync(PASSWORD,passwordSalt,64);
 function safeEqual(a,b){const aa=Buffer.from(String(a));const bb=Buffer.from(String(b));return aa.length===bb.length&&crypto.timingSafeEqual(aa,bb);}
+function loginAllowed(address){const now=Date.now(),recent=(loginAttempts.get(address)||[]).filter(t=>now-t<60_000);if(recent.length>=10){loginAttempts.set(address,recent);return false;}recent.push(now);loginAttempts.set(address,recent);return true;}
 function originAllowed(origin){return !origin||WEB_ORIGINS.has(origin)||/^chrome-extension:\/\/[a-p]{32}$/.test(origin);}
 function send(res,status,data,origin){
   const headers={"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,Content-Type,X-Janete-Extension"};
@@ -54,6 +56,7 @@ const server=http.createServer(async(req,res)=>{
   try{
     if(req.method==="GET"&&url.pathname==="/health"){send(res,200,{ok:true,service:"janete-local-bridge"},origin);return;}
     if(req.method==="POST"&&url.pathname==="/api/login"){
+      if(!loginAllowed(req.socket.remoteAddress||"unknown")){send(res,429,{error:"too_many_attempts"},origin);return;}
       const body=await readBody(req);if(!verifyPassword(body.password)){send(res,401,{error:"invalid_login"},origin);return;}
       const token=crypto.randomBytes(32).toString("base64url");sessions.set(token,Date.now()+12*60*60*1000);send(res,200,{token,expiresIn:43200},origin);return;
     }
