@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Sincroniza a conversa visível do Skynet Chat com a Janete no Mac.",
   "permissions": ["tabs", "alarms"],
-  "host_permissions": ["https://skynetchat.net/*", "https://www.skynetchat.net/*", "http://127.0.0.1:3471/*"],
+  "host_permissions": ["https://skynetchat.net/*", "https://www.skynetchat.net/*", "https://janete-felyx-control.leanherb.chatgpt.site/*", "http://127.0.0.1:3471/*"],
   "background": {"service_worker": "service-worker.js"},
   "content_scripts": [{"matches": ["https://skynetchat.net/*", "https://www.skynetchat.net/*"], "js": ["content.js"], "run_at": "document_idle"}]
 }
