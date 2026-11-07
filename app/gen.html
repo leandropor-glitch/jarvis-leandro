@@ -1096,10 +1096,19 @@ const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]li
 // Enquanto não está pronto (ou se falhar), a voz toca normal aqui. Desligar: ?avatar=0 (fica salvo neste aparelho).
 const PRO_URL = N8N + '/felix/pro-sessao';
 const AVATAR_OCIOSO_MIN = 1;   // GEN: parado, volta logo ao rosto redondo com os anéis girando (modo espera)
+// Regra: o Felyx nunca fica mudo. Em 07/11 o som do rosto não tocou no iPhone e ele ficou em "falando" sem voz.
+// Por isso a voz só sai pelo vídeo do rosto depois de provado, nesta sessão, que o som dele toca neste aparelho;
+// no iPhone e no iPad ela sai sempre do próprio aparelho e o rosto só mexe a boca.
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const falhasDaVoz = new Set();
+function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falhas), uma vez por tipo a cada abertura
+  const k = String(erro).slice(0, 80); if(falhasDaVoz.has(k)) return; falhasDaVoz.add(k);
+  try{ apoioGen('falha', { pedido: 'voz do app GEN (' + (IOS ? 'iPhone/iPad' : 'outro aparelho') + ')', erro: String(erro) + ' · ' + navigator.userAgent.slice(0, 140) }).catch(()=>{}); }catch(e){}
+}
 const FelyxAvatar = (()=>{
   try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
   let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
-  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null;
+  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, somOk = false, falouEm = 0;
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
   const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
   const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
@@ -1114,8 +1123,10 @@ const FelyxAvatar = (()=>{
       room = new LK.Room({ adaptiveStream: true });
       room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
         if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto) video.classList.add('on'); }; }
-        if(track.kind === 'audio'){ track.attach(audio); audio.play().catch(()=>{}); }
+        if(track.kind === 'audio'){ track.attach(audio); audio.muted = !somOk; audio.play().catch(()=>{}); }   // mudo até provar que toca aqui
       });
+      // o LiveKit avisa quem está falando: é a prova de que o rosto devolveu a voz
+      room.on(LK.RoomEvent.ActiveSpeakersChanged, (lista)=>{ if((lista || []).some((p)=> p && !p.isLocal)) falouEm = Date.now(); });
       room.on(LK.RoomEvent.Disconnected, ()=> fechar());
       await room.connect(j.livekit_url, j.livekit_client_token);
       await new Promise((ok, falha)=>{
@@ -1141,7 +1152,7 @@ const FelyxAvatar = (()=>{
     return abrindo;
   }
   function fechar(){
-    const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false;
+    const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false; somOk = false; falouEm = 0;
     clearInterval(timer); timer = null;
     video.classList.remove('on');
     document.getElementById('hud').classList.remove('com-rosto');
@@ -1153,9 +1164,15 @@ const FelyxAvatar = (()=>{
   }
   return {
     pronto: ()=> pronto,
+    // por onde sai a voz desta fala: 'local' (sem rosto), 'boca' (o rosto só mexe a boca, a voz sai daqui) ou 'rosto' (voz pelo vídeo, sincronizada)
+    modo: ()=> !pronto ? 'local' : ((IOS || !somOk) ? 'boca' : 'rosto'),
+    falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
+    tocando: ()=> !!(audio && audio.srcObject && !audio.paused && !(room && room.canPlaybackAudio === false)),
+    aprovar(){ if(pronto && !IOS) somOk = true; },
+    reprovar(){ somOk = false; try{ audio.muted = true; }catch(e){} },
     abrir, fechar,
     usar(){ ultimo = Date.now(); if(!pronto) abrir(); },   // chamaram o Felyx: mantém (ou reabre) o rosto
-    falar(b64){ ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; } enviar('agent.speak', { audio: b64 }); falaAberta = true; },
+    falar(b64, comSom){ ultimo = Date.now(); try{ audio.muted = !comSom; }catch(e){} if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; } enviar('agent.speak', { audio: b64 }); falaAberta = true; },
     fim(){ if(falaAberta){ enviar('agent.speak_end'); falaAberta = false; } },
     interromper(){ if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
     ouvir(){ ultimo = Date.now(); if(!ouvindo && !falaAberta){ enviar('agent.start_listening'); ouvindo = true; } }
@@ -1405,7 +1422,7 @@ class GeminiLive {
     this.ouvido=''; this.decisao=null; this.liberado=false;
     if(!this.sources.length) this.abrirMic();
   }
-  abrirMic(){ setTimeout(()=>{ if(!this.sources.length && !this.pensando) this.mudo = false; }, FelyxAvatar.pronto() ? 1500 : 350); }
+  abrirMic(){ setTimeout(()=>{ if(!this.sources.length && !this.pensando) this.mudo = false; }, this.ecoRosto ? 1500 : 350); }   // voz pelo rosto chega atrasada: espera ela acabar
   sayText(texto){
     if(!this.ws || this.ws.readyState!==1) return;
     this.liberado = true;
@@ -1442,20 +1459,74 @@ class GeminiLive {
     };
     src.connect(this.worklet);
     this.onState('listening');
+    this.vigiarSom();
+  }
+  // o som do aparelho nunca trava em "falando": se o sistema suspender o áudio, retoma na hora; se o relógio do som
+  // ficar parado ~4 s com fala na fila, destrava, recria a saída de áudio, volta a ouvir e avisa o Claude em silêncio
+  vigiarSom(){
+    const retomar = ()=>{ const c = this.outCtx; if(!this.closed && c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(()=>{}); };
+    try{ this.outCtx.onstatechange = retomar; }catch(e){}
+    let tAnt = -1, parado = 0;
+    clearInterval(this.vigiaSom);
+    this.vigiaSom = setInterval(()=>{
+      if(this.closed){ clearInterval(this.vigiaSom); return; }
+      const c = this.outCtx; if(!c || !this.sources.length){ parado = 0; tAnt = -1; return; }
+      retomar();
+      parado = (c.currentTime === tAnt) ? parado + 1 : 0; tAnt = c.currentTime;
+      if(parado < 8) return;
+      parado = 0; const antes = c.state;
+      this.stopPlayback(); this.novaSaida(); this.onState('listening'); this.abrirMic();
+      avisarSilencioso('o som do aparelho travou em "falando" e foi recriado (' + antes + ')');
+    }, 500);
+  }
+  novaSaida(){
+    try{
+      const c = new (window.AudioContext||window.webkitAudioContext)({ sampleRate: 24000 }); c.resume().catch(()=>{});
+      try{ this.outCtx && this.outCtx.close(); }catch(e){}
+      this.outCtx = window.__felyxOut = c;
+      this.silencio = c.createGain(); this.silencio.gain.value = 0; this.silencio.connect(c.destination);
+      this.analyser = c.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(c.destination);
+      this.playhead = c.currentTime;
+      try{ c.onstatechange = ()=>{ if(!this.closed && c.state !== 'running' && c.state !== 'closed') c.resume().catch(()=>{}); }; }catch(e){}
+    }catch(e){}
   }
   playChunk(b64){
-    if(this.viaAvatar === undefined) this.viaAvatar = FelyxAvatar.pronto();
-    if(this.viaAvatar) FelyxAvatar.falar(b64);
+    if(this.viaAvatar === undefined) this.decidirSaida();
+    if(this.viaAvatar) FelyxAvatar.falar(b64, this.somDoRosto);
     const bin = atob(b64); const n = bin.length>>1; const f = new Float32Array(n);
     for(let i=0;i<n;i++){ let v = bin.charCodeAt(2*i) | (bin.charCodeAt(2*i+1)<<8); if(v>=0x8000) v-=0x10000; f[i]=v/0x8000; }
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
-    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.viaAvatar ? this.silencio : this.analyser);   // com o avatar, o som sai pelo vídeo; aqui só marca o tempo
+    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.somDoRosto ? this.silencio : this.analyser);   // só fica mudo aqui quando o som do rosto já provou que toca neste aparelho
     const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
     this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
     this.mudo = true;
     this.onState('speaking');
   }
-  stopPlayback(){ if(this.viaAvatar) FelyxAvatar.interromper(); this.viaAvatar = undefined; for(const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources=[]; if(this.outCtx) this.playhead = this.outCtx.currentTime; }
+  // no começo de cada fala: decide por onde a voz sai e confere em 2 s se o rosto devolveu o som
+  decidirSaida(){
+    const modo = FelyxAvatar.modo();
+    this.viaAvatar = modo !== 'local';
+    this.somDoRosto = modo === 'rosto';
+    this.ecoRosto = this.somDoRosto;
+    if(this.somDoRosto){ try{ this.silencio.gain.value = 0; }catch(e){} }
+    clearTimeout(this.timerRosto);
+    if(!this.viaAvatar) return;
+    const inicio = Date.now(), turno = this.turno = (this.turno || 0) + 1, peloRosto = this.somDoRosto;
+    this.timerRosto = setTimeout(()=>{
+      if(this.closed || this.turno !== turno) return;
+      const falou = FelyxAvatar.falouDesde(inicio), toca = FelyxAvatar.tocando();
+      if(!peloRosto){ if(falou && toca) FelyxAvatar.aprovar(); return; }   // provado: a próxima fala sai sincronizada pelo rosto
+      if(!(falou && toca)) this.socorroLocal(falou ? 'o som do rosto não toca neste aparelho' : 'o rosto não devolveu a voz');
+    }, 2000);
+  }
+  // o rosto calou: a voz desta fala passa a sair daqui na hora (e as próximas também), e a falha vai em silêncio para o Claude
+  socorroLocal(motivo){
+    this.somDoRosto = false; this.ecoRosto = false;
+    try{ this.silencio.gain.value = 1; }catch(e){}
+    FelyxAvatar.reprovar();
+    avisarSilencioso('voz pelo rosto falhou: ' + motivo);
+  }
+  stopPlayback(){ clearTimeout(this.timerRosto); if(this.viaAvatar) FelyxAvatar.interromper(); this.viaAvatar = undefined; for(const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources=[]; if(this.outCtx) this.playhead = this.outCtx.currentTime; }
   getBands(n){
     if(!this.analyser || !this.sources.length) return null;
     const a = new Uint8Array(this.analyser.frequencyBinCount); this.analyser.getByteFrequencyData(a);
@@ -1492,6 +1563,7 @@ class GeminiLive {
   }
   teardown(reason){
     if(this.closed) return; this.closed=true;
+    clearInterval(this.vigiaSom);
     this.stopPlayback();
     try{ this.worklet && this.worklet.disconnect(); }catch(e){}
     try{ this.micStream && this.micStream.getTracks().forEach(t=>t.stop()); }catch(e){}
