@@ -635,7 +635,7 @@ function animarBarras(){
 /* ===================== mercado ===================== */
 // variação em USDT quando houver; senão a variação em dólar (sem "??": WebViews antigos do Android não entendem)
 const chg = (c) => c.chgUsdt != null ? c.chgUsdt : c.chg;
-const ATIVOS = [   // só Dólar, Euro e Bitcoin (decisão do Leandro, 06/11): o Felyx não é app de bolsa
+const ATIVOS = [   // dólar e euro contra o real e Bitcoin contra o dólar (decisão do Leandro, 07/11): o Felyx não é app de bolsa
   { id: 'usd', nome: 'Dólar', pick: (m) => m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null) },
   { id: 'eur', nome: 'Euro', pick: (m) => m.cambio && m.cambio.eurbrl ? { v: 'R$ ' + fmt(m.cambio.eurbrl, 2), c: null } : null },
   { id: 'btc', nome: 'Bitcoin', pick: (m) => m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: chg(m.cripto.bitcoin) } : null }
@@ -645,8 +645,15 @@ function pct(c){ return typeof c === 'number' ? ((c > 0 ? '+' : '') + fmt(c, 1) 
 function cls(c){ return typeof c === 'number' ? (c > 0.05 ? 'up' : c < -0.05 ? 'dn' : '') : ''; }
 async function carregarMercado(){
   try{
-    const m = await fetch(MERCADO_URL, { cache: 'no-store' }).then((r) => r.json());
-    if (!m || !m.ok) throw 0;
+    let fx = null;
+    try{ fx = await fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then((r) => r.json()); }catch(e){}
+    let usdtbrl = null;
+    try{ const b = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then((r) => r.json()); if (b && b.lastPrice) usdtbrl = { preco: +b.lastPrice, chg: +b.priceChangePercent }; }catch(e){}
+    const usdbrl = usdtbrl ? usdtbrl.preco : (fx && fx.rates ? fx.rates.BRL : null);
+    const eurbrl = (fx && fx.rates && fx.rates.EUR) ? fx.rates.BRL / fx.rates.EUR : null;
+    let bitcoin = null;
+    try{ const c = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then((r) => r.json()); if (c && c.lastPrice) bitcoin = { usdt: +c.lastPrice, chgUsdt: +c.priceChangePercent }; }catch(e){}
+    const m = { ok: true, cambio: { usdbrl, eurbrl, data: (fx && fx.date) || '' }, usdtbrl, cripto: bitcoin ? { bitcoin } : {} };
     mercado = m;
     $('#mkt').innerHTML = ATIVOS.map((a) => { const x = a.pick(m); return x ? `<div class="row"><span>${a.nome}</span><span class="v">${esc(x.v)} <span class="${cls(x.c)}">${pct(x.c)}</span></span></div>` : ''; }).join('');
     $('#mktQuando').textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
