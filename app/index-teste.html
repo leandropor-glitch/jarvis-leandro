@@ -1,6 +1,28 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+<script>
+/* PAINEL DE DIAGNÓSTICO — só nesta página de teste (index-teste.html), nunca em produção */
+(function(){
+  const t0 = performance.now(); const linhas = [];
+  function L(t){ linhas.push(((performance.now()-t0)/1000).toFixed(1) + 's ' + t); const p = document.getElementById('fxdiag'); if(p){ p.textContent = linhas.slice(-14).join('\n'); } }
+  window.__fxL = L;
+  addEventListener('error', function(e){ L('ERRO ' + (e.message || e)); });
+  addEventListener('unhandledrejection', function(e){ L('ERRO promessa ' + (e.reason && e.reason.message || e.reason)); });
+  const WS = window.WebSocket; let fala = '';
+  window.WebSocket = function(url, prot){ const ws = prot ? new WS(url, prot) : new WS(url); const tipo = /generativelanguage/.test(url) ? 'GEMINI' : (/webrtc-signaling/.test(url) ? 'ROSTO' : null);
+    if(tipo){ const send = ws.send.bind(ws); let n = 0;
+      ws.send = function(m){ try{ const j = JSON.parse(m); if(tipo==='GEMINI' && j.clientContent) L('pede ao Gemini: ' + String(j.clientContent.turns[0].parts[0].text).split('\n\n').pop().slice(0,60)); if(tipo==='GEMINI' && j.realtimeInput && !window.__micJa){ window.__micJa = 1; L('MICROFONE enviando'); } if(tipo==='ROSTO' && j.type==='agent.speak' && ++n===1) L('rosto recebe a voz'); }catch(e){} return send(m); };
+      ws.addEventListener('message', function(ev){ Promise.resolve(typeof ev.data==='string' ? ev.data : ev.data.text()).then(function(d){ try{ const j = JSON.parse(d); if(tipo==='ROSTO' && j.type==='agent.state_updated') L('rosto ' + j.new_state); if(tipo==='GEMINI'){ const sc = j.serverContent; if(sc && sc.outputTranscription && sc.outputTranscription.text) fala += sc.outputTranscription.text; if(sc && sc.turnComplete){ L('falou: ' + fala.slice(0,70)); fala=''; } } }catch(e){} }); }); }
+    return ws; };
+  window.WebSocket.prototype = WS.prototype; window.WebSocket.OPEN = 1; window.WebSocket.CONNECTING = 0; window.WebSocket.CLOSED = 3;
+  const st = AudioBufferSourceNode.prototype.start;
+  AudioBufferSourceNode.prototype.start = function(){ try{ if(this.buffer && this.buffer.duration > 1) L('som de ' + this.buffer.duration.toFixed(1) + 's (íris ou frase)'); }catch(e){} return st.apply(this, arguments); };
+  let mic = null; setInterval(function(){ try{ if(typeof conv !== 'undefined' && conv && conv.micOpen !== mic){ mic = conv.micOpen; L('microfone ' + (mic ? 'LIBERADO' : 'ignorado')); } }catch(e){} }, 100);
+  document.addEventListener('DOMContentLoaded', function(){ const p = document.createElement('pre'); p.id = 'fxdiag'; p.style.cssText = 'position:fixed;left:4px;right:4px;bottom:4px;z-index:99999;margin:0;padding:6px;font:10px/1.25 monospace;color:#0f0;background:rgba(0,0,0,.78);pointer-events:none;white-space:pre-wrap;max-height:40vh;overflow:hidden'; document.body.appendChild(p); L('página de teste carregada'); const v = document.getElementById('avatarVideo'); if(v) new MutationObserver(function(){ L('ROSTO ' + (v.classList.contains('on') ? 'APARECEU' : 'sumiu')); }).observe(v, { attributes:true, attributeFilter:['class'] }); });
+})();
+</script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#06070a">
