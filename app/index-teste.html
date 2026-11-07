@@ -1169,7 +1169,7 @@ class GeminiLive {
   cumprimentar(texto){
     if (!this.ws || this.ws.readyState !== 1) return false;
     this.retendo = true; this.retidos = []; this.turnoRetido = false;
-    this.enviar('Mensagem automática do sistema: a conversa acabou de abrir. Leia em voz alta, com calma e simpatia, exatamente o texto abaixo, palavra por palavra, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto);
+    this.enviar('Mensagem automática do sistema: a conversa acabou de abrir. Leia em voz alta, com simpatia e no ritmo natural de uma conversa, exatamente o texto abaixo, palavra por palavra, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto);
     return true;
   }
   soltar(){
