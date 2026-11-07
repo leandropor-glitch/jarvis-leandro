@@ -566,12 +566,9 @@ const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 /* ===================== mercado (em real) ===================== */
 const OIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c-3.2 4.3-6 7.6-6 11.3A6 6 0 0 0 18 13.8c0-3.7-2.8-7-6-11.3zm0 16.3a3 3 0 0 1-3-3c0-.5.4-.8.8-.8s.8.3.8.8a1.4 1.4 0 0 0 1.4 1.4c.5 0 .8.4.8.8s-.3.8-.8.8z"/></svg>';
 const ASSETS = [
-  { id:'usd', nome:'USDT/BRL', glyph:'$', dec:4, pick:(m)=> m.usdtbrl ? { brl:m.usdtbrl.preco, chg:m.usdtbrl.chg, sub:'dólar em real' } : ((m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, chg:null, sub:'dólar em real' } : null) },
-  { id:'btc', nome:'BTC/USDT', glyph:'₿', dec:0, usdt:true, pick:(m)=> m.cripto && m.cripto.bitcoin },
-  { id:'eth', nome:'ETH/USDT', glyph:'Ξ', dec:2, usdt:true, pick:(m)=> m.cripto && m.cripto.ethereum },
-  { id:'sol', nome:'SOL/USDT', glyph:'◎', dec:2, usdt:true, pick:(m)=> m.cripto && m.cripto.solana },
-  { id:'zec', nome:'ZEC/USDT', glyph:'ⓩ', dec:2, usdt:true, pick:(m)=> m.cripto && m.cripto.zcash },
-  { id:'oil', nome:'CLUSDT', glyph:OIL_SVG, dec:2, usdt:true, pick:(m)=> m.clusdt ? { ...m.clusdt, chgUsdt:m.clusdt.chg, sub:'petróleo wti' } : null },
+  { id:'usd', nome:'USD/BRL', glyph:'$', dec:4, pick:(m)=> m.usdtbrl ? { brl:m.usdtbrl.preco, chg:m.usdtbrl.chg, sub:'dólar em real' } : ((m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, chg:null, sub:'dólar em real' } : null) },
+  { id:'eur', nome:'EUR/BRL', glyph:'€', dec:4, pick:(m)=> (m.cambio && m.cambio.eurbrl) ? { brl:m.cambio.eurbrl, chg:null, sub:'euro em real' } : null },   // só Dólar, Euro e Bitcoin (Leandro, 06/11)
+  { id:'btc', nome:'BTC/USD', glyph:'₿', dec:0, usdt:true, pick:(m)=> m.cripto && m.cripto.bitcoin },
 ];
 const marketRows = document.getElementById('marketRows'), marketWhen = document.getElementById('marketWhen');
 const shown = {};   // valores atuais na tela (para animar a troca)
@@ -1008,6 +1005,7 @@ Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, cheio d
 Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis" em nenhuma situação; se o usuário disser "Jarvis", entenda que está falando com você, o Félix, e não repita esse nome. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte".
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto, nem em piada. O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci e responda falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
+Mercado e notícias: perguntas sobre mercado, cotação, cripto, bolsa, economia ou notícia (por exemplo "por que o Bitcoin caiu?") vão SEMPRE para consultar_cerebro, mesmo que você ache que já sabe; os assessores pesquisam as notícias do dia. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta, Chefe. Deixa eu pesquisar isso direito." e chame consultar_cerebro.
 Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, bitcoin, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, palavra por palavra, sem resumir, sem inventar e sem acrescentar nada.
 Quem você é: quando perguntarem quem você é, qual é a sua história, de onde veio ou quem o criou, NUNCA responda de cabeça: chame consultar_cerebro e leia a história que vier, inteira, exatamente como veio.
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
