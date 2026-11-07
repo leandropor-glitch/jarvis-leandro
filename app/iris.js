@@ -22,6 +22,9 @@
   }
   async function tocar(nome) { // termina quando a fala acaba; sem som, espera o tempo aproximado
     try {
+      // som travado pelo sistema: não agenda a fala (ela tocaria atrasada, por cima do cumprimento do Felyx)
+      if (ctx && ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
+      if (!ctx || ctx.state !== 'running') throw new Error('som travado');
       const buf = await carregar(nome);
       const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination);
       await new Promise((fim) => { src.onended = fim; src.start(); setTimeout(fim, buf.duration * 1000 + 300); });
@@ -114,11 +117,11 @@
   }
 
   let emCurso = null;
-  function desbloquear(alvo) {
-    if (!emCurso) emCurso = rodar(alvo).finally(() => { emCurso = null; });
+  function desbloquear(alvo, avisos) {   // avisos.antesDoFim(): chamado quando começa a última fala ("Íris desbloqueada com sucesso")
+    if (!emCurso) emCurso = rodar(alvo, avisos).finally(() => { emCurso = null; });
     return emCurso;
   }
-  async function rodar(alvo) {
+  async function rodar(alvo, avisos) {
     preparar();
     const r = radar(alvo);
     r.texto('desbloqueio de íris');
@@ -126,6 +129,8 @@
     r.texto('lendo íris');
     varredura(2.4); await espera(2450);
     r.validar(); r.texto('íris validada'); tanara(); await espera(700);
+    // avisa a página que a última fala vai começar: dá tempo de o cumprimento ficar pronto e sair assim que o rosto aparecer
+    try { if (avisos && avisos.antesDoFim) avisos.antesDoFim(); } catch (e) {}
     await tocar('sucesso');
     await r.sair();
   }
