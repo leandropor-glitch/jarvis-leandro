@@ -1483,10 +1483,18 @@ class GeminiLive {
     this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
     return true;
   }
+  // junta os pedaços segurados em blocos de ~1 s: o rosto recebe a fala inteira em poucos envios e não engasga no começo
+  juntarPedacos(lista){
+    const blocos = []; let partes = [], tam = 0; const LIMITE = 48000;   // ~1 s de PCM 16 bits a 24 kHz
+    const fechar = ()=>{ if(!partes.length) return; const tudo = new Uint8Array(tam); let o = 0; for(const p of partes){ tudo.set(p, o); o += p.length; } let s = ''; for(let i=0;i<tudo.length;i+=0x8000) s += String.fromCharCode.apply(null, tudo.subarray(i, i+0x8000)); blocos.push(btoa(s)); partes = []; tam = 0; };
+    for(const b64 of lista){ const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); partes.push(u); tam += u.length; if(tam >= LIMITE) fechar(); }
+    fechar();
+    return blocos;
+  }
   soltar(){
     if(!this.retendo) return;
     this.retendo = false;
-    const r = this.retidos || []; this.retidos = [];
+    const r = this.juntarPedacos(this.retidos || []); this.retidos = [];
     r.forEach((c)=> this.playChunk(c));
     if(this.turnoRetido){   // o Gemini já tinha terminado enquanto segurava: fecha a fala agora
       this.turnoRetido = false;
