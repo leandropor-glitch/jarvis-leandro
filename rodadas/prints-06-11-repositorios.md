@@ -16,3 +16,10 @@ Lista "Top 10 do GitHub hoje" (perfil inema.tds, 04/11/2026). Para cada um: o qu
 | 10 | max-sixty/worktrunk | Organiza vários robôs de IA trabalhando ao mesmo tempo no mesmo projeto |
 
 Cuidados: código de terceiros roda isolado e é lido antes de rodar; nada de segurança da casa com biblioteca não oficial (regra do CLAUDE.md); Scrapling só em sites que permitem coleta.
+
+## Prints extras (06/11, 20h26–20h43)
+| Item | O que é |
+|---|---|
+| Google Maps Scraper Kit (github.com/Mahanaicoach/google-maps-scraper-kit, endereço lido no print; conferir) | Extrai leads do Google Maps localmente (Docker), operado pelo Claude como skill. Uso possível: prospecção de clientes da Vinci (arquitetos, construtoras, condomínios). Conferir os termos de uso do Google antes. |
+| 5 conectores do claude.ai (claude.ai/customize/connectors) | Perplexity (pesquisa na web com citações), Firecrawl (busca e extrai dados da web), PostHog (análise de uso de produto), Playwright (automação de navegador), Composio (liga mais de 1.500 apps). Avaliar quais servem ao Félix e conectar com o Leandro. |
+| Post do lowcodepedro ("Instalação" no Claude Code) | O print só mostra a tela de boas-vindas do Claude Code; o nome do repositório não aparece. Pedir o link ao Leandro. |
