@@ -978,11 +978,46 @@ try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = ()=>{}; }catch
 
 /* ---------- sons do desbloqueio (voz robótica limpa, sem eco, + leitor de íris), embutidos na página ---------- */
 /* ---------- sequência de abertura (íris) ---------- */
-async function bootSequence(){
+async function bootSequence(avisos){
   // radar mirando em quem está diante da tela, falas na voz do Felyx e o "tanarã" de validação (iris.js)
   bootEl.dataset.on = '0'; setState('boot', '');
-  await felyxIris.desbloquear(document.querySelector('.face'));
+  await felyxIris.desbloquear(document.querySelector('.face'), avisos);
   dotHouse.dataset.on = '1';
+}
+
+/* ---------- cumprimento da abertura (regra do Leandro, 07/11) ----------
+   Uma fala só, assim que o rosto aparece: saudação, a temperatura agora, o dólar oficial do pacote do Google e
+   "Posso ajudar em alguma coisa?". Da íris até o fim dessa fala o microfone é ignorado. */
+const MOTOR_GOOGLE = 'https://script.google.com/macros/s/AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen/exec';
+const pausa = (ms)=> new Promise((ok)=> setTimeout(ok, ms));
+async function dolarDoGoogle(){
+  try{ const p = await fetch(MOTOR_GOOGLE, { cache:'no-store' }).then((r)=> r.json()); const v = p && p.cotacoes && p.cotacoes.usd_brl && Number(p.cotacoes.usd_brl.valor); if(v > 0) return v; }catch(e){}
+  try{ const m = mercadoData || await loadMercado(true); const v = m && m.cambio && Number(m.cambio.usdbrl); if(v > 0) return v; }catch(e){}
+  return null;   // sem o dólar oficial ele não fala de dólar (nunca a cotação do USDT)
+}
+async function dadosDoCumprimento(){
+  const [clima, dolar] = await Promise.all([climaAgora().catch(()=> null), dolarDoGoogle()]);
+  return { clima, dolar };
+}
+function textoDoCumprimento(d){
+  const partes = [saudacaoAgora() + ', Chefe.'];   // regra de 03/11: sempre "Chefe", nunca o nome
+  const c = d && d.clima;
+  if(c && typeof c.temperatura === 'number') partes.push('No Rio, ' + fmt(c.temperatura, 0) + ' graus agora' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
+  const v = d && d.dolar;
+  if(typeof v === 'number' && v > 0){ let reais = Math.floor(v), cent = Math.round((v - reais) * 100); if(cent === 100){ reais++; cent = 0; } partes.push('O dólar está em ' + reais + ' reais' + (cent ? ' e ' + cent + ' centavos' : '') + '.'); }
+  partes.push('Posso ajudar em alguma coisa?');
+  return partes.join(' ');
+}
+// espera a fala acabar de verdade: com o rosto, até ele parar de falar (a voz dele chega depois do relógio daqui)
+function fimDoCumprimento(g){
+  return new Promise((ok)=>{
+    const inicio = Date.now(); let tocou = false;
+    const t = setInterval(()=>{
+      const falando = g.sources.length > 0 || g.retendo || g.planoBAtivo || FelyxAvatar.falandoAgora();
+      if(falando) tocou = true;
+      if((tocou && !falando) || Date.now() - inicio > 40000 || (!tocou && Date.now() - inicio > 10000)){ clearInterval(t); setTimeout(ok, 300); }
+    }, 120);
+  });
 }
 
 /* ---------- boas-vindas (montadas aqui com os dados da tela, lidas pelo Felyx) ---------- */
@@ -1116,7 +1151,7 @@ function carregarFraseEspera(ctx){
 const FelyxAvatar = (()=>{
   try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
   let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
-  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0;
+  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
   const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
   const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
@@ -1130,7 +1165,7 @@ const FelyxAvatar = (()=>{
       const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
       room = new LK.Room({ adaptiveStream: true });
       room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
-        if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto) video.classList.add('on'); }; }
+        if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto && !escondido) video.classList.add('on'); }; }
         if(track.kind === 'audio'){ track.attach(audio); audio.muted = false; audio.play().catch(()=>{}); }
       });
       // o LiveKit avisa quem está falando: é a prova de que o rosto devolveu a voz
@@ -1149,8 +1184,7 @@ const FelyxAvatar = (()=>{
         ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
       });
       pronto = true; ultimo = Date.now();
-      document.getElementById('hud').classList.add('com-rosto');
-      if(video.readyState >= 2) video.classList.add('on');
+      if(!escondido){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); }   // na abertura, só depois da íris
       clearInterval(timer);
       timer = setInterval(()=>{
         if(!pronto) return;
@@ -1176,6 +1210,8 @@ const FelyxAvatar = (()=>{
     modo: ()=> pronto ? 'rosto' : 'local',   // com o rosto pronto, a voz sai sempre pelo vídeo, sincronizada com a boca
     falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
     falandoAgora: ()=> agenteFalando || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
+    // na abertura o rosto conecta durante a íris, mas só aparece quando ela acaba (esconder(false))
+    esconder(sim){ escondido = !!sim; if(!escondido && pronto){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); } },
     tocando: ()=> !!(audio && audio.srcObject && !audio.paused && !(room && room.canPlaybackAudio === false)),
     desistir(){ bloqueadoAte = Date.now() + 5 * 60000; fechar(); },   // plano B: fecha o rosto e não reabre por 5 min
     liberarSom(){ try{ if(!audio.srcObject && !audio.getAttribute('src')) audio.src = SOM_MUDO; audio.muted = false; const p = audio.play(); if(p) p.catch(()=>{}); }catch(e){} },   // no toque: destrava o som do rosto no iPhone
@@ -1421,6 +1457,7 @@ class GeminiLive {
     else this.decisao = 'nao';
   }
   fimDoTurno(){
+    if(this.retendo){ this.turnoRetido = true; this.ouvido=''; this.decisao=null; this.liberado=false; return; }   // cumprimento segurado: o turno fecha quando ele for solto
     if(!this.decisao && this.pendentes.length) this.decidirPendentes();
     if(this.viaAvatar) FelyxAvatar.fim();
     this.viaAvatar = undefined;
@@ -1437,6 +1474,26 @@ class GeminiLive {
     this.liberado = true;
     const msg = 'Mensagem automática do sistema: a sessão acabou de abrir. Leia em voz alta o texto abaixo exatamente como está escrito, palavra por palavra, com energia e com o timing de quem conta uma piada, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto;
     this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
+  }
+  // cumprimento da abertura: pedido ao Gemini enquanto a íris ainda fala e segurado até o rosto aparecer (soltar)
+  cumprimentar(texto){
+    if(!this.ws || this.ws.readyState!==1) return false;
+    this.retendo = true; this.retidos = []; this.turnoRetido = false; this.liberado = true;
+    const msg = 'Mensagem automática do sistema: a sessão acabou de abrir. Leia em voz alta, com simpatia e no ritmo natural de uma conversa, exatamente o texto abaixo, palavra por palavra, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto;
+    this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
+    return true;
+  }
+  soltar(){
+    if(!this.retendo) return;
+    this.retendo = false;
+    const r = this.retidos || []; this.retidos = [];
+    r.forEach((c)=> this.playChunk(c));
+    if(this.turnoRetido){   // o Gemini já tinha terminado enquanto segurava: fecha a fala agora
+      this.turnoRetido = false;
+      if(this.viaAvatar) FelyxAvatar.fim();
+      this.viaAvatar = undefined;
+      FelyxAvatar.usar();
+    }
   }
   sayOpening(){
     if(!this.ws || this.ws.readyState!==1) return;
@@ -1511,6 +1568,7 @@ class GeminiLive {
     }catch(e){}
   }
   playChunk(b64){
+    if(this.retendo){ this.retidos.push(b64); return; }       // cumprimento esperando o rosto aparecer
     if(this.planoBAtivo){ this.filaB.push(b64); return; }   // plano B em curso: a fala espera a frase gravada e o teclado
     if(this.viaAvatar === undefined) this.decidirSaida();
     if(this.somDoRosto) this.falaAtual.push(b64);             // guarda a fala para o plano B poder repetir do começo
@@ -1581,6 +1639,7 @@ class GeminiLive {
   }
   stopPlayback(){
     clearTimeout(this.timerRosto); clearTimeout(this.timerB);
+    this.retendo = false; this.retidos = []; this.turnoRetido = false;
     if(this.pararTeclado){ this.pararTeclado(); this.pararTeclado = null; }
     if(this.fonteFrase){ try{ this.fonteFrase.onended = null; this.fonteFrase.stop(); }catch(e){} this.fonteFrase = null; }
     if(this.planoBAtivo){ this.planoBAtivo = false; this.pensando = false; } this.filaB = [];
@@ -1667,34 +1726,30 @@ async function start(){
   g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
-  g.micOpen = false;   // microfone só abre depois das boas-vindas (o Felyx não ouve a própria abertura)
+  g.micOpen = false;   // da íris até o fim do cumprimento o Felyx não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
   try{
-    const boot = bootSequence();
-    const textoBV = pedirBoasVindas();
-    const rosto = FelyxAvatar.abrir();   // o rosto conecta junto com a voz (leva uns 7 s)
-    await g.start();
+    const dados = dadosDoCumprimento();   // temperatura e dólar do Google, buscados enquanto a íris roda
+    FelyxAvatar.esconder(true);           // o rosto conecta durante a íris, mas só aparece quando ela acaba
+    const rosto = FelyxAvatar.abrir();
+    const inicioVoz = g.start();
+    let pedido = null;   // o cumprimento vai ao Gemini quando começa a última fala da íris e espera pronto, sem tocar
+    const pedirCumprimento = ()=>{ if(!pedido) pedido = (async ()=>{ try{ await inicioVoz; }catch(e){ return; } const d = await Promise.race([dados, pausa(1500)]); g.cumprimentar(textoDoCumprimento(d)); })(); return pedido; };
+    const boot = bootSequence({ antesDoFim: pedirCumprimento });
+    await inicioVoz;
     await boot;
     conv = g;
     setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=false;
-    await Promise.race([rosto, new Promise(ok=>setTimeout(ok, 4000))]);   // o rosto conectou durante o desbloqueio
+    await Promise.race([rosto, pausa(5000)]);   // a íris acabou: se o rosto ainda conecta, espera até 5 s; sem rosto, fala pela voz do aparelho
     if(conv !== g) return;
-    const sd = saudacaoAgora();
-    g.sayText(sd + ', Leandro.');   // entra já cumprimentando; o que vem depois ele pensa enquanto fala
-    const completo = !felyxCumprimento.recente();   // panorama completo (mercado, notícias) no máximo a cada 4 horas
-    const [segs] = await Promise.all([completo ? textoBV : Promise.resolve([]), fimDaFala(g)]);
+    FelyxAvatar.esconder(false);   // o rosto aparece...
+    await pedirCumprimento();
+    g.soltar();                    // ...e o cumprimento sai na hora, sincronizado com a boca
+    await fimDoCumprimento(g);     // o microfone segue ignorado até a fala acabar (com o rosto, até ele parar de falar)
     if(conv !== g) return;
-    if(!completo || !segs.length){ g.micOpen = true; statusText.textContent = 'diga “Félix” e fale'; return; }
-    felyxCumprimento.marcar();
-    const SAUD = /^\s*(bom dia|boa tarde|boa noite)[,.!]?\s*(leandro[,.!]?)?\s*/i;
-    if(segs[0]) segs[0] = { ...segs[0], texto: segs[0].texto.replace(SAUD, '') || segs[0].texto };
-    iniciarAcompanhamento(segs);
-    g.sayText(segs.map(s=>s.texto).join(' '));
-    // quando o Felyx terminar de falar, abre o microfone e apaga os destaques
-    let falou = false;
-    const prev = g.onState;
-    g.onState = (s)=>{ prev(s); if(s === 'speaking') falou = true; if(falou && s === 'listening' && !g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); statusText.textContent = 'diga “Félix” e fale'; setTimeout(()=>{ if(statusText.textContent === 'diga “Félix” e fale') statusText.textContent = ''; }, 4000); } };
-    setTimeout(()=>{ if(!g.micOpen){ g.micOpen = true; encerrarAcompanhamento(); } }, 120000);
+    g.micOpen = true; statusText.textContent = 'diga “Félix” e fale';
+    setTimeout(()=>{ if(statusText.textContent === 'diga “Félix” e fale') statusText.textContent = ''; }, 4000);
   }catch(e){
+    FelyxAvatar.esconder(false);
     iniciando = false;
     g.teardown('');
     bootEl.dataset.on='0'; scanEl.dataset.on='0';
