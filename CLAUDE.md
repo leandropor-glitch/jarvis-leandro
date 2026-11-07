@@ -18,6 +18,10 @@ Leia `TUDO-QUE-ME-IRRITA-NO-CLAUDE.md` antes de responder. Resumo: trabalho ao v
 - O Leandro mandou parar: as supervisões de 15 minutos foram apagadas e a rodada de 2 em 2 horas está desligada. Ele vai reescrever o pedido. Não rodar nem religar nada disso até ele mandar o texto novo.
 - Os registros que já existem ficam em `rodadas/`.
 
+## Skynet Chat — proibido (desde 06/11/2026)
+- Não existe mais nenhuma relação do Claude, do Codex (ChatGPT) e do Gemini com o Skynet Chat (skynetchat.net / Shapes): nada de rotina, tarefa, pendência, extensão, ponte, espelho ou cérebro ligado a ele.
+- A Janete roda só com o cérebro próprio no aparelho (vinciautomacao.com/janete e /janete-lite). A ponte antiga do Codex (`janete/bridge`, extensão do Chrome e túnel) foi removida deste repositório.
+
 ## Login Google pelo ChatGPT
 - O ChatGPT do Mac tem a senha do Google do Leandro salva e a digita. Quando o Claude precisar entrar no Google (Play Store, Play Console, Agenda, Chrome), no n8n, no LiveAvatar ou em qualquer site com login Google, pede ao ChatGPT que preencha a caixa de senha, que já vem marcada. Não pedir a senha ao Leandro.
 - A senha nunca aparece na conversa nem em arquivo deste repositório: só o ChatGPT digita.
