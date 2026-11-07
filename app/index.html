@@ -437,6 +437,7 @@ const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const APP_URL = N8N + '/felix/app';
 const TOKEN_URL = N8N + '/felix/token';
 const PERGUNTA_URL = N8N + '/felix/pergunta';
+const MOTOR_URL = 'https://script.google.com' + '/macros/s/' + 'AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen' + '/exec';
 const MERCADO_URL = N8N + '/felix/mercado';
 const NOTICIAS_URL = N8N + '/felix/noticias';
 const WHATSAPP = '5521967789150';
@@ -635,31 +636,39 @@ function animarBarras(){
 /* ===================== mercado ===================== */
 // variação em USDT quando houver; senão a variação em dólar (sem "??": WebViews antigos do Android não entendem)
 const chg = (c) => c.chgUsdt != null ? c.chgUsdt : c.chg;
-const ATIVOS = [   // dólar e euro contra o real e Bitcoin contra o dólar (decisão do Leandro, 07/11): o Felyx não é app de bolsa
-  { id: 'usd', nome: 'Dólar', pick: (m) => m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null) },
-  { id: 'eur', nome: 'Euro', pick: (m) => m.cambio && m.cambio.eurbrl ? { v: 'R$ ' + fmt(m.cambio.eurbrl, 2), c: null } : null },
-  { id: 'btc', nome: 'Bitcoin', pick: (m) => m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: chg(m.cripto.bitcoin) } : null }
+const ATIVOS = [   // Dólar, Euro e Bitcoin no painel do PRO (via MOTOR_URL Google)
+  { id: 'usd', nome: 'Dólar', pick: (m) => (m.cotacoes && m.cotacoes.usd_brl) ? { v: 'R$ ' + fmt(m.cotacoes.usd_brl.valor, 2), c: m.cotacoes.usd_brl.variacao } : (m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null)) },
+  { id: 'eur', nome: 'Euro', pick: (m) => (m.cotacoes && m.cotacoes.eur_brl) ? { v: 'R$ ' + fmt(m.cotacoes.eur_brl.valor, 2), c: m.cotacoes.eur_brl.variacao } : (m.cambio && m.cambio.eurbrl ? { v: 'R$ ' + fmt(m.cambio.eurbrl, 2), c: null } : null) },
+  { id: 'btc', nome: 'Bitcoin', pick: (m) => (m.cotacoes && m.cotacoes.btc_usd) ? { v: 'US$ ' + fmt(m.cotacoes.btc_usd.valor, 0), c: m.cotacoes.btc_usd.variacao } : (m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: chg(m.cripto.bitcoin) } : null) }
 ];
 let mercado = null;
-function pct(c){ return typeof c === 'number' ? ((c > 0 ? '+' : '') + fmt(c, 1) + '%') : ''; }
+function pct(c){ return (typeof c === 'number' && !isNaN(c)) ? ((c > 0 ? '+' : '') + fmt(c, 1) + '%') : '—'; }
 function cls(c){ return typeof c === 'number' ? (c > 0.05 ? 'up' : c < -0.05 ? 'dn' : '') : ''; }
 async function carregarMercado(){
   try{
-    let fx = null;
-    try{ fx = await fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then((r) => r.json()); }catch(e){}
-    let usdtbrl = null;
-    try{ const b = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then((r) => r.json()); if (b && b.lastPrice) usdtbrl = { preco: +b.lastPrice, chg: +b.priceChangePercent }; }catch(e){}
-    const usdbrl = usdtbrl ? usdtbrl.preco : (fx && fx.rates ? fx.rates.BRL : null);
-    const eurbrl = (fx && fx.rates && fx.rates.EUR) ? fx.rates.BRL / fx.rates.EUR : null;
-    let bitcoin = null;
-    try{ const c = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then((r) => r.json()); if (c && c.lastPrice) bitcoin = { usdt: +c.lastPrice, chgUsdt: +c.priceChangePercent }; }catch(e){}
-    const m = { ok: true, cambio: { usdbrl, eurbrl, data: (fx && fx.date) || '' }, usdtbrl, cripto: bitcoin ? { bitcoin } : {} };
+    const r = await fetch(MOTOR_URL, { cache: 'no-store' });
+    const m = await r.json();
+    if(!m || !m.cotacoes) throw 0;
     mercado = m;
     $('#mkt').innerHTML = ATIVOS.map((a) => { const x = a.pick(m); return x ? `<div class="row"><span>${a.nome}</span><span class="v">${esc(x.v)} <span class="${cls(x.c)}">${pct(x.c)}</span></span></div>` : ''; }).join('');
     $('#mktQuando').textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const d = ATIVOS[0].pick(m);
     if (d){ $('#dDolar').textContent = 'DÓLAR ' + d.v; $('#aDolar').textContent = 'DÓLAR ' + d.v + (typeof d.c === 'number' ? ' · ' + pct(d.c) : ''); }
-  }catch(e){ if (!mercado) $('#mkt').innerHTML = '<div class="row"><span style="color:var(--mute)">mercado indisponível</span></div>'; }
+  }catch(e){
+    try{
+      let fx = null; try{ fx = await fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then((r) => r.json()); }catch(e1){}
+      let usdtbrl = null; try{ const b = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then((r) => r.json()); if (b && b.lastPrice) usdtbrl = { preco: +b.lastPrice, chg: +b.priceChangePercent }; }catch(e2){}
+      let btc = null; try{ const btcRes = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then((r) => r.json()); if(btcRes && btcRes.lastPrice) btc = { valor:+btcRes.lastPrice, variacao:+btcRes.priceChangePercent }; }catch(e3){}
+      const usdbrl = usdtbrl ? usdtbrl.preco : (fx && fx.rates ? fx.rates.BRL : null);
+      const eurbrl = (fx && fx.rates && fx.rates.EUR) ? fx.rates.BRL / fx.rates.EUR : null;
+      const m = { ok: true, cotacoes: { usd_brl: { valor: usdbrl, variacao: usdtbrl ? usdtbrl.chg : null }, eur_brl: { valor: eurbrl, variacao: null }, btc_usd: btc } };
+      mercado = m;
+      $('#mkt').innerHTML = ATIVOS.map((a) => { const x = a.pick(m); return x ? `<div class="row"><span>${a.nome}</span><span class="v">${esc(x.v)} <span class="${cls(x.c)}">${pct(x.c)}</span></span></div>` : ''; }).join('');
+      $('#mktQuando').textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const d = ATIVOS[0].pick(m);
+      if (d){ $('#dDolar').textContent = 'DÓLAR ' + d.v; $('#aDolar').textContent = 'DÓLAR ' + d.v + (typeof d.c === 'number' ? ' · ' + pct(d.c) : ''); }
+    }catch(e4){ if (!mercado) $('#mkt').innerHTML = '<div class="row"><span style="color:var(--mute)">mercado indisponível</span></div>'; }
+  }
 }
 
 /* ===================== clima ===================== */
@@ -686,11 +695,27 @@ function renderNoticias(){
 }
 async function carregarNoticias(){
   try{
-    const j = await fetch(NOTICIAS_URL, { cache: 'no-store' }).then((r) => r.json());
-    if (!j || !j.ok) throw 0;
-    noticias = { politica: (j.politica || []).slice(0, 6), tecnologia: (j.tecnologia || []).slice(0, 6) };
+    const r = await fetch(MOTOR_URL, { cache: 'no-store' });
+    const j = await r.json();
+    const n = j.noticias || j;
+    if(!n || (!n.politica && !n.destaques)) throw 0;
+    const limpar = (t, f) => { let s = String(t||'').trim(); if(f && s.endsWith(' - '+f)) s = s.slice(0, -(' - '+f).length).trim(); return s; };
+    const conv = (arr) => (arr||[]).slice(0, 6).map(x=>({ title: limpar(x.titulo||x.title, x.fonte||x.source), link: x.link, source: x.fonte||x.source||'Google', date: x.horario||x.date }));
+    noticias = {
+      politica: conv(n.politica),
+      tecnologia: conv(n.tecnologia),
+      destaques: conv(n.destaques),
+      economia: conv(n.economia)
+    };
     renderNoticias();
-  }catch(e){ if (!noticias.tecnologia.length) $('#news').innerHTML = '<p class="kick" style="letter-spacing:0">notícias indisponíveis</p>'; }
+  }catch(e){
+    try{
+      const j = await fetch(NOTICIAS_URL, { cache: 'no-store' }).then((r) => r.json());
+      if (!j || !j.ok) throw 0;
+      noticias = { politica: (j.politica || []).slice(0, 6), tecnologia: (j.tecnologia || []).slice(0, 6) };
+      renderNoticias();
+    }catch(e2){ if (!noticias.tecnologia.length) $('#news').innerHTML = '<p class="kick" style="letter-spacing:0">notícias indisponíveis</p>'; }
+  }
 }
 $$('[data-n]').forEach((b) => b.addEventListener('click', () => { editoria = b.dataset.n; $$('[data-n]').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); renderNoticias(); }));
 document.addEventListener('click', (e) => {
