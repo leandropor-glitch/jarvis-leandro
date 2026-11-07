@@ -125,6 +125,16 @@ a{color:var(--acc)}
 .iaBox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
 .iaBox b{color:var(--ink);font-weight:600}
 .iaBox a{font-size:14px}
+.remote{position:fixed;inset:0;z-index:60;background:#000a;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center}
+.remote[hidden]{display:none}
+.rc{width:min(520px,100%);background:#121418;border:1px solid var(--line3);border-radius:22px 22px 0 0;padding:18px 18px calc(var(--safe-b) + 18px);box-shadow:0 -10px 40px #000a}
+.rc header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.rc h3{margin:0;font-size:18px}
+.rc select{width:100%;margin-bottom:12px;padding:10px;border-radius:12px;background:var(--card);color:var(--ink);border:1px solid var(--line);font:inherit}
+.rc .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rc .grid button{min-height:58px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:15px}
+.rc .grid button.acc{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.rc .temp{grid-column:2;display:grid;place-items:center;font-size:30px;font-weight:600}
+.rc .x{border:0;background:var(--card);color:var(--ink);width:38px;height:38px;border-radius:12px;font-size:18px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 104px);background:#1b1e24;border:1px solid var(--line3);color:var(--ink);padding:12px 18px;border-radius:14px;font-size:14px;z-index:50;max-width:min(92vw,520px);box-shadow:0 10px 30px #0008;transition:opacity .3s}
 .toast[data-show="0"]{opacity:0;pointer-events:none}
 .destaque{margin-top:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:left;color:var(--ink)}
@@ -409,6 +419,11 @@ body.vision .tile,body.vision .chip{border-radius:28px}
   </div>
 </section>
 
+<div class="remote" id="remote" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitulo"><div class="rc">
+  <header><h3 id="rcTitulo">Controle</h3><button class="x" type="button" id="rcFechar" aria-label="Fechar">✕</button></header>
+  <select id="rcAparelho" aria-label="Aparelho"></select>
+  <div class="grid" id="rcBotoes"></div>
+</div></div>
 <div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
 
 <script src="../cumprimento.js"></script>
@@ -747,6 +762,53 @@ async function comandar(texto, el, nome, estado){
   if (el){ el.dataset.busy = '0'; el.disabled = false; }
   renderCasa();
 }
+
+/* ---------- controle remoto: cena de TV ou ar-condicionado executa a cena e abre o controle ---------- */
+const RC_TV = /\b(tv|televis)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i;
+function rcAparelhos(tipo){
+  const ap = (casa && casa.aparelhos) || [];
+  return tipo === 'ar' ? ap.filter((a) => a.tipo === 'THERMOSTAT' || RC_AR.test(a.nome)).map((a) => a.nome)
+                       : ap.filter((a) => RC_TV.test(a.nome)).map((a) => a.nome);
+}
+function rcMelhor(nomeCena, lista){
+  const lembrado = store.get('felyx.rc.' + nomeCena, null); if (lembrado && lista.includes(lembrado)) return lembrado;
+  const palavras = nomeCena.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\W+/).filter((w) => w.length > 2 && !/^(tv|cena)$/.test(w));
+  let melhor = lista[0], nota = -1;
+  for (const n of lista){ const t = n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); const pts = palavras.filter((w) => t.includes(w)).length; if (pts > nota){ nota = pts; melhor = n; } }
+  return melhor;
+}
+let rcTemp = store.get('felyx.rc.temp', 23);
+function abrirControle(tipo, origem){
+  const lista = rcAparelhos(tipo); if (!lista.length) return false;
+  const sel = $('#rcAparelho');
+  sel.innerHTML = lista.map((n) => `<option>${esc(n)}</option>`).join('');
+  sel.value = lista.includes(origem) ? origem : rcMelhor(origem || '', lista);
+  sel.onchange = () => { if (origem) store.set('felyx.rc.' + origem, sel.value); };
+  $('#rcTitulo').textContent = tipo === 'ar' ? 'Ar-condicionado' : 'Televisão';
+  const b = (rot, cmd, extra) => `<button type="button" data-rc="${esc(cmd)}" ${extra || ''}>${rot}</button>`;
+  $('#rcBotoes').innerHTML = tipo === 'ar'
+    ? b('Ligar', 'liga o {a}', 'class="acc"') + '<span></span>' + b('Desligar', 'desliga o {a}')
+      + b('− 1°', 'temp-') + `<div class="temp" id="rcTemp">${rcTemp}°</div>` + b('+ 1°', 'temp+')
+      + b('Frio', 'coloca o {a} no modo frio') + b('Ventilar', 'coloca o {a} no modo ventilar') + b('Automático', 'coloca o {a} no modo automático')
+    : b('Ligar', 'liga a {a}', 'class="acc"') + b('Mudo', 'deixa a {a} no mudo') + b('Desligar', 'desliga a {a}')
+      + b('Vol −', 'abaixa o volume da {a}') + b('Pausar', 'pausa a {a}') + b('Vol +', 'aumenta o volume da {a}')
+      + b('Canal −', 'canal anterior na {a}') + b('Continuar', 'continua a {a}') + b('Canal +', 'próximo canal na {a}');
+  $('#remote').hidden = false;
+  return true;
+}
+let rcTimer = null;
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'remote' || e.target.closest('#rcFechar')) { $('#remote').hidden = true; return; }
+  const k = e.target.closest('[data-rc]'); if (!k) return;
+  const ap = $('#rcAparelho').value; let cmd = k.dataset.rc;
+  if (cmd === 'temp-' || cmd === 'temp+'){
+    rcTemp = Math.max(16, Math.min(30, rcTemp + (cmd === 'temp+' ? 1 : -1))); store.set('felyx.rc.temp', rcTemp);
+    $('#rcTemp').textContent = rcTemp + '°';
+    clearTimeout(rcTimer); rcTimer = setTimeout(() => comandar('coloca o ' + ap + ' em ' + rcTemp + ' graus'), 900);   // espera parar de tocar
+    return;
+  }
+  comandar(cmd.replace('{a}', ap), k);
+});
 let segurou = false, segT = null;
 document.addEventListener('pointerdown', (e) => {
   const b = e.target.closest('[data-cena],[data-dev]'); if (!b) return;
@@ -766,8 +828,18 @@ document.addEventListener('click', (e) => {
   if (segurou){ segurou = false; return; }
   if (liga) return comandar('liga o ' + liga.dataset.liga, liga, liga.dataset.liga, true);
   if (desl) return comandar('desliga o ' + desl.dataset.desliga, desl, desl.dataset.desliga, false);
-  if (c && c.dataset.cena) return comandar('ativa a cena ' + c.dataset.cena, c);
-  if (d && d.dataset.dev){ const n = d.dataset.dev, on = !ligado[n]; return comandar((on ? 'liga o ' : 'desliga o ') + n, d, n, on); }
+  if (c && c.dataset.cena){
+    const n = c.dataset.cena, tipo = RC_TV.test(n) ? 'tv' : (RC_AR.test(n) ? 'ar' : null);
+    comandar('ativa a cena ' + n, c);
+    if (tipo) abrirControle(tipo, n);   // cena de TV ou de ar: executa e já abre o controle remoto
+    return;
+  }
+  if (d && d.dataset.dev){
+    const n = d.dataset.dev, ap = ((casa && casa.aparelhos) || []).find((a) => a.nome === n) || {};
+    if (ap.tipo === 'THERMOSTAT' || RC_AR.test(n)) { if (abrirControle('ar', n)) return; }
+    if (RC_TV.test(n)) { if (abrirControle('tv', n)) return; }
+    const on = !ligado[n]; return comandar((on ? 'liga o ' : 'desliga o ') + n, d, n, on);
+  }
 });
 
 /* ===================== conversa por texto ===================== */
