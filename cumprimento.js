@@ -1,4 +1,4 @@
-// Regra do cumprimento (Lite, PRO, FULL e app): o "bom dia / boa tarde / boa noite" completo — com mercado, dólar e
+// Regra do cumprimento (GEM, FULL e app): o "bom dia / boa tarde / boa noite" completo — com mercado, dólar e
 // notícias — sai no máximo uma vez a cada 4 horas. Dentro desse intervalo o Felyx só devolve um cumprimento curto.
 // A marca fica no localStorage do domínio, então vale para todas as versões abertas neste aparelho.
 (function () {

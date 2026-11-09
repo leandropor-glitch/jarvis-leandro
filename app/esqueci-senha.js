@@ -1,4 +1,4 @@
-// "Esqueci a senha" do Felyx (Lite, PRO e FULL): o mesmo fluxo do app — celular, código de 6 dígitos no WhatsApp
+// "Esqueci a senha" do Felyx (GEM e FULL): o mesmo fluxo do app — celular, código de 6 dígitos no WhatsApp
 // do Felyx e senha nova — pelo n8n (felix/app: codigo → verificar → senha). Ao terminar, já devolve a sessão.
 // Uso: felyxEsqueciSenha({ telefone, aoEntrar: (j) => { /* j.token, j.nome */ } })
 (function () {
@@ -71,7 +71,7 @@
     }
 
     function passoSenha() {
-      el.innerHTML = '<form class="cx"><h2>Senha nova</h2><p>Vale para o app, o Lite, o PRO e o FULL.</p>'
+      el.innerHTML = '<form class="cx"><h2>Senha nova</h2><p>Vale para o app, o GEM e o FULL.</p>'
         + '<input id="feS1" type="password" autocomplete="new-password" placeholder="Senha nova (mínimo 6)" required>'
         + '<input id="feS2" type="password" autocomplete="new-password" placeholder="Repita a senha" required>'
         + '<button type="submit">Salvar e entrar</button><div class="er"></div></form>';

@@ -654,7 +654,7 @@ function animarBarras(){
 /* ===================== mercado ===================== */
 // variação em USDT quando houver; senão a variação em dólar (sem "??": WebViews antigos do Android não entendem)
 const chg = (c) => c.chgUsdt != null ? c.chgUsdt : c.chg;
-const ATIVOS = [   // Dólar, Euro e Bitcoin no painel do PRO (via MOTOR_URL Google)
+const ATIVOS = [   // Dólar, Euro e Bitcoin no painel do FULL (via MOTOR_URL Google)
   { id: 'usd', nome: 'Dólar', pick: (m) => (m.cotacoes && m.cotacoes.usd_brl) ? { v: 'R$ ' + fmt(m.cotacoes.usd_brl.valor, 2), c: m.cotacoes.usd_brl.variacao } : (m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null)) },
   { id: 'eur', nome: 'Euro', pick: (m) => (m.cotacoes && m.cotacoes.eur_brl) ? { v: 'R$ ' + fmt(m.cotacoes.eur_brl.valor, 2), c: m.cotacoes.eur_brl.variacao } : (m.cambio && m.cambio.eurbrl ? { v: 'R$ ' + fmt(m.cambio.eurbrl, 2), c: null } : null) },
   { id: 'btc', nome: 'Bitcoin', pick: (m) => (m.cotacoes && m.cotacoes.btc_usd) ? { v: 'US$ ' + fmt(m.cotacoes.btc_usd.valor, 0), c: m.cotacoes.btc_usd.variacao } : (m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: chg(m.cripto.bitcoin) } : null) }
@@ -955,7 +955,7 @@ function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; 
 function irParaGen(){
   if (!sessao || !sessao.token || sessao.demo || !iaAceita() || params.get('cerebro') === 'claude') return false;
   try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
-  const q = new URLSearchParams(location.search); q.set('v', '20261109b'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
+  const q = new URLSearchParams(location.search); q.set('v', '20261109c'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
 }
 let iaPedido = null;
 function permissaoIA(){

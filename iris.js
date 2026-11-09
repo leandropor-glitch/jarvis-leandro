@@ -1,4 +1,4 @@
-// Desbloqueio de íris do Felyx (Lite, PRO, FULL e app): um radar que mira em quem está diante da tela
+// Desbloqueio de íris do Felyx (GEM, FULL e app): um radar que mira em quem está diante da tela
 // (não nos olhos do Felyx), a fala "Efetuando desbloqueio de íris", a varredura com cliques, o "tanarã" de validação
 // e "Íris desbloqueada com sucesso" com calma. Só então o rosto do Felyx aparece.
 // Uso: no toque, felyxIris.preparar(); depois await felyxIris.desbloquear(elementoDoRosto).

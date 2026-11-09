@@ -61,7 +61,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .face canvas{display:block;width:100%;height:100%}
 .face video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;pointer-events:none}
 .face video.on{opacity:1}
-/* com o rosto ao vivo, o centro vira o quadro do PRO: retângulo grande, sem os anéis */
+/* com o rosto ao vivo, o centro vira o quadro do FULL: retângulo grande, sem os anéis */
 #hud.com-rosto .orbWrap{width:min(100%,960px);aspect-ratio:16/9}
 #hud.com-rosto #rings{display:none}
 #hud.com-rosto .face{width:100%;aspect-ratio:16/9;border-radius:18px;box-shadow:0 0 0 1px rgba(214,255,26,.18),0 0 50px rgba(214,255,26,.08)}
@@ -338,6 +338,17 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .rcEd label{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .rcEd input{display:block;width:100%;margin-top:6px;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit;font-size:15px;letter-spacing:0;text-transform:none}
 .rcEd .eb{display:flex;gap:8px;flex-wrap:wrap}
+/* celular na horizontal (09/11/2026): barra mais baixa e Dashboard compacto, com o Felyx pequeno; barra e microfone continuam fixos */
+@media (orientation:landscape) and (max-height:560px){
+  #hud>.appTabs{padding-top:max(4px,env(safe-area-inset-top));padding-bottom:4px}
+  #hud>.appTabs button{min-height:32px}
+  #hud{padding-top:calc(44px + env(safe-area-inset-top));padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  #hud>.mic{width:54px;height:54px;bottom:calc(12px + env(safe-area-inset-bottom))}
+  #hud[data-tab="dashboard"]>.top{display:none}
+  #hud[data-tab="dashboard"] .center{min-height:auto}
+  #hud[data-tab="dashboard"] .orbWrap{width:min(26vh,120px)}
+  #hud[data-tab="rooms"]{padding-bottom:env(safe-area-inset-bottom)}
+}
 </style>
 </head>
 <body>
@@ -724,7 +735,7 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
     if(!tel || !senha){ erro.textContent = 'Preencha telefone e senha.'; return; }
     entrar.disabled = true; erro.textContent = 'entrando…';
     try{
-      // mesma senha do app Felyx (Lite, PRO e apps); a senha antiga da casa continua valendo como segunda tentativa
+      // mesma senha do app Felyx (GEM, FULL e apps); a senha antiga da casa continua valendo como segunda tentativa
       let r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'entrar', telefone: tel, senha, aparelho:'App · Félix GEN' }) });
       let j = {}; try{ j = await r.json(); }catch(e){}
       if(!(r.ok && j.ok && j.token)){
