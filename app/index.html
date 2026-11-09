@@ -830,6 +830,9 @@ async function comandar(texto, el, nome, estado, cena=false){
     } else if (j.recusado){
       // o atalho entendeu, mas a Amazon não permite (ex.: desativar uma cena que só tem "ativar"): não é falha da casa
       if(cena){el.dataset.res='fail';const result=el.querySelector('.scene-result');if(result)result.textContent='Não concluída';}else toast(j.text || 'A Vinci não permite esse comando.');
+    } else if (!j.atalho && cena){
+      el.dataset.res='fail'; const result=el.querySelector('.scene-result'); if(result) result.textContent='Não concluída';
+      toast('Não concluída.');
     } else if (!j.atalho){
       // não foi comando simples: o cérebro resolve
       const r = await perguntar(texto); toast(r || 'Não consegui agora.');
