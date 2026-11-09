@@ -554,6 +554,7 @@ $('#fTel').addEventListener('submit', async (e) => {
   try{
     const j = await api('entrar', { telefone: L.tel, senha, aparelho: aparelhoNome() });
     if (j.ok) entrou(j);
+    else if (j.erro === 'plano_gen' && j.link){ msg('mTel', j.mensagem || 'O seu Félix funciona no navegador.'); abrirExterno(j.link); }
     else if (j.erro === 'sem_senha') msg('mTel', (j.mensagem ? j.mensagem + ' ' : '') + 'Toque em "Primeiro acesso" para criar a sua senha.');
     else msg('mTel', j.mensagem || 'Não deu certo.');
   }catch(err){ msg('mTel', 'Sem conexão com o Felyx. Tente de novo.'); }
@@ -575,7 +576,9 @@ $('#fSenha').addEventListener('submit', async (e) => {
   if (a !== b){ msg('mSenha', 'As senhas não são iguais.'); return; }
   try{
     const j = await api('senha', { telefone: L.tel, ticket: L.ticket, senha: a, aparelho: aparelhoNome() });
-    if (j.ok) entrou(j); else msg('mSenha', j.mensagem || 'Não deu certo.');
+    if (j.ok) entrou(j);
+    else if (j.erro === 'plano_gen' && j.link){ msg('mSenha', j.mensagem || 'O seu Félix funciona no navegador.'); abrirExterno(j.link); }
+    else msg('mSenha', j.mensagem || 'Não deu certo.');
   }catch(err){ msg('mSenha', 'Sem conexão.'); }
 });
 function entrou(j){
