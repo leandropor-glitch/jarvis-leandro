@@ -747,9 +747,9 @@ function explicarNoticia(n){
 
 /* ===================== casa ===================== */
 let casa = store.get('felyx.casa', null), filtro = 'cenas';
-let roomConfig = {comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'};
+let roomConfig = {comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'}, roomConfigReady=false;
 let casaRoom = store.get('felyx.comodo', '');
-fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderCasa();}}).catch(()=>{});
+fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;roomConfigReady=true;renderCasa();}}).catch(()=>{});
 let favoritos = store.get('felyx.favoritos', ['Luz Alta', 'Sanca', 'TV Sala', 'Boa Noite']);
 let ligado = store.get('felyx.ligado', {});
 let casaAt = 0;
@@ -783,8 +783,8 @@ function renderCasa(){
   $('#casaConta').textContent = (c.cenas.length + c.aparelhos.length) + ' ITENS · VINCI';
   const todos=[...c.cenas.map(nome=>({nome,tipo:'cena'})),...c.aparelhos.map(a=>({nome:a.nome,tipo:'aparelho'}))];
   const rooms=[...new Set([...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(x=>x.nome),roomConfig.semComodo||'Outros'])].filter(r=>todos.some(x=>comodoItem(x.nome,x.tipo)===r));
-  if(!rooms.includes(casaRoom))casaRoom=rooms[0]||'';
-  store.set('felyx.comodo',casaRoom);
+  if(!rooms.includes(casaRoom)||(roomConfigReady&&casaRoom===(roomConfig.semComodo||'Outros')&&rooms.length>1))casaRoom=rooms[0]||'';
+  if(roomConfigReady)store.set('felyx.comodo',casaRoom);
   $('#roomChips').replaceChildren(...rooms.map(r=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',r===casaRoom?'true':'false');b.textContent=r;b.addEventListener('click',()=>{casaRoom=r;store.set('felyx.comodo',r);$('#busca').value='';renderCasa();});return b;}));
   const inRoom=(nome,tipo)=>comodoItem(nome,tipo)===casaRoom;
   const tile = (nome, tag, tipo) => `<button class="tile${tipo === 'cena' ? ' scene-command' : ''}" type="button" data-cena="${tipo === 'cena' ? esc(nome) : ''}" data-dev="${tipo === 'cena' ? '' : esc(nome)}"${tipo === 'cena' ? ' data-scene="1"' : ` data-on="${ligado[nome] ? '1' : '0'}"`}>${tipo === 'cena' && temControle(nome) ? RC_ICO : ''}<small>${esc(tag)}</small><span>${esc(nome)}</span>${tipo==='cena'?'<span class="scene-result" aria-live="polite"></span>':''}</button>`;
