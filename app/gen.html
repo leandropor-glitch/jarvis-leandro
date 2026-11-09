@@ -925,7 +925,7 @@ async function runTile(i, btn){
   }catch(e){ texto = ''; }
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
-  btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena || !ok) setTimeout(()=>{ btn.dataset.res = ''; }, cena ? 12000 : 1800);
+  btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena) setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
   if(!cena && ok && t.f2){ if(turningOff) delete tileOn[i]; else tileOn[i] = 1; saveOn(); btn.dataset.on = tileOn[i] ? '1' : '0'; btn.title = tileOn[i] ? t.f2 : t.f; }
   if(!cena) dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
   const first = (texto || 'Sem resposta do cérebro.').split(/(?<=[.!?])\s/)[0];
