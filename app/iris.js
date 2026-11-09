@@ -1,6 +1,6 @@
 // Desbloqueio de íris do Felyx (Lite, PRO, FULL e app): um radar que mira em quem está diante da tela
-// (não nos olhos do Felyx), a fala "Efetuando desbloqueio de íris", a varredura com cliques, o "tanarã" de validação
-// e "Íris desbloqueada com sucesso" com calma. Só então o rosto do Felyx aparece.
+// (não nos olhos do Felyx), a varredura com cliques, o "tanarã" de validação e o texto "Desbloqueio de íris efetuado".
+// Sem narração por voz (09/11/2026). Só então o rosto do Felyx aparece.
 // Uso: no toque, felyxIris.preparar(); depois await felyxIris.desbloquear(elementoDoRosto).
 // As falas vêm de iris-sons.js (voz Algieba). Sem som liberado, a animação roda do mesmo jeito.
 (function () {
@@ -10,7 +10,6 @@
   function preparar() { // chamar dentro do toque: libera o som no Safari e no Chrome
     const AC = window.AudioContext || window.webkitAudioContext;
     try { if (!ctx || ctx.state === 'closed') ctx = new AC(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {}
-    ['anuncio', 'sucesso'].forEach((n) => carregar(n).catch(() => {}));
   }
   async function carregar(nome) {
     if (buffers[nome]) return buffers[nome];
@@ -124,14 +123,13 @@
   async function rodar(alvo, avisos) {
     preparar();
     const r = radar(alvo);
-    r.texto('desbloqueio de íris');
-    await tocar('anuncio');
+    // sem narração (pedido do Leandro, 09/11): só o som do leitor e o texto na tela
     r.texto('lendo íris');
     varredura(2.4); await espera(2450);
-    r.validar(); r.texto('íris validada'); tanara(); await espera(700);
-    // avisa a página que a última fala vai começar: dá tempo de o cumprimento ficar pronto e sair assim que o rosto aparecer
+    r.validar(); r.texto('desbloqueio de íris efetuado'); tanara();
+    // avisa a página que a abertura está acabando: dá tempo de o cumprimento ficar pronto e sair assim que o rosto aparecer
     try { if (avisos && avisos.antesDoFim) avisos.antesDoFim(); } catch (e) {}
-    await tocar('sucesso');
+    await espera(1800);
     await r.sair();
   }
 
