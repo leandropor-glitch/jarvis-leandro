@@ -1398,6 +1398,7 @@ const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Dig
 // a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
 const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
 const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
+try{ const q = localStorage.getItem('felyx.rosto.parado'); const r = document.querySelector('.face .retrato'); if(q && r) r.src = q; }catch(e){}   // foto parada = último quadro do LiveAvatar calado
 /* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
 // O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
 // (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
@@ -1457,6 +1458,7 @@ const FelyxAvatar = (()=>{
         ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
       });
       pronto = true; ultimo = Date.now();
+      setTimeout(capturarParado, 2500);   // guarda o quadro do rosto calado para ser a foto parada (09/11)
       if(!escondido){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); }   // na abertura, só depois da íris
       clearInterval(timer);
       timer = setInterval(()=>{
@@ -1466,6 +1468,20 @@ const FelyxAvatar = (()=>{
       }, 10000);
     })().catch((e)=>{ console.warn('Felyx avatar:', e.message); fechar(); }).finally(()=>{ abrindo = null; });
     return abrindo;
+  }
+  // 09/11/2026 (Leandro): a foto parada depois da íris tem que ser igualzinha ao LiveAvatar calado.
+  // Com o rosto pronto e em silêncio, guarda um quadro do próprio vídeo neste aparelho e passa a usá-lo como foto parada.
+  function capturarParado(tentativa){
+    tentativa = tentativa || 0;
+    if(!pronto || tentativa > 20) return;
+    const calado = !agenteFalando && Date.now() - falouEm > 1500;
+    if(!calado || video.readyState < 2 || !video.videoWidth){ setTimeout(()=>capturarParado(tentativa + 1), 1500); return; }
+    try{
+      const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+      const url = c.toDataURL('image/jpeg', 0.9);
+      if(url.length > 2000){ localStorage.setItem('felyx.rosto.parado', url); const r = document.querySelector('.face .retrato'); if(r) r.src = url; }
+    }catch(e){ console.warn('Felyx: quadro do rosto calado', e.message); }
   }
   function fechar(){
     const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false; falouEm = 0; agenteFalando = false;
