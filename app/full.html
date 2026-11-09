@@ -306,6 +306,14 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 #hud[data-tab="news"] .stage{display:flex;flex-direction:column;gap:12px;overflow:auto;padding:8px 10px}
 #hud[data-tab="news"] .col{display:contents}
 #hud[data-tab="news"] .news{width:min(100%,720px);align-self:center}
+/* 09/11/2026 (3ª ordem): Home com o rosto e os efeitos de sempre em tela cheia; Salas sem microfone */
+#hud[data-tab="home"] .retrato{display:none}
+#hud[data-tab="home"] #cv{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#hud[data-tab="home"].com-rosto #cv{opacity:0}
+#hud[data-tab="rooms"]>.mic{display:none}
+#hud[data-tab="rooms"]{padding-bottom:env(safe-area-inset-bottom)}
+.roombar .addSala{border-style:dashed}
+.editor select{width:100%;margin-top:4px;padding:8px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit}
 </style>
 </head>
 <body>
@@ -350,11 +358,12 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
         <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome da sala<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir sala</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
           <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
+          <label>sala<select id="edRoom"></select></label>
           <datalist id="phrases"></datalist>
           <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">esvaziar</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
           <div class="hint">a frase é mandada à central da Vinci. fica salvo neste aparelho.</div>
@@ -887,17 +896,29 @@ const gridEl = document.getElementById('grid'), matrixEl = document.getElementBy
 const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase'), edPhrase2 = document.getElementById('edPhrase2');
 let tiles = loadTiles(), editMode = false, editing = -1;
 function loadTiles(){
-  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||'') })); } }catch(e){}
+  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||'') })); } }catch(e){}
   return DEFAULT_TILES.map(t=>({ ...t }));
 }
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
 let tileOn = (()=>{ try{ return JSON.parse(localStorage.getItem(MATRIX_ON_KEY)||'{}') || {}; }catch(e){ return {}; } })();
 function saveOn(){ try{ localStorage.setItem(MATRIX_ON_KEY, JSON.stringify(tileOn)); }catch(e){} }
+const SALAS_KEY='felyx.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[]};}catch(e){}return{renomes:{},extras:[],ocultas:[]};})();
+function saveSalas(){try{localStorage.setItem(SALAS_KEY,JSON.stringify(salas))}catch(e){}}
 const roomStoreKey='felyx.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
 const normRoom=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
 function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i.test(String(t.f||'')); }
-function roomForTile(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
-function renderRoomTabs(){const counts=new Set(tiles.filter(isSceneTile).map(roomForTile)),order=[...new Set([...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome),roomConfig.semComodo||'Outros'])].filter(c=>counts.has(c));if(!order.includes(roomActive))roomActive=order[0]||'';roomBar.replaceChildren(...order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;}));}
+function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes(r)?(roomConfig.semComodo||'Outros'):r;}
+function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
+function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
+function listaSalas(){const base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome),roomConfig.semComodo||'Outros'].map(c=>salas.renomes[c]||c);return [...new Set([...base,...tiles.filter(t=>t.s).map(t=>t.s),...salas.extras])].filter(c=>!salas.ocultas.includes(c));}
+function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode);if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ sala';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+/* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
+let salaEditando=null;
+function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
+function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
+function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
+function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
+function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
 try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
@@ -919,16 +940,19 @@ gridEl.addEventListener('click', (e)=>{
 let pressTimer = null;
 gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>gridEl.addEventListener(ev, ()=>{ clearTimeout(pressTimer); }));
-function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on) closeEditor(); }
+function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); } renderRoomTabs(); }
 editBtn.addEventListener('click', ()=>setEdit(!editMode));
+document.getElementById('rmSave').addEventListener('click', salvarSala);
+document.getElementById('rmDel').addEventListener('click', excluirSala);
+document.getElementById('rmCancel').addEventListener('click', fecharSala);
 function openEditor(i, temp){
   editing = i; if(temp && !editMode){ matrixEl.dataset.edit = '1'; }
-  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || '';
+  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || '';
   editorEl.hidden = false; edName.focus();
   editorEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
-document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim() }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'', f2:'' }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edCancel').addEventListener('click', closeEditor);
 document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; saveOn(); saveTiles(); renderMatrix(); closeEditor(); } });
