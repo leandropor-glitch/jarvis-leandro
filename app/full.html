@@ -314,12 +314,35 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 #hud[data-tab="rooms"]{padding-bottom:env(safe-area-inset-bottom)}
 .roombar .addSala{border-style:dashed}
 .editor select{width:100%;margin-top:4px;padding:8px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit}
+/* controle remoto e favoritos (09/11/2026) */
+.remote{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
+.remote[hidden]{display:none}
+.rc{width:min(520px,100%);background:#121418;border:1px solid rgba(var(--accent-rgb),.3);border-radius:22px 22px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 18px);box-shadow:0 -10px 40px #000a;color:var(--ink)}
+.rc header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.rc h3{margin:0;font-size:18px}
+.rc .rcAp{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.rc .rcAp input{display:block;width:100%;margin-top:6px;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit;font-size:15px;letter-spacing:0;text-transform:none}
+.rc .rcGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rc .rcGrid button{min-height:56px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--ink);font:inherit;font-size:15px}
+.rc .rcGrid button.acc{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.rc .rcGrid button[data-busy="1"]{opacity:.55}
+.rc .temp{display:grid;place-items:center;font-size:30px;font-weight:600}
+.rc .x{border:0;background:rgba(255,255,255,.08);color:var(--ink);width:38px;height:38px;border-radius:12px;font-size:18px}
+.rc .rcRes{min-height:18px;margin-top:10px;text-align:center;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tile{position:relative}.tile .rcIco{position:absolute;top:6px;right:7px;width:15px;height:15px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tile.fav::before{content:"★";position:absolute;top:4px;left:7px;font-size:11px;color:var(--accent)}
+.editor .chk{display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
   <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
 </div>
+<div class="remote" id="remote" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitulo"><div class="rc">
+  <header><h3 id="rcTitulo">Controle</h3><button class="x" type="button" id="rcFechar" aria-label="Fechar">✕</button></header>
+  <label class="rcAp">aparelho<input id="rcAparelho" maxlength="40" autocomplete="off"></label>
+  <div class="rcGrid" id="rcBotoes"></div>
+  <div class="rcRes" id="rcRes" role="status" aria-live="polite"></div>
+</div></div>
 <div class="hud" id="hud" data-state="idle" data-tab="home">
   <header class="top">
     <div class="meta left"><span class="dot" id="dotHouse"></span><span id="houseLabel">felyx · vinci ai</span></div>
@@ -364,6 +387,8 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
           <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
           <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
           <label>sala<select id="edRoom"></select></label>
+          <label>controle remoto depois da cena<select id="edRc"><option value="">automático (TV e ar pelo nome)</option><option value="tv">televisão</option><option value="ar">ar-condicionado</option><option value="nao">nenhum</option></select></label>
+          <label class="chk"><input type="checkbox" id="edFav"> favorito (vai para o topo do Dashboard e para a sala Favoritos)</label>
           <datalist id="phrases"></datalist>
           <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">esvaziar</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
           <div class="hint">a frase é mandada à central da Vinci. fica salvo neste aparelho.</div>
@@ -896,7 +921,7 @@ const gridEl = document.getElementById('grid'), matrixEl = document.getElementBy
 const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase'), edPhrase2 = document.getElementById('edPhrase2');
 let tiles = loadTiles(), editMode = false, editing = -1;
 function loadTiles(){
-  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||'') })); } }catch(e){}
+  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
   return DEFAULT_TILES.map(t=>({ ...t }));
 }
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
@@ -911,7 +936,7 @@ function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
 function listaSalas(){const base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome),roomConfig.semComodo||'Outros'].map(c=>salas.renomes[c]||c);return [...new Set([...base,...tiles.filter(t=>t.s).map(t=>t.s),...salas.extras])].filter(c=>!salas.ocultas.includes(c));}
-function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode);if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ sala';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ sala';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
 function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
@@ -923,12 +948,53 @@ try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud'
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
 function limparEstadosDeCena(){ tiles.forEach((t,i)=>{ if(isSceneTile(t)) delete tileOn[i]; }); saveOn(); }
+const RC_TV = /\b(tv|televis)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i;
+const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
+function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : ''); }
 function renderMatrix(){
   limparEstadosDeCena();
-  gridEl.innerHTML = tiles.map((t, i)=>{const cena=isSceneTile(t),room=roomForTile(t);return `<button class="tile${cena ? ' scene-command' : ''}" type="button" data-i="${i}" data-room="${esc(room)}" ${document.getElementById('hud').dataset.tab==='rooms'&&room!==roomActive?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}"><span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
+  const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
+  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
   renderRoomTabs();
 }
 renderMatrix();
+/* ---------- controle remoto (09/11/2026): cena de TV ou ar executa a cena e, no fim, abre o controle ---------- */
+let rcTemp = (()=>{ try{ return Number(localStorage.getItem('felyx.rc.temp')) || 23; }catch(e){ return 23; } })(), rcTimer = null;
+function abrirControle(tipo, t){
+  const chave = 'felyx.rc.ap.' + t.n; let ap = ''; try{ ap = localStorage.getItem(chave) || ''; }catch(e){}
+  const inp = document.getElementById('rcAparelho');
+  inp.value = ap || (tipo === 'tv' ? (/\b(tv|televis\w*)\b/i.test(t.n) ? t.n : 'TV ' + t.n) : t.n);
+  inp.onchange = ()=>{ try{ localStorage.setItem(chave, inp.value.trim()); }catch(e){} };
+  document.getElementById('rcTitulo').textContent = tipo === 'ar' ? 'Ar-condicionado' : 'Televisão';
+  document.getElementById('rcRes').textContent = '';
+  const b = (rot, cmd, extra) => `<button type="button" data-rc="${esc(cmd)}" ${extra || ''}>${rot}</button>`;
+  document.getElementById('rcBotoes').innerHTML = tipo === 'ar'
+    ? b('Ligar', 'liga o {a}', 'class="acc"') + '<span></span>' + b('Desligar', 'desliga o {a}')
+      + b('− 1°', 'temp-') + `<div class="temp" id="rcTemp">${rcTemp}°</div>` + b('+ 1°', 'temp+')
+      + b('Frio', 'coloca o {a} no modo frio') + b('Ventilar', 'coloca o {a} no modo ventilar') + b('Automático', 'coloca o {a} no modo automático')
+    : b('Ligar', 'liga a {a}', 'class="acc"') + b('Mudo', 'deixa a {a} no mudo') + b('Desligar', 'desliga a {a}')
+      + b('Vol −', 'abaixa o volume da {a}') + b('Pausar', 'pausa a {a}') + b('Vol +', 'aumenta o volume da {a}')
+      + b('Canal −', 'canal anterior na {a}') + b('Continuar', 'continua a {a}') + b('Canal +', 'próximo canal na {a}')
+      + b('Netflix', 'abre a Netflix na {a}') + b('YouTube', 'abre o YouTube na {a}') + b('Globoplay', 'abre o Globoplay na {a}');
+  document.getElementById('remote').hidden = false;
+}
+async function rcEnviar(frase, btn){
+  const res = document.getElementById('rcRes'); if(btn) btn.dataset.busy = '1'; res.textContent = 'enviando…';
+  let ok = false;
+  try{ const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
+  if(btn) btn.dataset.busy = '0'; res.textContent = ok ? 'feito' : 'não concluído';
+}
+document.getElementById('remote').addEventListener('click', (e)=>{
+  if(e.target.id === 'remote' || e.target.closest('#rcFechar')){ document.getElementById('remote').hidden = true; return; }
+  const k = e.target.closest('[data-rc]'); if(!k) return;
+  const ap = document.getElementById('rcAparelho').value.trim(); const cmd = k.dataset.rc;
+  if(cmd === 'temp-' || cmd === 'temp+'){
+    rcTemp = Math.max(16, Math.min(30, rcTemp + (cmd === 'temp+' ? 1 : -1))); try{ localStorage.setItem('felyx.rc.temp', rcTemp); }catch(e2){}
+    document.getElementById('rcTemp').textContent = rcTemp + '°';
+    clearTimeout(rcTimer); rcTimer = setTimeout(()=>rcEnviar('coloca o ' + ap + ' em ' + rcTemp + ' graus'), 900); return;
+  }
+  rcEnviar(cmd.replace('{a}', ap), k);
+});
 gridEl.addEventListener('click', (e)=>{
   const b = e.target.closest('.tile'); if(!b) return;
   const i = Number(b.dataset.i);
@@ -947,12 +1013,12 @@ document.getElementById('rmDel').addEventListener('click', excluirSala);
 document.getElementById('rmCancel').addEventListener('click', fecharSala);
 function openEditor(i, temp){
   editing = i; if(temp && !editMode){ matrixEl.dataset.edit = '1'; }
-  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || '';
+  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
   editorEl.hidden = false; edName.focus();
   editorEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
-document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'', f2:'' }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edCancel').addEventListener('click', closeEditor);
 document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; saveOn(); saveTiles(); renderMatrix(); closeEditor(); } });
@@ -961,6 +1027,7 @@ const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|ind
 async function runTile(i, btn){
   const t = tiles[i]; if(!t || !t.f) return;
   const cena = isSceneTile(t);
+  if(cena && tipoControle(t)) setTimeout(()=>abrirControle(tipoControle(t), t), 350);   // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
   if(cena) feedbackCena(btn);
