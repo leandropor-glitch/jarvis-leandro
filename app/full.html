@@ -331,6 +331,13 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .tile{position:relative}.tile .rcIco{position:absolute;top:6px;right:7px;width:15px;height:15px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tile.fav::before{content:"★";position:absolute;top:4px;left:7px;font-size:11px;color:var(--accent)}
 .editor .chk{display:flex;align-items:center;gap:8px}
+.rc header .pb{margin-left:auto}
+.rc .rcGrid button[data-vazio="1"]{border-style:dashed;color:var(--muted)}
+.rc .rcGrid .rcAdd{border-style:dashed;color:var(--accent)}
+.rcEd{margin-top:12px;display:grid;gap:10px}.rcEd[hidden]{display:none}
+.rcEd label{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.rcEd input{display:block;width:100%;margin-top:6px;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit;font-size:15px;letter-spacing:0;text-transform:none}
+.rcEd .eb{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -338,9 +345,14 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
 </div>
 <div class="remote" id="remote" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitulo"><div class="rc">
-  <header><h3 id="rcTitulo">Controle</h3><button class="x" type="button" id="rcFechar" aria-label="Fechar">✕</button></header>
-  <label class="rcAp">aparelho<input id="rcAparelho" maxlength="40" autocomplete="off"></label>
+  <header><h3 id="rcTitulo">Controle</h3><button class="pb" type="button" id="rcEditar">editar botões</button><button class="x" type="button" id="rcFechar" aria-label="Fechar">✕</button></header>
   <div class="rcGrid" id="rcBotoes"></div>
+  <div class="rcEd" id="rcEd" hidden>
+    <label>nome do botão<input id="rcEdRot" maxlength="18" autocomplete="off"></label>
+    <label>cena da central que este botão aciona<input id="rcEdCena" list="rcCenas" autocomplete="off" placeholder="ex.: TV Sala Volume Mais"></label>
+    <datalist id="rcCenas"></datalist>
+    <div class="eb"><button class="pb" id="rcEdSave" type="button">salvar</button><button class="pb" id="rcEdDel" type="button">apagar botão</button><button class="pb" id="rcEdCancel" type="button">cancelar</button></div>
+  </div>
   <div class="rcRes" id="rcRes" role="status" aria-live="polite"></div>
 </div></div>
 <div class="hud" id="hud" data-state="idle" data-tab="home">
@@ -959,24 +971,35 @@ function renderMatrix(){
 }
 renderMatrix();
 /* ---------- controle remoto (09/11/2026): cena de TV ou ar executa a cena e, no fim, abre o controle ---------- */
-let rcTemp = (()=>{ try{ return Number(localStorage.getItem('felyx.rc.temp')) || 23; }catch(e){ return 23; } })(), rcTimer = null;
+/* Cada botão do controle dispara uma CENA da central (a central só entende cenas). Os botões são do cliente:
+   no "editar botões" ele troca o nome, escolhe a cena de cada um, cria e apaga botões. Fica salvo por cena. */
+const RC_PADRAO = {
+  tv: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Canal −','Continuar','Canal +','Netflix','YouTube','Globoplay'],
+  ar: ['Ligar','Desligar','Temp −','Temp +','Frio','Ventilar','Automático'],
+};
+let rcAtual = null, rcEditando = -1, rcModoEditar = false;
+function rcChave(t){ return 'felyx.rc.botoes.' + t.n; }
+function rcCarregar(tipo, t){ try{ const j = JSON.parse(localStorage.getItem(rcChave(t)) || 'null'); if(Array.isArray(j)) return j; }catch(e){} return RC_PADRAO[tipo].map((rot)=>({ rot, cena:'' })); }
+function rcSalvar(){ try{ localStorage.setItem(rcChave(rcAtual.t), JSON.stringify(rcAtual.botoes)); }catch(e){} }
+function nomesDeCenas(){ return [...new Set(tiles.filter(isSceneTile).map((t)=>{ const m = String(t.f).match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i); return m ? m[1].trim() : t.n; }))]; }
 function abrirControle(tipo, t){
-  const chave = 'felyx.rc.ap.' + t.n; let ap = ''; try{ ap = localStorage.getItem(chave) || ''; }catch(e){}
-  const inp = document.getElementById('rcAparelho');
-  inp.value = ap || (tipo === 'tv' ? (/\b(tv|televis\w*)\b/i.test(t.n) ? t.n : 'TV ' + t.n) : t.n);
-  inp.onchange = ()=>{ try{ localStorage.setItem(chave, inp.value.trim()); }catch(e){} };
-  document.getElementById('rcTitulo').textContent = tipo === 'ar' ? 'Ar-condicionado' : 'Televisão';
-  document.getElementById('rcRes').textContent = '';
-  const b = (rot, cmd, extra) => `<button type="button" data-rc="${esc(cmd)}" ${extra || ''}>${rot}</button>`;
-  document.getElementById('rcBotoes').innerHTML = tipo === 'ar'
-    ? b('Ligar', 'liga o {a}', 'class="acc"') + '<span></span>' + b('Desligar', 'desliga o {a}')
-      + b('− 1°', 'temp-') + `<div class="temp" id="rcTemp">${rcTemp}°</div>` + b('+ 1°', 'temp+')
-      + b('Frio', 'coloca o {a} no modo frio') + b('Ventilar', 'coloca o {a} no modo ventilar') + b('Automático', 'coloca o {a} no modo automático')
-    : b('Ligar', 'liga a {a}', 'class="acc"') + b('Mudo', 'deixa a {a} no mudo') + b('Desligar', 'desliga a {a}')
-      + b('Vol −', 'abaixa o volume da {a}') + b('Pausar', 'pausa a {a}') + b('Vol +', 'aumenta o volume da {a}')
-      + b('Canal −', 'canal anterior na {a}') + b('Continuar', 'continua a {a}') + b('Canal +', 'próximo canal na {a}')
-      + b('Netflix', 'abre a Netflix na {a}') + b('YouTube', 'abre o YouTube na {a}') + b('Globoplay', 'abre o Globoplay na {a}');
+  rcAtual = { tipo, t, botoes: rcCarregar(tipo, t) }; rcModoEditar = false;
+  document.getElementById('rcTitulo').textContent = t.n;
+  document.getElementById('rcCenas').innerHTML = nomesDeCenas().map((n)=>`<option value="${esc(n)}">`).join('');
+  rcDesenhar(); document.getElementById('rcRes').textContent = '';
   document.getElementById('remote').hidden = false;
+}
+function rcDesenhar(){
+  const g = document.getElementById('rcBotoes');
+  g.innerHTML = rcAtual.botoes.map((b, i)=>`<button type="button" data-rcb="${i}" ${b.cena ? '' : 'data-vazio="1"'} title="${esc(b.cena ? 'cena ' + b.cena : 'sem cena: toque em editar botões')}">${esc(b.rot)}</button>`).join('') + (rcModoEditar ? '<button type="button" data-rcadd="1" class="rcAdd">+ botão</button>' : '');
+  document.getElementById('rcEditar').textContent = rcModoEditar ? 'pronto' : 'editar botões';
+  document.getElementById('rcEd').hidden = true; rcEditando = -1;
+}
+function rcAbrirEditor(i){
+  rcEditando = i; const b = rcAtual.botoes[i] || { rot:'', cena:'' };
+  document.getElementById('rcEdRot').value = b.rot; document.getElementById('rcEdCena').value = b.cena;
+  document.getElementById('rcEdDel').hidden = i >= rcAtual.botoes.length;
+  document.getElementById('rcEd').hidden = false; document.getElementById('rcEdCena').focus();
 }
 async function rcEnviar(frase, btn){
   const res = document.getElementById('rcRes'); if(btn) btn.dataset.busy = '1'; res.textContent = 'enviando…';
@@ -986,14 +1009,18 @@ async function rcEnviar(frase, btn){
 }
 document.getElementById('remote').addEventListener('click', (e)=>{
   if(e.target.id === 'remote' || e.target.closest('#rcFechar')){ document.getElementById('remote').hidden = true; return; }
-  const k = e.target.closest('[data-rc]'); if(!k) return;
-  const ap = document.getElementById('rcAparelho').value.trim(); const cmd = k.dataset.rc;
-  if(cmd === 'temp-' || cmd === 'temp+'){
-    rcTemp = Math.max(16, Math.min(30, rcTemp + (cmd === 'temp+' ? 1 : -1))); try{ localStorage.setItem('felyx.rc.temp', rcTemp); }catch(e2){}
-    document.getElementById('rcTemp').textContent = rcTemp + '°';
-    clearTimeout(rcTimer); rcTimer = setTimeout(()=>rcEnviar('coloca o ' + ap + ' em ' + rcTemp + ' graus'), 900); return;
+  if(e.target.closest('#rcEditar')){ rcModoEditar = !rcModoEditar; rcDesenhar(); return; }
+  if(e.target.closest('[data-rcadd]')){ rcAbrirEditor(rcAtual.botoes.length); return; }
+  if(e.target.closest('#rcEdCancel')){ document.getElementById('rcEd').hidden = true; return; }
+  if(e.target.closest('#rcEdSave')){
+    const rot = document.getElementById('rcEdRot').value.trim().slice(0,18), cena = document.getElementById('rcEdCena').value.trim();
+    if(!rot) return; rcAtual.botoes[rcEditando] = { rot, cena }; rcSalvar(); rcDesenhar(); return;
   }
-  rcEnviar(cmd.replace('{a}', ap), k);
+  if(e.target.closest('#rcEdDel')){ rcAtual.botoes.splice(rcEditando, 1); rcSalvar(); rcDesenhar(); return; }
+  const k = e.target.closest('[data-rcb]'); if(!k) return;
+  const i = Number(k.dataset.rcb), b = rcAtual.botoes[i];
+  if(rcModoEditar || !b.cena){ if(!rcModoEditar){ rcModoEditar = true; rcDesenhar(); } rcAbrirEditor(i); return; }
+  rcEnviar('ativar a cena ' + b.cena, k);
 });
 gridEl.addEventListener('click', (e)=>{
   const b = e.target.closest('.tile'); if(!b) return;
