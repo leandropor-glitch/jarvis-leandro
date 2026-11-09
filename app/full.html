@@ -357,9 +357,8 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 #hud[data-tab] .face .retrato{display:block!important;position:absolute;inset:auto;left:-1.3%;top:7.5%;width:105.7%;height:auto;max-width:none;object-fit:fill;border-radius:0}
 #hud[data-tab] .face{position:relative;inset:auto;width:62%;height:auto;aspect-ratio:1;border-radius:50%;overflow:hidden;background:#000;z-index:1;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 60px rgba(var(--accent-rgb),.08),inset 0 0 40px rgba(0,0,0,.8)}
 #hud[data-tab] .face video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
-#hud[data-tab] #rings{display:block}
+#hud #rings,#hud[data-tab] #rings,#hud.com-rosto #rings{display:none!important}
 #hud.com-rosto .orbWrap{aspect-ratio:1}
-#hud.com-rosto #rings{display:block}
 /* barra de abas embaixo, microfone logo acima dela */
 #hud>.appTabs{top:auto;bottom:0;border-top:1px solid rgba(255,255,255,.1);border-bottom:0;background:rgba(8,9,11,.96);padding:6px max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
 #hud[data-tab="home"] .appTabs{background:rgba(8,9,11,.96)}
@@ -371,7 +370,9 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 #hud[data-tab="home"]>.stage{position:fixed;left:0;right:0;top:env(safe-area-inset-top);bottom:calc(var(--tabsH) + var(--micZ));display:grid;place-items:center;overflow:hidden;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"center";gap:0;padding:0}
 #hud[data-tab="home"] .center{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:0;overflow:visible}
 #hud[data-tab="home"] .orbWrap{flex:none}
-#hud[data-tab="home"] .orbWrap,#hud[data-tab="home"].com-rosto .orbWrap{position:relative;top:auto;width:min(108vw,calc(1.08 * (100dvh - env(safe-area-inset-top) - var(--tabsH) - var(--micZ))),980px);aspect-ratio:1;background:transparent;box-shadow:none}
+#hud[data-tab="home"] .face,#hud[data-tab="dashboard"] .face{width:100%}
+#hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(56vw,28vh,240px)}
+#hud[data-tab="home"] .orbWrap,#hud[data-tab="home"].com-rosto .orbWrap{position:relative;top:auto;width:min(calc(100vw - 24px),calc(100dvh - env(safe-area-inset-top) - var(--tabsH) - var(--micZ) - 24px),900px);aspect-ratio:1;background:transparent;box-shadow:none}
 /* Dashboard: só os botões das cenas, sem divisão por sala; o rosto inteiro, com os anéis, abaixo da linha de status */
 #hud[data-tab="dashboard"] .roombar,#hud[data-tab="dashboard"] #roomEditor{display:none!important}
 #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(66vw,34vh,300px);aspect-ratio:1;background:transparent;box-shadow:none}
