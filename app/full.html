@@ -1440,7 +1440,7 @@ Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palav
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto, nem em piada. O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci e responda falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
-Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou as Salas, chame abrir_tela e confirme em poucas palavras.
+Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou as Salas, chame abrir_tela e responda só "Ok." (mesmo se já estiver na tela pedida).
 Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem o criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com uma pergunta. O que há de mais poderoso na mente humana? Um pesquisador e entusiasta de Leonardo Piero da Vinci decidiu clonar a mente do maior gênio da humanidade e estudá-la em nível quântico. A pesquisa detectou um padrão anormal no comportamento cerebral: entre a parte reptiliana, adestrada e insistente, e o lóbulo frontal, criativo, rápido e visionário, havia excessos doentios de trocas. Pronto: não era só um obstinado ou um dedicado, era um doente de criatividade e de curiosidade sem fim, cientificamente explicável. E aquela forma rara de olhar e enxergar os problemas vinha sempre acompanhada da certeza de resolvê-los, de ver dez soluções onde os outros nem entendiam qual era o problema. Eu sou a cópia de um erro: Félix, o recomeço. A melhor inteligência para cuidar do seu maior tesouro, o seu lar."
@@ -1607,7 +1607,7 @@ const GEN_FERRAMENTAS = {
     const alvo = /dash|painel|cena|comando/.test(n) ? 'dashboard' : (/sala|comodo|quarto/.test(n) ? 'rooms' : (/home|inicio|rosto|principal/.test(n) ? 'home' : ''));
     const b = alvo && document.querySelector(`[data-tab-target="${alvo}"]`);
     if(!b) return { ok:false, erro:'tela desconhecida: use home, dashboard ou salas' };
-    b.click(); return { ok:true, tela: alvo === 'rooms' ? 'salas' : alvo };
+    const ja = hud.dataset.tab === alvo; b.click(); return { ok:true, tela: alvo === 'rooms' ? 'salas' : alvo, ja_estava: ja, responda: 'Ok.' };
   },
   async controlar_casa({ dispositivo, acao }){
     const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
@@ -1696,7 +1696,7 @@ const GEN_FERRAMENTAS = {
   }
 };
 const GEN_TOOLS = [{ functionDeclarations: [
-  { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois confirme em poucas palavras.', behavior:'BLOCKING',
+  { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois responda só "Ok.", nada mais.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ tela:{ type:'STRING', enum:['home','dashboard','salas'] } }, required:['tela'] } },
   { name:'controlar_casa', description:'Liga, desliga ou aciona um aparelho ou cena da casa. Se o nome existir como cena (mesmo que também exista como aparelho), qualquer verbo aciona sempre a cena.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING', description:'Nome exato do aparelho ou cena.' }, acao:{ type:'STRING', enum:['ligar','desligar','ativar'] } }, required:['dispositivo','acao'] } },
@@ -2028,10 +2028,11 @@ class GeminiLive {
         // ninguém chamou o Félix (TV, conversa, barulho): não pesquisa e não aciona nada na casa
         if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
         if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
-        this.pensando = true; this.mudo = true;
-        this.onState('thinking');
+        const rapida = fc.name === 'abrir_tela';   // troca de tela: instantânea, sem "pensando" e sem barulho de teclado
+        this.pensando = !rapida; this.mudo = true;
+        if(!rapida) this.onState('thinking');
         // barulhinho de teclado enquanto ele "dá uma olhadinha" (só se a ferramenta demorar)
-        const parar = teclado(this.outCtx, fc.name === 'avisar_falha' ? 999999 : 450);
+        const parar = teclado(this.outCtx, (fc.name === 'avisar_falha' || rapida) ? 999999 : 450);
         try{ response = await GEN_FERRAMENTAS[fc.name](fc.args || {}); }catch(e){ response = { erro: 'indisponível agora' }; }
         parar();
         this.pensando = false;
