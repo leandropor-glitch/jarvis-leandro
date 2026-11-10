@@ -1463,7 +1463,7 @@ try{ const q = localStorage.getItem('felyx.rosto.parado'); const r = document.qu
 const PRO_URL = N8N + '/felix/pro-sessao';
 const AVATAR_OCIOSO_MIN = 1;   // GEN: parado, volta logo ao rosto redondo com os anéis girando (modo espera)
 // Regra do Leandro (07/11): no rosto, a sincronia do lábio com a voz é o produto. A voz sai pelo vídeo do LiveAvatar desde a
-// primeira fala, em qualquer aparelho. Plano B, só se o rosto não devolver a voz em 2,5 s: o rosto fecha (nada de boca fora de
+// primeira fala, em qualquer aparelho. Plano B, só se o rosto não devolver a voz em 4 s: o rosto fecha (nada de boca fora de
 // sincronia), o Felyx diz a frase gravada "Só um momentinho, vou dar uma pesquisada aqui.", entra o teclado, a resposta toca
 // inteira daqui e vai um alerta do LiveAvatar para o n8n (felyx_falhas).
 const APARELHO = /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iPhone/iPad' : 'outro aparelho';
@@ -1485,6 +1485,17 @@ const FelyxAvatar = (()=>{
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
   const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
   const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
+  const BLOCO_ROSTO = 48000;   // ~1 s de PCM 16 bits a 24 kHz
+  let blocoPartes = [], blocoTam = 0, blocoTimer = null;
+  function limparBloco(){ clearTimeout(blocoTimer); blocoTimer = null; blocoPartes = []; blocoTam = 0; }
+  function soltarBloco(){
+    clearTimeout(blocoTimer); blocoTimer = null;
+    if(!blocoTam) return;
+    const tudo = new Uint8Array(blocoTam); let o = 0; for(const p of blocoPartes){ tudo.set(p, o); o += p.length; }
+    blocoPartes = []; blocoTam = 0;
+    let s = ''; for(let i=0;i<tudo.length;i+=0x8000) s += String.fromCharCode.apply(null, tudo.subarray(i, i+0x8000));
+    enviar('agent.speak', { audio: btoa(s) });
+  }
   async function abrir(){
     if(!ligado || pronto || abrindo || !SESSAO || Date.now() < bloqueadoAte) return abrindo;
     abrindo = (async ()=>{
@@ -1509,6 +1520,7 @@ const FelyxAvatar = (()=>{
           let m; try{ m = JSON.parse(e.data); }catch(x){ return; }
           if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
           if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
+          if(m.type === 'error' || m.type === 'warning'){ const d = m.error || m.warning || m; avisarSilencioso('LiveAvatar ' + m.type + ': ' + String((d && (d.type || d.code)) || '') + ' ' + String((d && d.message) || JSON.stringify(d)).slice(0, 200)); }
           if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }   // o LiveAvatar avisa que o rosto está falando
         };
         ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
@@ -1540,6 +1552,7 @@ const FelyxAvatar = (()=>{
     }catch(e){ console.warn('Felyx: quadro do rosto calado', e.message); }
   }
   function fechar(){
+    limparBloco();
     const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false; falouEm = 0; agenteFalando = false;
     clearInterval(timer); timer = null;
     video.classList.remove('on');
@@ -1562,9 +1575,18 @@ const FelyxAvatar = (()=>{
     liberarSom(){ try{ if(!audio.srcObject && !audio.getAttribute('src')) audio.src = SOM_MUDO; audio.muted = false; const p = audio.play(); if(p) p.catch(()=>{}); }catch(e){} },   // no toque: destrava o som do rosto no iPhone
     abrir, fechar,
     usar(){ ultimo = Date.now(); if(!pronto) abrir(); },   // chamaram o Felyx: mantém (ou reabre) o rosto
-    falar(b64){ ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; } enviar('agent.speak', { audio: b64 }); falaAberta = true; },
-    fim(){ if(falaAberta){ enviar('agent.speak_end'); falaAberta = false; } },
-    interromper(){ if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
+    // 10/11/2026: o LiveAvatar pede blocos de ~1 s. Os pedacinhos do Gemini são juntados aqui antes de ir para o rosto
+    // (igual ao cumprimento); o resto sai quando a fala acaba ou se o Gemini parar de mandar por 300 ms.
+    falar(b64){
+      ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; }
+      falaAberta = true;
+      const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i);
+      blocoPartes.push(u); blocoTam += u.length;
+      clearTimeout(blocoTimer);
+      if(blocoTam >= BLOCO_ROSTO) soltarBloco(); else blocoTimer = setTimeout(soltarBloco, 300);
+    },
+    fim(){ if(falaAberta){ soltarBloco(); enviar('agent.speak_end'); falaAberta = false; } },
+    interromper(){ limparBloco(); if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
     ouvir(){ ultimo = Date.now(); if(!ouvindo && !falaAberta){ enviar('agent.start_listening'); ouvindo = true; } }
   };
 })();
@@ -1945,7 +1967,7 @@ class GeminiLive {
     this.mudo = true;
     this.onState('speaking');
   }
-  // no começo de cada fala: com o rosto pronto a voz sai pelo vídeo (sincronizada); em 2,5 s confere se o rosto devolveu a voz
+  // no começo de cada fala: com o rosto pronto a voz sai pelo vídeo (sincronizada); em 4 s confere se o rosto devolveu a voz
   decidirSaida(){
     const peloRosto = FelyxAvatar.modo() === 'rosto';
     this.viaAvatar = peloRosto; this.somDoRosto = peloRosto; this.ecoRosto = peloRosto;
@@ -1959,7 +1981,7 @@ class GeminiLive {
       const falou = FelyxAvatar.falouDesde(inicio);
       if(falou && FelyxAvatar.tocando()) return;   // o rosto devolveu a voz: segue sincronizado
       this.planoB(falou ? 'o som do rosto não toca neste aparelho' : 'o LiveAvatar não devolveu a voz');
-    }, 2500);
+    }, 4000);
   }
   // Plano B (o rosto não devolveu a voz): fecha o rosto, o Felyx diz a frase gravada, teclado, e a resposta toca inteira daqui
   planoB(motivo){
