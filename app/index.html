@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#06070a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -254,6 +254,27 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 
 @media (prefers-reduced-motion: reduce){ .mic[data-on="1"]::after{animation:none} .bars i{transition:none} }
 </style>
+<script>
+/* 09/11/2026 (Leandro): app não dá zoom. Trava pinça, toque duplo e o zoom do iPhone ao focar um campo; mede a área segura (ilha e cantos). */
+(function(){
+  const nao = (e)=>{ try{ e.preventDefault(); }catch(x){} };
+  document.addEventListener('gesturestart', nao, { passive:false });
+  document.addEventListener('gesturechange', nao, { passive:false });
+  document.addEventListener('touchmove', (e)=>{ if(e.touches && e.touches.length > 1) nao(e); if(typeof e.scale === 'number' && e.scale !== 1) nao(e); }, { passive:false });
+  let ultimo = 0;
+  document.addEventListener('touchend', (e)=>{ const t = Date.now(); if(t - ultimo < 320 && !(e.target.closest && e.target.closest('input,textarea,select'))) nao(e); ultimo = t; }, { passive:false });
+  // área segura: se o aparelho não informar (env = 0) num iPhone com ilha/entalhe, usa uma folga padrão
+  function folgas(){
+    const d = document.documentElement, sonda = document.createElement('div');
+    sonda.style.cssText = 'position:fixed;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+    document.body.appendChild(sonda); const cs = getComputedStyle(sonda); const top = parseFloat(cs.paddingTop) || 0, bot = parseFloat(cs.paddingBottom) || 0; sonda.remove();
+    const iphone = /iPhone/.test(navigator.userAgent), alto = Math.max(screen.width, screen.height) >= 812, empe = innerHeight > innerWidth;
+    d.style.setProperty('--sTop', (top || (iphone && alto && empe ? 50 : 12)) + 'px');
+    d.style.setProperty('--sBot', (bot || (iphone && alto && empe ? 26 : 10)) + 'px');
+  }
+  addEventListener('DOMContentLoaded', folgas); addEventListener('resize', folgas); addEventListener('orientationchange', ()=>setTimeout(folgas, 250));
+})();
+</script>
 </head>
 <body>
 
@@ -955,7 +976,7 @@ function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; 
 function irParaGen(){
   if (!sessao || !sessao.token || sessao.demo || !iaAceita() || params.get('cerebro') === 'claude') return false;
   try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
-  const q = new URLSearchParams(location.search); q.set('v', '20261109h'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
+  const q = new URLSearchParams(location.search); q.set('v', '20261109i'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
 }
 let iaPedido = null;
 function permissaoIA(){
