@@ -1481,6 +1481,7 @@ function carregarFraseEspera(ctx){
 const FelyxAvatar = (()=>{
   try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
   let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
+  let ultimosEventos = [], aceitouEm = 0;   // diagnóstico (10/11): o que o LiveAvatar mandou por último
   let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
   const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
@@ -1521,7 +1522,13 @@ const FelyxAvatar = (()=>{
           if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
           if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
           if(m.type === 'error' || m.type === 'warning'){ const d = m.error || m.warning || m; avisarSilencioso('LiveAvatar ' + m.type + ': ' + String((d && (d.type || d.code)) || '') + ' ' + String((d && d.message) || JSON.stringify(d)).slice(0, 200)); }
-          if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }   // o LiveAvatar avisa que o rosto está falando
+          ultimosEventos.push(m.type + (m.new_state ? ':' + m.new_state : '')); if(ultimosEventos.length > 8) ultimosEventos.shift();
+          if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }
+          // 10/11: o estado "talking" não se repete entre falas seguidas (o LiveAvatar junta transições iguais).
+          // A prova de cada fala é o agent.speak_started; o agent.audio_buffer_appended mostra que o áudio foi aceito.
+          if(m.type === 'agent.speak_started'){ agenteFalando = true; falouEm = Date.now(); }
+          if(m.type === 'agent.speak_ended' || m.type === 'agent.speak_interrupted'){ agenteFalando = false; }
+          if(m.type === 'agent.audio_buffer_appended') aceitouEm = Date.now();   // o LiveAvatar avisa que o rosto está falando
         };
         ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
       });
@@ -1566,6 +1573,8 @@ const FelyxAvatar = (()=>{
   return {
     pronto: ()=> pronto,
     modo: ()=> pronto ? 'rosto' : 'local',   // com o rosto pronto, a voz sai sempre pelo vídeo, sincronizada com a boca
+    aceitouDesde: (t)=> aceitouEm >= t,
+    diagnostico: ()=> ultimosEventos.join(' > ') + ' | ws ' + (ws ? ws.readyState : 'nulo') + ' | áudio ' + (audio && audio.srcObject ? (audio.paused ? 'pausado' : 'tocando') : 'sem faixa'),
     falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
     falandoAgora: ()=> agenteFalando || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
     // na abertura o rosto conecta durante a íris, mas só aparece quando ela acaba (esconder(false))
@@ -1976,12 +1985,14 @@ class GeminiLive {
     clearTimeout(this.timerRosto);
     if(!peloRosto) return;
     const inicio = Date.now(), turno = this.turno = (this.turno || 0) + 1;
-    this.timerRosto = setTimeout(()=>{
+    const conferir = (tentativa)=>{
       if(this.closed || this.turno !== turno || !this.somDoRosto || this.planoBAtivo) return;
       const falou = FelyxAvatar.falouDesde(inicio);
       if(falou && FelyxAvatar.tocando()) return;   // o rosto devolveu a voz: segue sincronizado
-      this.planoB(falou ? 'o som do rosto não toca neste aparelho' : 'o LiveAvatar não devolveu a voz');
-    }, 4000);
+      if(!falou && tentativa === 0 && FelyxAvatar.aceitouDesde(inicio)){ this.timerRosto = setTimeout(()=>conferir(1), 4000); return; }   // áudio aceito: o rosto ainda está começando
+      this.planoB((falou ? 'o som do rosto não toca neste aparelho' : 'o LiveAvatar não devolveu a voz') + ' [' + FelyxAvatar.diagnostico() + ']');
+    };
+    this.timerRosto = setTimeout(()=>conferir(0), 4000);
   }
   // Plano B (o rosto não devolveu a voz): fecha o rosto, o Felyx diz a frase gravada, teclado, e a resposta toca inteira daqui
   planoB(motivo){
