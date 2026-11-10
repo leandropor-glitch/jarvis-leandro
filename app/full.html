@@ -396,6 +396,17 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   #hud[data-tab="rooms"]{padding-right:max(14px,env(safe-area-inset-right))}
   #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(54vh,220px)}
 }
+/* ===== 09/11/2026 (5ª ordem): Home com fundo totalmente preto, sem círculo, e o rosto grande como o print 2 do Leandro.
+   A foto parada e o vídeo do LiveAvatar usam a mesma conta: cabeça (516×766 px da foto 1672×941, centro x 821, y 407) ocupando ~90% da largura
+   em pé, ou ~80% da altura livre deitado. O radar da íris fica no centro da tela. ===== */
+#hud[data-tab="home"] .face{position:fixed;inset:0;width:auto;height:auto;aspect-ratio:auto;border-radius:0;box-shadow:none;background:#000;z-index:1;overflow:hidden;
+  --livre:calc(100dvh - env(safe-area-inset-top) - var(--tabsH) - var(--micZ));
+  --k:min(calc(0.9 * 100vw / 516),calc(0.8 * var(--livre) / 766))}
+#hud[data-tab="home"] .face .retrato,#hud[data-tab="home"] .face video,#hud.com-rosto[data-tab="home"] .face video{
+  width:calc(var(--k) * 1672);height:calc(var(--k) * 941);left:calc(50% - var(--k) * 821);top:calc(env(safe-area-inset-top) + var(--livre) / 2 - var(--k) * 407)}
+@media (orientation:landscape) and (max-height:560px){
+  #hud[data-tab="home"] .face{--livre:calc(100dvh - env(safe-area-inset-top) - var(--tabsH));--k:min(calc(0.9 * (100vw - 160px) / 516),calc(0.86 * var(--livre) / 766))}
+}
 </style>
 </head>
 <body>
@@ -1108,6 +1119,8 @@ document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 
 document.getElementById('edCancel').addEventListener('click', closeEditor);
 document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; saveOn(); saveTiles(); renderMatrix(); closeEditor(); } });
 edPhrase.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') document.getElementById('edSave').click(); });
+addEventListener('orientationchange', ()=>{ setTimeout(()=>{ try{ dispatchEvent(new Event('resize')); renderMatrix(); }catch(e){} }, 250); });
+
 /* 09/11/2026 (4ª ordem): no Dashboard, com "editar" ligado, arraste um botão sobre outro para mudar a posição (fica salvo neste aparelho) */
 function moverBotao(de, para){
   if(de === para || de < 0 || para < 0) return;
@@ -1385,6 +1398,7 @@ Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palav
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto, nem em piada. O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci e responda falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
+Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou as Salas, chame abrir_tela e confirme em poucas palavras.
 Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem o criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com uma pergunta. O que há de mais poderoso na mente humana? Um pesquisador e entusiasta de Leonardo Piero da Vinci decidiu clonar a mente do maior gênio da humanidade e estudá-la em nível quântico. A pesquisa detectou um padrão anormal no comportamento cerebral: entre a parte reptiliana, adestrada e insistente, e o lóbulo frontal, criativo, rápido e visionário, havia excessos doentios de trocas. Pronto: não era só um obstinado ou um dedicado, era um doente de criatividade e de curiosidade sem fim, cientificamente explicável. E aquela forma rara de olhar e enxergar os problemas vinha sempre acompanhada da certeza de resolvê-los, de ver dez soluções onde os outros nem entendiam qual era o problema. Eu sou a cópia de um erro: Félix, o recomeço. A melhor inteligência para cuidar do seu maior tesouro, o seu lar."
@@ -1545,6 +1559,14 @@ function comandoCasa(nome, acao){
   return 'ativar cena ' + nome;
 }
 const GEN_FERRAMENTAS = {
+  // 09/11/2026: o Felyx muda de tela por voz (Home, Dashboard, Salas)
+  async abrir_tela({ tela }){
+    const n = String(tela||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const alvo = /dash|painel|cena|comando/.test(n) ? 'dashboard' : (/sala|comodo|quarto/.test(n) ? 'rooms' : (/home|inicio|rosto|principal/.test(n) ? 'home' : ''));
+    const b = alvo && document.querySelector(`[data-tab-target="${alvo}"]`);
+    if(!b) return { ok:false, erro:'tela desconhecida: use home, dashboard ou salas' };
+    b.click(); return { ok:true, tela: alvo === 'rooms' ? 'salas' : alvo };
+  },
   async controlar_casa({ dispositivo, acao }){
     const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
     const j = await r.json();
@@ -1632,6 +1654,8 @@ const GEN_FERRAMENTAS = {
   }
 };
 const GEN_TOOLS = [{ functionDeclarations: [
+  { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois confirme em poucas palavras.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ tela:{ type:'STRING', enum:['home','dashboard','salas'] } }, required:['tela'] } },
   { name:'controlar_casa', description:'Liga, desliga ou aciona um aparelho ou cena da casa. Se o nome existir como cena (mesmo que também exista como aparelho), qualquer verbo aciona sempre a cena.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING', description:'Nome exato do aparelho ou cena.' }, acao:{ type:'STRING', enum:['ligar','desligar','ativar'] } }, required:['dispositivo','acao'] } },
   { name:'estado_casa', description:'Diz se aparelhos da casa estão ligados ou desligados agora. dispositivo: nome do aparelho (vazio = todos).', behavior:'BLOCKING',
