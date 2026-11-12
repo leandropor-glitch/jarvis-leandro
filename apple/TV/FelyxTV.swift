@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Apple TV: não tem navegador embutido, então é um app nativo no desenho aprovado
-/// (saudação, cenas da casa, notícias). Perguntas pelo controle usam o ditado do teclado da TV.
+/// Apple TV: não tem navegador embutido, então é um app nativo com o desenho do Felyx Full no iPhone deitado
+/// (rosto, microfone na lateral, abas Home / Dashboard / Salas). Perguntas pelo controle usam o ditado do teclado da TV.
 @main
 struct FelyxTVApp: App {
     @StateObject private var m = ModeloTV()
@@ -33,12 +33,24 @@ final class ModeloTV: ObservableObject {
     @Published var lendo: String?
     @Published var iaPerguntada = Consentimento.perguntado
     @Published var iaAceita = Consentimento.aceito
+    @Published var comodos = ComodosCfg()
     let voz = VozTV()
+
+    #if DEBUG
+    /// Só para testar o desenho no simulador (argumento -demo): entra sem login, com as cenas básicas.
+    init() {
+        if ProcessInfo.processInfo.arguments.contains("-demo") {
+            logado = true; nome = "Leandro"; iaPerguntada = true; resumo = "O dólar está em R$ 5,31. O destaque do dia: teste."
+            cenas = ["Luz Alta", "Luz Baixa", "Sanca", "OFF_Sala", "TV Sala", "Apple TV", "PlayStation", "Globo", "Música", "Mudo", "AC Sala", "AC Suíte", "Cozinha", "Bancada", "Cama", "Closet", "TV Suíte", "Master OFF", "Boa Noite", "Estante Felipe"]
+        }
+    }
+    #endif
 
     var primeiroNome: String { nome.split(separator: " ").first.map(String.init) ?? "" }
     var saudacao: String { let h = Calendar.current.component(.hour, from: Date()); return h >= 5 && h < 12 ? "Bom dia" : (h >= 12 && h < 18 ? "Boa tarde" : "Boa noite") }
 
     func carregar() async {
+        if let (d, _) = try? await URLSession.shared.data(from: Self.urlComodos), let c = try? JSONDecoder().decode(ComodosCfg.self, from: d) { comodos = c }
         guard let token = Sessao.token else { return }
         if let r = try? await FelyxAPI.app("casa", ["token": token]) {
             if r.erro == "sessao" { sair(); return }
@@ -59,7 +71,11 @@ final class ModeloTV: ObservableObject {
         resumo = dolarTxt + (noticias.first.map { "O destaque do dia: \($0.1.title)." } ?? "")
     }
 
-    func cena(_ c: String) async { aviso = "Ativando \(c)…"; aviso = await FelyxAPI.comandar("ativa a cena \(c)") }
+    func cena(_ c: String) async {
+        aviso = "Ativando \(c)…"
+        let r = await FelyxAPI.comandar("ativa a cena \(c)"); aviso = r
+        try? await Task.sleep(for: .seconds(4)); if aviso == r { aviso = nil }
+    }
     func explicar(_ n: Noticia) async {
         voz.parar()
         lendo = "Lendo a matéria…"
@@ -78,57 +94,287 @@ final class ModeloTV: ObservableObject {
     func responderIA(_ v: Bool) { Consentimento.gravar(v); iaAceita = v; iaPerguntada = true; if !v { voz.parar() } }
 }
 
+// MARK: - Tela principal (12/11/2026): igual ao Felyx Full no iPhone deitado.
+// Fundo preto, só o rosto humano do Felyx na Home, microfone na lateral direita com "Fale com o Felyx",
+// abas Home / Dashboard / Salas embaixo. Nada na frente do rosto. O foco do controle começa no microfone.
+
+let neon = Color(red: 225/255, green: 254/255, blue: 6/255)
+
+enum AbaTV: String, CaseIterable, Hashable { case home = "Home", dashboard = "Dashboard", salas = "Salas" }
+
+/// Cômodos do mesmo arquivo que o app usa (vinci/comodos.json): cada cena vai para o primeiro cômodo cuja palavra aparece no nome.
+struct ComodosCfg: Decodable {
+    struct Comodo: Decodable { var nome: String; var cor: String?; var palavras: [String]? }
+    var comodos: [Comodo]?
+    var ordemTela: [String]?
+    var fixos: [String: String]?
+    var semComodo: String?
+
+    static func normal(_ s: String) -> String { s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .init(identifier: "pt_BR")) }
+    func sala(_ cena: String) -> String {
+        if let f = fixos?[cena + "|CENA"] ?? fixos?[cena] { return f }
+        let n = Self.normal(cena)
+        let palavras = n.split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
+        for c in comodos ?? [] {
+            if (c.palavras ?? []).contains(where: { p in let q = Self.normal(p); return q.count <= 3 ? palavras.contains(q) : n.contains(q) }) { return c.nome }
+        }
+        return semComodo ?? "Outros"
+    }
+    func ordem(_ salas: Set<String>) -> [String] {
+        let base = (ordemTela ?? []) + (comodos ?? []).map(\.nome) + [semComodo ?? "Outros"]
+        var vistas = Set<String>()
+        return base.filter { salas.contains($0) && vistas.insert($0).inserted }
+    }
+}
+
+extension ModeloTV {
+    static let urlComodos = URL(string: "https://leandropor-glitch.github.io/jarvis-leandro/vinci/comodos.json")!
+}
+
+/// Botão da TV no padrão do Full: escuro em repouso, neon quando o controle está em cima.
+struct EstiloFelyx: ButtonStyle {
+    var raio: CGFloat = 20
+    var selecionado = false
+    func makeBody(configuration: Configuration) -> some View { Corpo(configuration: configuration, raio: raio, selecionado: selecionado) }
+    struct Corpo: View {
+        let configuration: Configuration; let raio: CGFloat; let selecionado: Bool
+        @Environment(\.isFocused) private var focado
+        var body: some View {
+            configuration.label
+                .foregroundStyle(focado ? Color.black : (selecionado ? neon : Color.white))
+                .background(RoundedRectangle(cornerRadius: raio).fill(focado ? neon : fundoCard))
+                .overlay(RoundedRectangle(cornerRadius: raio).stroke(selecionado && !focado ? neon : Color.white.opacity(0.12), lineWidth: selecionado ? 3 : 1))
+                .shadow(color: focado ? neon.opacity(0.45) : .clear, radius: 24)
+                .scaleEffect(configuration.isPressed ? 0.97 : (focado ? 1.06 : 1))
+                .animation(.easeOut(duration: 0.15), value: focado)
+        }
+    }
+}
+
+/// O microfone do Full: círculo com o ícone, neon quando focado.
+struct EstiloMic: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { Corpo(configuration: configuration) }
+    struct Corpo: View {
+        let configuration: Configuration
+        @Environment(\.isFocused) private var focado
+        var body: some View {
+            configuration.label
+                .foregroundStyle(focado ? Color.black : neon)
+                .frame(width: 150, height: 150)
+                .background(Circle().fill(focado ? neon : Color(red: 0.05, green: 0.06, blue: 0.07)))
+                .overlay(Circle().stroke(neon, lineWidth: 3))
+                .shadow(color: neon.opacity(focado ? 0.7 : 0.25), radius: focado ? 40 : 16)
+                .scaleEffect(configuration.isPressed ? 0.95 : (focado ? 1.1 : 1))
+                .animation(.easeOut(duration: 0.15), value: focado)
+        }
+    }
+}
+
+/// Campo invisível que abre direto o teclado da TV (onde se segura o botão do microfone do controle para ditar).
+struct CampoDitado: UIViewRepresentable {
+    @Binding var ativo: Bool
+    var enviar: (String) -> Void
+    final class Campo: UITextField { override var canBecomeFocused: Bool { false } }
+    func makeUIView(context: Context) -> Campo {
+        let t = Campo()
+        t.placeholder = "Fale com o Felyx: segure o botão do microfone do controle"
+        t.returnKeyType = .send
+        t.alpha = 0.01
+        t.clipsToBounds = true
+        t.delegate = context.coordinator
+        return t
+    }
+    func updateUIView(_ t: Campo, context: Context) {
+        context.coordinator.pai = self
+        if ativo && !t.isFirstResponder { DispatchQueue.main.async { t.text = ""; t.becomeFirstResponder() } }
+    }
+    func makeCoordinator() -> Coord { Coord(pai: self) }
+    final class Coord: NSObject, UITextFieldDelegate {
+        var pai: CampoDitado
+        init(pai: CampoDitado) { self.pai = pai }
+        func textFieldDidEndEditing(_ t: UITextField) {
+            let p = (t.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            t.text = ""
+            pai.ativo = false
+            if !p.isEmpty { pai.enviar(p) }
+        }
+    }
+}
+
 struct InicioTV: View {
     @EnvironmentObject var m: ModeloTV
-    @State private var pergunta = ""
+    @State private var aba: AbaTV = .home
+    @State private var ditando = false
+    @State private var sala = ""
+    @FocusState private var foco: Alvo?
+    enum Alvo: Hashable { case mic, aba(AbaTV) }
+
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack {
             Color.black.ignoresSafeArea()
-            Image("Rosto").resizable().scaledToFill().frame(width: 1500, height: 845).clipped()
-                .mask(LinearGradient(colors: [.black, .black, .clear], startPoint: .top, endPoint: .bottom))
-                .offset(x: 580).ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    Text("FELYX · VINCI AI").font(.system(size: 24, design: .monospaced)).tracking(6).foregroundStyle(cinza)
-                    Text("\(m.saudacao), \(m.primeiroNome).").font(.system(size: 84, weight: .medium))
-                    Text(m.resumo).font(.system(size: 32)).foregroundStyle(Color(white: 0.8)).frame(maxWidth: 760, alignment: .leading)
-                    if let a = m.aviso { Text(a).font(.system(size: 26)).foregroundStyle(acento) }
-                    Spacer(minLength: 120)
-                    Text("CENAS").font(.system(size: 22, design: .monospaced)).tracking(4).foregroundStyle(cinza)
-                    ScrollView(.horizontal) {
-                        HStack(spacing: 28) {
-                            ForEach(m.cenas, id: \.self) { c in
-                                Button { Task { await m.cena(c) } } label: { Text(c).font(.system(size: 32, weight: .medium)).frame(width: 260, height: 150) }
-                                    .buttonStyle(.card)
-                            }
-                        }.padding(.vertical, 30)
+            VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                    ZStack(alignment: .bottom) {
+                        conteudo.frame(maxWidth: .infinity, maxHeight: .infinity)
+                        legenda
                     }
+                    colunaMic
+                }
+                barraAbas
+            }
+            CampoDitado(ativo: $ditando) { p in Task { await m.perguntar(p) } }.frame(width: 1, height: 1).clipped().opacity(0.01)
+        }
+        .defaultFocus($foco, .mic)
+        .task { await m.carregar() }
+        .onExitCommand(perform: m.lendo != nil ? { m.lendo = nil; m.voz.parar() } : nil)
+    }
+
+    // Home: só o rosto, inteiro, centrado no espaço livre (a mesma foto 16:9 do LiveAvatar).
+    @ViewBuilder private var conteudo: some View {
+        switch aba {
+        case .home:
+            Image("Retrato").resizable().scaledToFit().padding(.top, 20)
+        case .dashboard:
+            Dashboard()
+        case .salas:
+            Salas(sala: $sala)
+        }
+    }
+
+    // Resposta do Felyx como legenda embaixo, sem cobrir o rosto. O botão Menu do controle fecha.
+    @ViewBuilder private var legenda: some View {
+        if let t = m.lendo ?? m.aviso {
+            Text(t)
+                .font(.system(size: 32))
+                .foregroundStyle(.white)
+                .lineLimit(6).minimumScaleFactor(0.7)
+                .multilineTextAlignment(.leading)
+                .padding(.horizontal, 36).padding(.vertical, 24)
+                .frame(maxWidth: 1250, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 24).fill(Color.black.opacity(0.78)))
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.1)))
+                .padding(.bottom, 24)
+                .transition(.opacity)
+        }
+    }
+
+    private var colunaMic: some View {
+        VStack(spacing: 22) {
+            Spacer()
+            Button { ditando = true } label: { Image(systemName: "mic.fill").font(.system(size: 60, weight: .semibold)) }
+                .buttonStyle(EstiloMic())
+                .focused($foco, equals: .mic)
+            Text("Fale com o Felyx")
+                .font(.system(size: 30, weight: .bold))
+                .foregroundStyle(neon)
+                .shadow(color: neon.opacity(0.75), radius: 6)
+                .shadow(color: neon.opacity(0.45), radius: 18)
+            Spacer()
+        }
+        .frame(width: 330)
+        .focusSection()
+    }
+
+    private var barraAbas: some View {
+        HStack(spacing: 24) {
+            ForEach(AbaTV.allCases, id: \.self) { a in
+                Button { aba = a } label: {
+                    Text(a.rawValue.uppercased()).font(.system(size: 26, weight: .semibold, design: .monospaced)).tracking(3)
+                        .frame(maxWidth: .infinity).frame(height: 78)
+                }
+                .buttonStyle(EstiloFelyx(raio: 18, selecionado: aba == a))
+                .focused($foco, equals: .aba(a))
+            }
+        }
+        .padding(.horizontal, 80).padding(.top, 18).padding(.bottom, 40)
+        .background(Color(red: 8/255, green: 9/255, blue: 11/255).opacity(0.96))
+        .overlay(Rectangle().fill(Color.white.opacity(0.1)).frame(height: 1), alignment: .top)
+        .focusSection()
+    }
+}
+
+/// Dashboard: o rosto pequeno com a saudação, os botões das cenas e as notícias.
+struct Dashboard: View {
+    @EnvironmentObject var m: ModeloTV
+    private let colunas = Array(repeating: GridItem(.flexible(), spacing: 30), count: 4)
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 34) {
+                HStack(spacing: 36) {
+                    Image("Rosto").resizable().scaledToFill().frame(width: 170, height: 170).clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white.opacity(0.1)))
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("\(m.saudacao), \(m.primeiroNome).").font(.system(size: 54, weight: .medium))
+                        Text(m.resumo).font(.system(size: 26)).foregroundStyle(Color(white: 0.75)).lineLimit(2)
+                    }
+                }
+                LazyVGrid(columns: colunas, spacing: 30) {
+                    ForEach(m.cenas, id: \.self) { c in
+                        Button { Task { await m.cena(c) } } label: {
+                            Text(c).font(.system(size: 30, weight: .medium)).lineLimit(2).multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity).frame(height: 120)
+                        }.buttonStyle(EstiloFelyx())
+                    }
+                }
+                if !m.noticias.isEmpty {
                     Text("NOTÍCIAS").font(.system(size: 22, design: .monospaced)).tracking(4).foregroundStyle(cinza)
                     ScrollView(.horizontal) {
-                        HStack(spacing: 28) {
+                        HStack(spacing: 30) {
                             ForEach(m.noticias, id: \.1) { (tag, n) in
                                 Button { Task { await m.explicar(n) } } label: {
                                     VStack(alignment: .leading, spacing: 10) {
-                                        Text(tag + (n.source.map { " · " + $0.uppercased() } ?? "")).font(.system(size: 18, design: .monospaced)).foregroundStyle(cinza)
+                                        Text(tag + (n.source.map { " · " + $0.uppercased() } ?? "")).font(.system(size: 18, design: .monospaced)).opacity(0.7)
                                         Text(n.title).font(.system(size: 26)).lineLimit(3).multilineTextAlignment(.leading)
-                                    }.padding(26).frame(width: 560, height: 180, alignment: .topLeading)
-                                }.buttonStyle(.card)
+                                    }.padding(24).frame(width: 520, height: 170, alignment: .topLeading)
+                                }.buttonStyle(EstiloFelyx())
                             }
-                        }.padding(.vertical, 30)
-                    }
-                    HStack(spacing: 24) {
-                        TextField("Pergunte ao Felyx (segure o botão do microfone do controle para ditar)", text: $pergunta)
-                            .onSubmit { let p = pergunta; pergunta = ""; Task { await m.perguntar(p) } }
-                        Button(m.iaAceita ? "Desligar IA" : "Permitir IA") { m.responderIA(!m.iaAceita) }
-                        Button("Sair") { m.sair() }
-                    }.padding(.top, 20)
-                }.padding(.horizontal, 90).padding(.vertical, 60)
+                        }.padding(.vertical, 24).padding(.horizontal, 6)
+                    }.scrollClipDisabled()
+                }
+                HStack(spacing: 30) {
+                    Button { m.responderIA(!m.iaAceita) } label: { Text(m.iaAceita ? "Desligar IA" : "Permitir IA").font(.system(size: 24)).padding(.horizontal, 34).frame(height: 70) }
+                        .buttonStyle(EstiloFelyx(raio: 16))
+                    Button { m.sair() } label: { Text("Sair").font(.system(size: 24)).padding(.horizontal, 34).frame(height: 70) }
+                        .buttonStyle(EstiloFelyx(raio: 16))
+                }
             }
+            .padding(.leading, 80).padding(.trailing, 20).padding(.vertical, 50)
         }
-        .task { await m.carregar() }
-        .sheet(isPresented: Binding(get: { m.lendo != nil }, set: { if !$0 { m.lendo = nil; m.voz.parar() } })) {
-            ScrollView { Text(m.lendo ?? "").font(.system(size: 34)).padding(80).frame(maxWidth: 1400, alignment: .leading) }
+        .scrollClipDisabled()
+    }
+}
+
+/// Salas: as cenas agrupadas pelo cômodo, como no app.
+struct Salas: View {
+    @EnvironmentObject var m: ModeloTV
+    @Binding var sala: String
+    private let colunas = Array(repeating: GridItem(.flexible(), spacing: 30), count: 4)
+    var body: some View {
+        let grupos = Dictionary(grouping: m.cenas, by: { m.comodos.sala($0) })
+        let ordem = m.comodos.ordem(Set(grupos.keys))
+        let atual = ordem.contains(sala) ? sala : (ordem.first ?? "")
+        VStack(alignment: .leading, spacing: 30) {
+            ScrollView(.horizontal) {
+                HStack(spacing: 22) {
+                    ForEach(ordem, id: \.self) { s in
+                        Button { sala = s } label: { Text(s).font(.system(size: 28, weight: .medium)).padding(.horizontal, 34).frame(height: 76) }
+                            .buttonStyle(EstiloFelyx(raio: 38, selecionado: s == atual))
+                    }
+                }.padding(.vertical, 24).padding(.horizontal, 6)
+            }.scrollClipDisabled().focusSection()
+            ScrollView {
+                LazyVGrid(columns: colunas, spacing: 30) {
+                    ForEach(grupos[atual] ?? [], id: \.self) { c in
+                        Button { Task { await m.cena(c) } } label: {
+                            Text(c).font(.system(size: 30, weight: .medium)).lineLimit(2).multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity).frame(height: 120)
+                        }.buttonStyle(EstiloFelyx())
+                    }
+                }.padding(.vertical, 20).padding(.horizontal, 6)
+            }.scrollClipDisabled().focusSection()
+            Spacer(minLength: 0)
         }
+        .padding(.leading, 80).padding(.trailing, 20).padding(.top, 40)
     }
 }
 
