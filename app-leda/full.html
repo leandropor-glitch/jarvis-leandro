@@ -451,6 +451,19 @@ input,select,textarea{font-size:16px!important}
 })();
 </script>
 <style id="semIris">#unlock{display:none!important}#hud>.mic{overflow:visible}#hud[data-tab="home"]>.mic[data-on="0"]::after{content:attr(data-rotulo);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:#e1fe06;font:700 1.02rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 0 6px rgba(225,254,6,.75),0 0 18px rgba(225,254,6,.45),0 1px 2px #000}@media (orientation:landscape){#hud[data-tab="home"]>.mic[data-on="0"]::after{left:auto;right:-4px;transform:none;text-align:right}}@media (orientation:portrait){html body #hud>.mic{bottom:calc(var(--tabsH,64px) + 36px)!important}}html body #hud[data-tab]>.mic{display:grid!important}</style>
+<style id="telaGrandeDeitada">/* 12/11/2026: tela grande deitada (iPad, tablet, dobrável aberto, Duo aberto, Vision): mesmo arranjo do celular deitado e da TV, microfone na lateral direita, nada na frente do rosto */
+@media (orientation:landscape) and (min-height:561px){
+ :root{--micZ:0px}
+ html body #hud>.mic{left:auto!important;right:max(32px,env(safe-area-inset-right))!important;bottom:auto!important;top:calc((100dvh - var(--tabsH)) / 2)!important;transform:translateY(-50%)!important;width:76px;height:76px}
+ html body #hud>.mic:active{transform:translateY(-50%) scale(.96)!important}
+ #hud{padding-right:calc(max(32px,env(safe-area-inset-right)) + 110px)}
+ #hud[data-tab="home"]{padding:0}
+ #hud[data-tab="rooms"]{padding-right:max(14px,env(safe-area-inset-right))}
+ html body #hud[data-tab="home"] .face{inset:0 0 var(--tabsH) 0;--livre:calc(100dvh - var(--sTop) - var(--tabsH));--k:min(calc(0.9 * (100vw - 300px) / 516),calc(0.86 * var(--livre) / 766))}
+ html body #hud[data-tab="home"]>.stage{bottom:var(--tabsH)}
+}
+</style>
+
 <style id="ledaVisual">
 /* Leda (12/11/2026, revisão 3): arte oficial em fundo marrom; barra, microfone e frase em cobre metálico (como o anel do pescoço); aba Receitas; sem cotações */
 :root{--leda:#c98a4b;--ledaRGB:201,138,75;--cobre:linear-gradient(135deg,#f6d2a4 0%,#d39a5f 28%,#a8692f 52%,#e2b07a 74%,#8c5527 100%);--fundo:#291b16;--ink950:#291b16;--ink900:#34231c;--ink800:#3d2a22;--ink700:#4a3328;--linha:#563c2f;--mist:#bfa38b;--texto:#f3e8dc;--accent:#c98a4b;--accent-rgb:201,138,75}
