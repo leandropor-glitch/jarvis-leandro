@@ -531,7 +531,7 @@ input,select,textarea{font-size:16px!important}
     <button class="mic" id="talk" data-on="0" aria-label="Falar" title="Falar">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zm6-4a1 1 0 1 1 2 0 8 8 0 0 1-7 7.93V21h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.07A8 8 0 0 1 4 11a1 1 0 1 1 2 0 6 6 0 0 0 12 0z"/></svg>
     </button>
-  <nav class="appTabs" role="tablist" aria-label="Navegação principal"><button type="button" role="tab" data-tab-target="home" aria-selected="true">Home</button><button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Salas</button></nav>
+  <nav class="appTabs" role="tablist" aria-label="Navegação principal"><button type="button" role="tab" data-tab-target="home" aria-selected="true">Felyx</button><button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Salas</button></nav>
 </div>
 
 <script>
@@ -2195,6 +2195,29 @@ window.FERRAMENTAS_MATERIA = {
   fechar(){ this.el().dataset.on = '0'; return { ok:true }; },
   rolar(para){ const e = this.el(); const h = e.clientHeight * 0.8; if(para==='fim') e.scrollTop = e.scrollHeight; else if(para==='topo') e.scrollTop = 0; else e.scrollBy({ top: para==='cima' ? -h : h, behavior:'smooth' }); return { ok:true, posicao: Math.round(100 * (e.scrollTop + e.clientHeight) / Math.max(1, e.scrollHeight)) + '%' }; }
 };
+</script>
+<script>
+// Deslizar o dedo para o lado troca de aba (pedido do Leandro, 11/11/2026): da direita para a esquerda vai
+// para a próxima aba da barra; da esquerda para a direita volta. Não atrapalha rolagens, campos e a edição dos botões.
+(function(){
+  let x0 = null, y0 = 0, t0 = 0;
+  const ignora = (el)=> !!(el && el.closest && el.closest('input,textarea,select,.roombar,.editor,.matrix[data-edit="1"],#materia[data-on="1"],[data-noswipe]'));
+  addEventListener('touchstart', (e)=>{
+    if(e.touches.length !== 1 || ignora(e.target)){ x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive:true });
+  addEventListener('touchend', (e)=>{
+    if(x0 === null) return;
+    const p = e.changedTouches[0], dx = p.clientX - x0, dy = p.clientY - y0; x0 = null;
+    if(Date.now() - t0 > 800 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    const hud = document.getElementById('hud'); if(!hud) return;
+    const abas = [...document.querySelectorAll('[data-tab-target]')].filter((b)=> b.offsetParent !== null);
+    const i = abas.findIndex((b)=> b.dataset.tabTarget === hud.dataset.tab), j = i + (dx < 0 ? 1 : -1);
+    if(i < 0 || j < 0 || j >= abas.length) return;
+    abas[j].click();
+  }, { passive:true });
+})();
+
 </script>
 </body>
 </html>
