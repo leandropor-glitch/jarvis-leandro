@@ -445,6 +445,8 @@ html[data-leda="gem"]{--tabsH:calc(60px + env(safe-area-inset-bottom,0px))}
 html[data-leda="gem"] body nav.appTabs,html[data-leda="gem"] body #hud[data-tab] nav.appTabs{position:fixed!important;top:auto!important;bottom:0!important;left:0!important;right:0!important;z-index:40!important;border-bottom:0!important;padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important}
 html[data-leda="gem"] body #hud{padding-top:calc(10px + env(safe-area-inset-top,0px))!important;padding-bottom:calc(var(--tabsH) + 130px)!important}
 html[data-leda="gem"] body #hud[data-tab="home"]{padding-bottom:0!important}
+/* rev6 (12/11): em telas mais largas que altas (iPad, celular baixo) a Leda encolhe para caber inteira acima do microfone, centralizada */
+@media (orientation:portrait){html body #hud[data-tab="home"] .face .ledaBusto{--bw:min(100vw,calc((100dvh - var(--tabsH,64px) - 60px - env(safe-area-inset-top,0px)) / 1.2487));width:var(--bw)!important;left:50%!important;translate:-50% 0;top:max(env(safe-area-inset-top,0px),calc(100dvh - var(--tabsH,64px) - 132px - var(--bw) * 1.2487))!important}}
 
 </style>
 <script>
@@ -669,7 +671,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <section class="center">
       <section class="orbWrap" aria-label="Leda">
         <canvas id="rings" aria-hidden="true"></canvas>
-        <div class="face"><img class="ledaBusto" src="leda-busto.jpg?v=20261112h" decoding="sync" alt="Leda" draggable="false"><img class="ledaRosto" src="leda-rosto.jpg?v=20261112h" alt="" draggable="false">
+        <div class="face"><img class="ledaBusto" src="leda-busto.jpg?v=20261112i" decoding="sync" alt="Leda" draggable="false"><img class="ledaRosto" src="leda-rosto.jpg?v=20261112i" alt="" draggable="false">
           <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
           <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
           <audio id="avatarAudio" autoplay></audio>
