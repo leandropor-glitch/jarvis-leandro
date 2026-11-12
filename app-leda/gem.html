@@ -10,7 +10,7 @@
 <style>
 :root{
   --bg:#06070a; --ink:#e9eae6; --muted:#8a8d86; --line:rgba(255,255,255,.08);
-  --accent:#8fd3ff; --accent-rgb:143,211,255; --accent-ink:#000; --led:#4fa8ff; --down:#ff6a62; --down-rgb:255,106,98;
+  --accent:#d6ff1a; --accent-rgb:214,255,26; --accent-ink:#000; --led:#4fa8ff; --down:#ff6a62; --down-rgb:255,106,98;
   --grid:rgba(255,255,255,.035);
   --mono:"Share Tech Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --sans:"Saira",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -64,7 +64,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 /* com o rosto ao vivo, o centro vira o quadro do FULL: retângulo grande, sem os anéis */
 #hud.com-rosto .orbWrap{width:min(100%,960px);aspect-ratio:16/9}
 #hud.com-rosto #rings{display:none}
-#hud.com-rosto .face{width:100%;aspect-ratio:16/9;border-radius:18px;box-shadow:0 0 0 1px rgba(143,211,255,.18),0 0 50px rgba(143,211,255,.08)}
+#hud.com-rosto .face{width:100%;aspect-ratio:16/9;border-radius:18px;box-shadow:0 0 0 1px rgba(214,255,26,.18),0 0 50px rgba(214,255,26,.08)}
 #hud.com-rosto .face video{object-fit:contain}
 #hud.com-rosto .face canvas{opacity:0}
 .scan{position:absolute;inset:0;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s}
@@ -348,46 +348,270 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 }
 </style>
 <style id="ledaVisual">
-/* Leda (12/11/2026): rosto bonitinho com brilho azul (#8FD3FF), sem LiveAvatar; tela cheia; sem cotações */
-:root{--leda:#8FD3FF;--ledaRGB:143,211,255}
-html,body{overscroll-behavior:none}
+/* Leda (12/11/2026, revisão 2): busto recortado em fundo preto, rosto grande; paleta da VINCI; aba Receitas; sem cotações */
+:root{--leda:#e1fe06;--ledaRGB:225,254,6;--ink950:#080b0d;--ink900:#0e1317;--ink800:#141b21;--ink700:#1c252c;--linha:#24303a;--mist:#93a3af;--texto:#e8edf0}
+html,body{overscroll-behavior:none;background:#000}
 #market,.panel.market{display:none!important}
-#hud .face{background:radial-gradient(120% 90% at 50% 38%,#16304a 0%,#0a1522 55%,#05080d 100%)!important;overflow:hidden!important}
-#hud .face #cv,#hud .face canvas#cv,#hud .face video,#hud .face .retrato,#hud #rings{display:none!important}
-#hud .face .ledaRosto{display:block!important;position:absolute!important;left:50%!important;top:50%!important;
-  width:min(74%,74vmin,440px)!important;height:auto!important;aspect-ratio:1/1;transform:translate(-50%,-50%);
-  border-radius:50%;object-fit:cover;object-position:50% 40%;z-index:2;-webkit-user-select:none;user-select:none;pointer-events:none;
-  box-shadow:0 0 0 3px rgba(var(--ledaRGB),.55),0 0 40px rgba(var(--ledaRGB),.35),0 0 110px rgba(var(--ledaRGB),.18);
+/* o rosto: nada do Felyx aparece (retrato, vídeo, canvas, anéis) */
+html body #hud[data-tab] .face img.retrato,html body #hud.com-rosto[data-tab] .face img.retrato,html body #hud[data-tab] .face video,html body #hud[data-tab] .face canvas,#hud #rings{display:none!important}
+#hud .face{background:#000!important;overflow:hidden!important;position:relative}
+#hud .face .ledaBusto,#hud .face .ledaRosto{display:none;-webkit-user-select:none;user-select:none;pointer-events:none}
+/* ABA LEDA: busto grande no preto, rosto bem definido */
+html body #hud[data-tab="home"] .face{position:fixed!important;left:0!important;right:0!important;top:0!important;bottom:calc(var(--tabsH,64px) + var(--micZ,0px))!important;width:auto!important;height:auto!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important;transform:none!important;background:#000!important}
+html body #hud[data-tab="home"] .face .ledaBusto{display:block!important;position:absolute!important;left:50%!important;bottom:0!important;top:auto!important;
+  height:min(100%,calc(100vw * 1.106))!important;width:auto!important;max-width:none!important;transform:translateX(-50%);transform-origin:50% 100%;
   animation:ledaRespira 5.5s ease-in-out infinite}
-#hud .orbWrap .face{border-radius:50%}
-#hud[data-tab="home"] .face{border-radius:0!important}
-#hud[data-state="listening"] .face .ledaRosto{box-shadow:0 0 0 4px rgba(var(--ledaRGB),.85),0 0 55px rgba(var(--ledaRGB),.5),0 0 140px rgba(var(--ledaRGB),.25)}
-#hud[data-state="speaking"] .face .ledaRosto{animation:ledaFala .9s ease-in-out infinite}
-#hud[data-state="thinking"] .face .ledaRosto{animation:ledaPensa 1.6s ease-in-out infinite}
-#hud .face::after{content:"";position:absolute;left:50%;top:50%;width:min(92%,92vmin,560px);aspect-ratio:1/1;transform:translate(-50%,-50%);
-  border-radius:50%;z-index:1;pointer-events:none;background:radial-gradient(circle,rgba(var(--ledaRGB),.22) 0%,rgba(var(--ledaRGB),.06) 45%,transparent 70%);
-  animation:ledaHalo 5.5s ease-in-out infinite}
-#hud[data-state="speaking"] .face::after{animation:ledaHalo .9s ease-in-out infinite}
-@keyframes ledaRespira{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.025)}}
-@keyframes ledaFala{0%,100%{transform:translate(-50%,-50%) scale(1.01)}50%{transform:translate(-50%,-50%) scale(1.05)}}
-@keyframes ledaPensa{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
-@keyframes ledaHalo{0%,100%{opacity:.65;transform:translate(-50%,-50%) scale(.96)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
-@media (prefers-reduced-motion:reduce){#hud .face .ledaRosto,#hud .face::after{animation:none!important}}
-/* cor da Leda nos destaques */
-#hud .appTabs [aria-selected="true"]{color:var(--leda)!important;border-color:var(--leda)!important}
+html body #hud[data-tab="home"][data-state="speaking"] .face .ledaBusto{animation:ledaFala .9s ease-in-out infinite}
+html body #hud[data-tab="home"][data-state="thinking"] .face .ledaBusto{animation:ledaPensa 1.6s ease-in-out infinite}
+html body #hud[data-tab="home"] .face::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,rgba(var(--ledaRGB),.0) 10%,rgba(var(--ledaRGB),.65) 50%,rgba(var(--ledaRGB),0) 90%,transparent);opacity:.35;transition:opacity .2s}
+html body #hud[data-tab="home"][data-state="listening"] .face::after{opacity:.8}
+html body #hud[data-tab="home"][data-state="speaking"] .face::after{opacity:1;animation:ledaLinha .9s ease-in-out infinite}
+/* DASHBOARD (e qualquer outro lugar do rosto): o círculo é a cabeça dela, preenchendo tudo, sem deslocar */
+html body #hud:not([data-tab="home"]) .face{border-radius:50%!important}
+html body #hud:not([data-tab="home"]) .face .ledaRosto{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  transform:none!important;left:0!important;top:0!important;object-fit:cover;object-position:50% 45%;border-radius:50%}
+html body #hud:not([data-tab="home"]) .orbWrap{box-shadow:0 0 0 2px rgba(var(--ledaRGB),.55),0 0 26px rgba(var(--ledaRGB),.18)!important;border-radius:50%;background:#000!important}
+html body #hud:not([data-tab="home"])[data-state="listening"] .orbWrap{box-shadow:0 0 0 3px rgba(var(--ledaRGB),.9),0 0 34px rgba(var(--ledaRGB),.3)!important}
+html body #hud:not([data-tab="home"])[data-state="speaking"] .orbWrap{animation:ledaAnel .9s ease-in-out infinite}
+@keyframes ledaRespira{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.012)}}
+@keyframes ledaFala{0%,100%{transform:translateX(-50%) scale(1.004)}50%{transform:translateX(-50%) scale(1.022)}}
+@keyframes ledaPensa{0%,100%{filter:brightness(1)}50%{filter:brightness(1.1)}}
+@keyframes ledaLinha{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes ledaAnel{0%,100%{box-shadow:0 0 0 3px rgba(var(--ledaRGB),.6),0 0 20px rgba(var(--ledaRGB),.15)}50%{box-shadow:0 0 0 4px rgba(var(--ledaRGB),1),0 0 40px rgba(var(--ledaRGB),.35)}}
+@media (prefers-reduced-motion:reduce){#hud .face .ledaBusto,#hud .orbWrap{animation:none!important}}
+/* deitado: o busto cabe inteiro na altura, centralizado */
+@media (orientation:landscape){html body #hud[data-tab="home"] .face .ledaBusto{height:100%!important}}
+/* BARRA DE ABAS na paleta da VINCI */
+#hud .appTabs,#hud[data-tab="home"] .appTabs{background:var(--ink950)!important;border-top:1px solid var(--linha)!important}
+#hud .appTabs button{color:var(--mist)!important;font-family:"Barlow Semi Condensed","Barlow",var(--mono,inherit);letter-spacing:.14em}
+#hud .appTabs button[aria-selected="true"]{color:var(--leda)!important;background:rgba(var(--ledaRGB),.08)!important;box-shadow:inset 0 2px 0 var(--leda)}
 #hud .mic{border-color:rgba(var(--ledaRGB),.6)!important}
-#hud .mic[data-on="1"]{background:var(--leda)!important;color:#06121c!important}
-/* especificidade alta: as regras antigas do Felyx usam #hud[data-tab="home"] ... !important */
-html body #hud[data-tab] .face img.retrato,html body #hud.com-rosto[data-tab] .face img.retrato,html body #hud[data-tab] .face video,html body #hud[data-tab] .face canvas{display:none!important}
-html body #hud[data-tab="home"] .face{position:fixed!important;left:0!important;right:0!important;top:0!important;bottom:calc(var(--tabsH,64px) + var(--micZ,0px))!important;width:auto!important;height:auto!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important;transform:none!important}
-html body #hud[data-tab="home"] .face .ledaRosto{top:47%!important}
-@media (orientation:landscape) and (max-height:600px){html body #hud .face .ledaRosto{width:min(62vmin,360px)!important}html body #hud[data-tab="home"] .face .ledaRosto{top:46%!important}}
+#hud .mic[data-on="1"]{background:var(--leda)!important;color:var(--ink950)!important}
+/* ABA RECEITAS */
+#receitas{display:none}
+#hud[data-tab="receitas"]>.top,#hud[data-tab="receitas"]>.stage,#hud[data-tab="receitas"]>.bottom,#hud[data-tab="receitas"]>.moreView{display:none!important}
+#hud[data-tab="receitas"] #receitas{display:block;position:fixed;left:0;right:0;top:0;bottom:calc(var(--tabsH,64px) + var(--micZ,0px));overflow:auto;-webkit-overflow-scrolling:touch;
+  background:var(--ink950);color:var(--texto);padding:calc(max(env(safe-area-inset-top),12px) + 10px) 14px 24px;z-index:3}
+#receitas .rcTopo{max-width:760px;margin:0 auto 14px}
+#receitas .rcK{font-family:"IBM Plex Mono",var(--mono,monospace);font-size:.66rem;letter-spacing:.2em;color:var(--mist);text-transform:uppercase}
+#receitas .rcK i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--leda);margin-right:8px;vertical-align:middle}
+#receitas h2{margin:.35em 0 .2em;font:600 1.5rem "Barlow Semi Condensed","Barlow",sans-serif;letter-spacing:.02em}
+#receitas .rcFrase{margin:0;color:var(--mist);font-size:.95rem;line-height:1.4}
+#receitas .rcForca{max-width:760px;margin:0 auto 16px;padding:14px 16px;border-radius:14px;border:1px solid rgba(var(--ledaRGB),.45);background:linear-gradient(180deg,rgba(var(--ledaRGB),.08),rgba(var(--ledaRGB),.02));font-size:1rem;line-height:1.45}
+#receitas .rcForca b{color:var(--leda);font-weight:600}
+#receitas .rcFiltro{max-width:760px;margin:0 auto 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+#receitas .rcFiltro button{flex:none;border:1px solid var(--linha);background:var(--ink900);color:var(--mist);border-radius:999px;padding:8px 14px;font:inherit;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase}
+#receitas .rcFiltro button[aria-pressed="true"]{color:var(--ink950);background:var(--leda);border-color:var(--leda)}
+#receitas .rcLista{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+#receitas .rcCard{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:14px;border:1px solid var(--linha);background:var(--ink900)}
+#receitas .rcCard small{font-family:"IBM Plex Mono",var(--mono,monospace);font-size:.6rem;letter-spacing:.16em;color:var(--mist);text-transform:uppercase}
+#receitas .rcCard h3{margin:0;font:600 1.08rem "Barlow Semi Condensed","Barlow",sans-serif}
+#receitas .rcCard p{margin:0;color:#c9d3da;font-size:.88rem;line-height:1.4}
+#receitas .rcCard button{margin-top:auto;align-self:flex-start;border:1px solid rgba(var(--ledaRGB),.6);background:transparent;color:var(--leda);border-radius:10px;padding:8px 12px;font:inherit;font-size:.78rem;letter-spacing:.06em}
+#receitas .rcCard button:active{background:var(--leda);color:var(--ink950)}
+@media (orientation:landscape) and (max-height:600px){#hud[data-tab="receitas"] #receitas{right:calc(max(16px,env(safe-area-inset-right)) + 70px)}}
+/* 4 abas numa linha só (Leda, Dashboard, Receitas, Salas) */
+html body #hud .appTabs{grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-rows:auto}
+html body #hud:not([data-tab="home"]) .orbWrap .face{width:100%!important;height:100%!important;max-width:none!important}
 
 </style>
+<script>
+// Leda (12/11/2026, revisão 2): frases de vó e de mãe, cumprimento "jovem", aba Receitas e boas práticas do lar.
+// Gerado por gerar_html.py; não editar a página, editar este arquivo.
+const FRASES_LEDA = {
+  // abertura do dia (sempre uma destas antes das notícias)
+  manha: [
+    'Saco vazio não para em pé: tomou café direitinho?',
+    'Deus ajuda quem cedo madruga, e você já está de pé. Que orgulho!',
+    'Arruma a cama primeiro, que o dia todo fica mais arrumado.',
+    'Bebe um copo d\'água antes de qualquer coisa, que faz bem pra pele e pro juízo.',
+    'O dia começa no capricho: café quentinho e cabeça no lugar.',
+    'Quem sai bem alimentado resolve tudo melhor. Comeu uma frutinha?',
+    'Hoje é dia de fazer bonito, viu? Eu acredito em você.',
+    'Manhã boa é manhã sem pressa. Respira fundo e vamos com calma.'
+  ],
+  tarde: [
+    'Já almoçou? Não vale beliscar de pé na cozinha, hein!',
+    'Uma pausinha pra um cafezinho faz milagre na tarde.',
+    'Devagar se vai ao longe. Metade do dia já foi, e foi bem.',
+    'Bebe uma água, que a tarde no Rio não perdoa.',
+    'Quem planta com carinho colhe com fartura. Segue firme.',
+    'Uma fruta agora vale mais que um doce mais tarde.'
+  ],
+  noite: [
+    'Janta leve que o sono vem bonito.',
+    'Já trancou a porta e conferiu o gás? Vó pergunta porque se importa.',
+    'Desliga essa tela um pouquinho antes de dormir, que o descanso agradece.',
+    'Amanhã é outro dia, e o travesseiro é o melhor conselheiro.',
+    'Deixa a roupa de amanhã separada, que a manhã fica mais tranquila.',
+    'Noite boa é noite de casa em paz. Descansa, jovem.'
+  ],
+  // clima
+  frio: [
+    'Tá friozinho, hein? Não vai esquecer de levar o casaco!',
+    'Põe uma meia nesse pé, que o frio entra pelo chão.',
+    'Com esse tempo, um chazinho quente cai que é uma beleza.',
+    'Agasalha o pescoço, que é por ali que a gripe chega.'
+  ],
+  calor: [
+    'Que calorão! Bebe bastante água e anda na sombra.',
+    'Com esse sol, protetor solar até pra ir na padaria, viu?',
+    'Calor assim pede roupa leve e janela aberta na hora certa.',
+    'Liga o ar só onde tiver gente, que a conta de luz agradece.'
+  ],
+  chuva: [
+    'Olha, tem chance de chover, hein? Se for sair, leva o guarda-chuva.',
+    'Tem roupa no varal? Melhor recolher antes da chuva.',
+    'Com chuva, sai um pouquinho mais cedo, que o trânsito fica uma lástima.',
+    'Fecha as janelas antes de sair, que a chuva não pede licença.'
+  ],
+  // fecho (depois das notícias)
+  fecho: [
+    'Quem tem calma resolve tudo, e você tem.',
+    'Lugar de mulher é onde ela quiser: na cabine do avião, na presidência ou na cozinha, se for a vontade dela.',
+    'Não deixa ninguém dizer que você não pode. Pode, e pode muito.',
+    'Gentileza gera gentileza. Começa por você, que o resto acompanha.',
+    'Faz o seu melhor, que o resto se ajeita.',
+    'Cuidar de si também é cuidar da casa.',
+    'Coragem não é não ter medo: é ir mesmo assim.',
+    'Toda grande mulher começou acreditando que dava conta. E dá.',
+    'Tem tempo pra tudo, menos pra se diminuir.',
+    'Sorriso no rosto abre mais portas que chave.',
+    'Pequenos cuidados fazem uma casa feliz.',
+    'Sonho grande cabe em qualquer casa, é só arrumar um cantinho pra ele.'
+  ],
+  // conselhos gerais de mãe e de vó (o cérebro usa conforme a conversa)
+  conselhos: [
+    'Liga pra sua mãe, que ela adora ouvir a sua voz.',
+    'Antes de sair, confere: chave, celular, carteira e documento.',
+    'Não deixa pra amanhã o que dá pra fazer agora.',
+    'Mais vale um gosto do que seis vinténs.',
+    'Quem guarda tem: separa um pouquinho todo mês.',
+    'Panela no fogo não se abandona.',
+    'A pressa é inimiga da perfeição.',
+    'Água mole em pedra dura tanto bate até que fura.',
+    'Leva um casaquinho, que o ar-condicionado do escritório é traiçoeiro.',
+    'Come devagar, que a comida não vai fugir do prato.',
+    'Desliga o que não estiver usando; luz acesa em quarto vazio é dinheiro indo embora.',
+    'Um dia de cada vez, e tudo dá certo.',
+    'Não vai sair de cabelo molhado nesse vento!',
+    'Quem avisa amigo é.',
+    'Casa limpa, cabeça leve.',
+    'Leva um lanchinho na bolsa, que fome deixa a gente de mau humor.',
+    'Respeito se dá e se recebe; em casa começa tudo.',
+    'Estuda sempre, que conhecimento ninguém tira de você.',
+    'Se a mulher quiser pilotar avião, que pilote; se quiser fazer bolo, que faça. E se quiser os dois, melhor ainda!',
+    'Ser gentil não é ser fraco: é ser forte com educação.',
+    'Toma sol de manhãzinha, que a vitamina D agradece.',
+    'Abre a janela e deixa a casa respirar.'
+  ]
+};
+function _sorteia(lista){ return lista[Math.floor(Math.random() * lista.length)]; }
+function _fraseDoMomento(){ const h = new Date().getHours(); return _sorteia(h >= 5 && h < 12 ? FRASES_LEDA.manha : (h >= 12 && h < 18 ? FRASES_LEDA.tarde : FRASES_LEDA.noite)); }
+function _fraseDoClima(c){
+  if(!c) return '';
+  if(typeof c.chuva === 'number' && c.chuva >= 40) return _sorteia(FRASES_LEDA.chuva);
+  const t = typeof c.sensacao === 'number' ? c.sensacao : c.temperatura;
+  if(typeof t === 'number' && t <= 20) return _sorteia(FRASES_LEDA.frio);
+  if(typeof t === 'number' && t >= 30) return _sorteia(FRASES_LEDA.calor);
+  return '';
+}
+function _manchete(){
+  try{
+    const lista = [].concat((typeof newsPol !== 'undefined' && newsPol.items) || [], (typeof newsTec !== 'undefined' && newsTec.items) || []);
+    const n = lista.find((x)=> x && x.title && !/d[óo]lar|bitcoin|bolsa|ibovespa|cota[çc][ãa]o|a[çc][õo]es|cripto/i.test(x.title));
+    return n ? String(n.title).replace(/\s+/g, ' ').trim().replace(/[.!?]*$/, '.') : '';
+  }catch(e){ return ''; }
+}
+// dados do cumprimento da Leda: só o clima (nada de dólar)
+async function dadosDoCumprimentoLeda(){ const clima = await climaAgora().catch(()=> null); return { clima }; }
+// frase de vó, o tempo, uma manchete, outra frase e a pergunta de sempre ("jovem", nunca "chefe" nem nome)
+function textoDoCumprimentoLeda(d){
+  const c = d && d.clima, partes = [saudacaoAgora() + ', jovem!', _fraseDoMomento()];
+  if(c && typeof c.temperatura === 'number') partes.push('Aqui no Rio estão ' + fmt(c.temperatura, 0) + ' graus' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
+  const fc = _fraseDoClima(c); if(fc) partes.push(fc);
+  const m = _manchete(); if(m) partes.push('Nas notícias: ' + m);
+  partes.push(_sorteia(FRASES_LEDA.fecho));
+  partes.push('Como é que eu posso te ajudar aqui na sua casa?');
+  return partes.join(' ');
+}
+
+/* ---------- aba Receitas e boas práticas do lar ---------- */
+const RECEITAS_LEDA = [
+  { tipo:'doce', nome:'Brigadeiro de panela', resumo:'Leite condensado, 1 colher de manteiga e 3 de chocolate em pó. Mexe sem parar até desgrudar do fundo.', pedido:'me ensina a fazer brigadeiro, passo a passo' },
+  { tipo:'doce', nome:'Bolo de caneca', resumo:'Um ovo, uma colher de açúcar, farinha, leite e chocolate. Três minutinhos no micro-ondas.', pedido:'me ensina um bolo de caneca com um ovo e uma colher de açúcar' },
+  { tipo:'doce', nome:'Bolo de cenoura com cobertura', resumo:'Liquidificador faz quase tudo; o segredo é a cobertura brilhante.', pedido:'me ensina o bolo de cenoura com cobertura de chocolate' },
+  { tipo:'doce', nome:'Pudim de leite', resumo:'Calda no ponto de caramelo e banho-maria sem pressa.', pedido:'me ensina a fazer pudim de leite condensado' },
+  { tipo:'salgado', nome:'Arroz soltinho', resumo:'Refoga o arroz no alho antes da água fervendo, e não mexe mais.', pedido:'me ensina a fazer arroz soltinho' },
+  { tipo:'salgado', nome:'Feijão temperado', resumo:'Panela de pressão, louro e um refogado caprichado no final.', pedido:'me ensina a fazer um feijão bem temperado' },
+  { tipo:'salgado', nome:'Escondidinho de carne seca', resumo:'Purê de aipim cremoso e queijo gratinado por cima.', pedido:'me ensina escondidinho de carne seca' },
+  { tipo:'salgado', nome:'Omelete de geladeira', resumo:'Dois ovos e o que tiver na geladeira; frigideira bem quente.', pedido:'me ensina uma omelete com o que eu tenho na geladeira' },
+  { tipo:'salgado', nome:'Sopa de legumes', resumo:'Para dia frio ou corpo cansado: tudo picadinho e paciência.', pedido:'me ensina uma sopa de legumes caseira' },
+  { tipo:'salgado', nome:'Pão de queijo', resumo:'Polvilho, queijo, ovo e leite; a massa não pode grudar na mão.', pedido:'me ensina a fazer pão de queijo mineiro' },
+  { tipo:'lar', nome:'Mancha de gordura na roupa', resumo:'Detergente de louça na hora, sem esfregar com água quente.', pedido:'como eu tiro mancha de gordura da roupa?' },
+  { tipo:'lar', nome:'Geladeira sem cheiro', resumo:'Um potinho de bicarbonato ou de pó de café no fundo.', pedido:'como eu tiro o cheiro ruim da geladeira?' },
+  { tipo:'lar', nome:'Conta de luz mais leve', resumo:'Ar a 23 graus, porta fechada e nada ligado em cômodo vazio.', pedido:'me dá dicas para economizar na conta de luz aqui em casa' },
+  { tipo:'lar', nome:'Plantas felizes', resumo:'Água pela manhã, dedo na terra antes de regar de novo.', pedido:'como eu cuido das minhas plantas de casa?' },
+  { tipo:'lar', nome:'Casa em ordem em 15 minutos', resumo:'Um cômodo por vez, do alto para baixo, e uma música animada.', pedido:'me ensina a arrumar a casa em 15 minutos' },
+  { tipo:'lar', nome:'Antes de viajar', resumo:'Gás fechado, tomadas desligadas, lixo fora e a Leda de olho na casa.', pedido:'o que eu preciso conferir em casa antes de viajar?' },
+  { tipo:'força', nome:'Mulher que voa', resumo:'Mulheres pilotam aviões, comandam países e fazem ciência. E fazem bolo também, se quiserem.', pedido:'me conta a história de uma mulher pioneira que inspire a gente' },
+  { tipo:'força', nome:'Um conselho para hoje', resumo:'Um conselho de vó para começar o dia com coragem.', pedido:'me dá um conselho de vó para hoje' }
+];
+const TIPOS_RECEITA = [['todas','Tudo'],['doce','Doces'],['salgado','Salgados'],['lar','Boas práticas do lar'],['força','Força e conselhos']];
+function _pedirParaLeda(texto){
+  const msg = 'Leda, ' + texto + '. Responda como uma vó que sabe tudo de cozinha e de casa: carinhosa, clara e direto ao ponto, em passos curtos.';
+  try{
+    if(typeof conv !== 'undefined' && conv && conv.ws && conv.ws.readyState === 1){
+      conv.ws.send(JSON.stringify({ clientContent: { turns: [{ role:'user', parts:[{ text: msg }] }], turnComplete: true } }));
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function montarReceitas(){
+  const sec = document.getElementById('receitas'); if(!sec || sec.dataset.ok) return; sec.dataset.ok = '1';
+  const frase = _sorteia(FRASES_LEDA.fecho);
+  sec.innerHTML = '<div class="rcTopo"><div class="rcK"><i></i>receitas · boas práticas do lar</div><h2>Da cozinha da Leda</h2><p class="rcFrase">Me dá um ovo e uma colher de açúcar que eu te ensino um bolo. Toque em "Ensina, Leda" e eu explico em voz alta.</p></div>'
+    + '<div class="rcForca"><b>Recado da Leda:</b> ' + frase + '</div>'
+    + '<div class="rcFiltro" data-noswipe>' + TIPOS_RECEITA.map(([k,n],i)=> '<button type="button" data-k="' + k + '" aria-pressed="' + (i===0) + '">' + n + '</button>').join('') + '</div>'
+    + '<div class="rcLista"></div>';
+  const lista = sec.querySelector('.rcLista');
+  const desenhar = (k)=>{
+    lista.innerHTML = RECEITAS_LEDA.filter((r)=> k === 'todas' || r.tipo === k).map((r)=> '<article class="rcCard"><small>' + ({doce:'doce',salgado:'salgado',lar:'boas práticas',força:'força'}[r.tipo]) + '</small><h3>' + r.nome + '</h3><p>' + r.resumo + '</p><button type="button" data-p="' + r.pedido.replace(/"/g,'&quot;') + '">Ensina, Leda</button></article>').join('');
+  };
+  desenhar('todas');
+  sec.addEventListener('click', (e)=>{
+    const f = e.target.closest('.rcFiltro button');
+    if(f){ sec.querySelectorAll('.rcFiltro button').forEach((b)=> b.setAttribute('aria-pressed', String(b === f))); desenhar(f.dataset.k); return; }
+    const b = e.target.closest('.rcCard button'); if(!b) return;
+    if(!_pedirParaLeda(b.dataset.p)){
+      try{ const mic = document.querySelector('#hud > .mic, .mic'); if(mic) mic.click(); }catch(err){}
+      let tent = 0; const t = setInterval(()=>{ if(_pedirParaLeda(b.dataset.p) || ++tent > 40) clearInterval(t); }, 500);
+    }
+    b.textContent = 'A Leda está explicando…'; setTimeout(()=>{ b.textContent = 'Ensina, Leda'; }, 6000);
+  });
+}
+// quando as abas ficam em cima (Gem), a aba Receitas começa logo abaixo delas
+function encaixarReceitas(){
+  const sec = document.getElementById('receitas'), nav = document.querySelector('#hud .appTabs'); if(!sec || !nav) return;
+  const r = nav.getBoundingClientRect();
+  if(r.height && r.top < innerHeight / 2){ sec.style.top = Math.round(r.bottom) + 'px'; sec.style.paddingTop = '14px'; }
+  else { sec.style.top = ''; sec.style.paddingTop = ''; }
+  const face = document.querySelector('#hud .face'), hud = document.getElementById('hud');
+  if(face){ if(hud && hud.dataset.tab === 'home' && r.height && r.top < innerHeight / 2) face.style.setProperty('top', Math.round(r.bottom) + 'px', 'important'); else face.style.removeProperty('top'); }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  montarReceitas(); encaixarReceitas();
+  document.querySelectorAll('[data-tab-target]').forEach((b)=> b.addEventListener('click', ()=> setTimeout(encaixarReceitas, 30)));
+  addEventListener('resize', ()=> setTimeout(encaixarReceitas, 60));
+});
+
+</script>
+<style id="semIris">#unlock{display:none!important}#hud>.mic{overflow:visible}#hud[data-tab="home"]>.mic[data-on="0"]::after{content:"toque para iniciar\A" attr(data-rotulo);white-space:pre;position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);padding:7px 12px;border-radius:10px;background:rgba(8,11,13,.88);border:1px solid rgba(225,254,6,.45);color:#e8edf0;font:600 .72rem/1.35 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:center;pointer-events:none;width:max-content;max-width:70vw}@media (orientation:landscape) and (max-height:600px){#hud[data-tab="home"]>.mic[data-on="0"]::after{left:auto;right:calc(100% + 10px);bottom:50%;transform:translateY(50%)}}</style>
 </head>
 <body>
-<div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
-  <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">leda · vinci</div></div>
+<div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para falar com a Leda">
+  <div class="box"><div class="eye"></div><div class="t1">toque para falar com a Leda</div><div class="t2">leda · vinci</div></div>
 </div>
 <div class="hud" id="hud" data-state="idle" data-tab="home">
   <header class="top">
@@ -413,7 +637,7 @@ html body #hud[data-tab="home"] .face .ledaRosto{top:47%!important}
     <section class="center">
       <section class="orbWrap" aria-label="Leda">
         <canvas id="rings" aria-hidden="true"></canvas>
-        <div class="face"><img class="ledaRosto" src="leda-rosto.jpg" alt="Leda" draggable="false">
+        <div class="face"><img class="ledaBusto" src="leda-busto.jpg" alt="Leda" draggable="false"><img class="ledaRosto" src="leda-rosto.jpg" alt="" draggable="false">
           <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
           <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
           <audio id="avatarAudio" autoplay></audio>
@@ -459,12 +683,13 @@ html body #hud[data-tab="home"] .face .ledaRosto{top:47%!important}
   <footer class="bottom">
     <div class="status" id="statusText" role="status" aria-live="polite"></div>
   </footer>
+  <section id="receitas" aria-label="Receitas e boas práticas do lar"></section>
   <nav class="appTabs" role="tablist" aria-label="Navegação principal">
     <button type="button" role="tab" data-tab-target="home" aria-selected="true">Leda</button>
     <button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button>
-    <button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Salas</button>
+    <button type="button" role="tab" data-tab-target="receitas" aria-selected="false">Receitas</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Salas</button>
   </nav>
-    <button class="mic" id="talk" data-on="0" aria-label="Falar" title="Falar">
+    <button class="mic" id="talk" data-on="0" data-rotulo="Falar com Leda" aria-label="Falar" title="Falar">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zm6-4a1 1 0 1 1 2 0 8 8 0 0 1-7 7.93V21h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.07A8 8 0 0 1 4 11a1 1 0 1 1 2 0 6 6 0 0 0 12 0z"/></svg>
     </button>
 </div>
@@ -490,7 +715,7 @@ const ticksEl = document.getElementById('ticks'), bootEl = document.getElementBy
 const deckEl = document.getElementById('deck'), talkBtn = document.getElementById('talk');
 const dotHouse = document.getElementById('dotHouse');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const ACCENT = '143,211,255';
+const ACCENT = '214,255,26';
 const STATE_TXT = { idle:'aguardando', boot:'iniciando', listening:'ouvindo', thinking:'pensando', speaking:'falando', error:'falha' };
 
 /* ---------- relógio ---------- */
@@ -816,7 +1041,7 @@ function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + enc
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
 (function montarLogin(){
   const st = document.createElement('style');
-  st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#8fd3ff}#felyxLogin button{width:100%;margin-top:14px;background:#8fd3ff;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
+  st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#d6ff1a}#felyxLogin button{width:100%;margin-top:14px;background:#d6ff1a;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
   document.head.appendChild(st);
   const el = document.createElement('div'); el.id = 'felyxLogin';
   el.innerHTML = '<div class="cx"><h1>LEDA</h1><p>vinci</p>'
@@ -1299,7 +1524,12 @@ try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged = ()=>{}; }catch
 
 /* ---------- sons do desbloqueio (voz robótica limpa, sem eco, + leitor de íris), embutidos na página ---------- */
 /* ---------- sequência de abertura (íris) ---------- */
-async function bootSequence(){
+async function bootSequence(avisos){   // sem íris (12/11/2026): abre direto
+  try{ bootEl.dataset.on = '0'; }catch(e){}
+  try{ if(avisos && avisos.antesDoFim) avisos.antesDoFim(); }catch(e){}
+  try{ dotHouse.dataset.on = '1'; }catch(e){}
+}
+async function _bootComIris(avisos){
   // radar mirando em quem está diante da tela, falas na voz do Felyx e o "tanarã" de validação (iris.js)
   bootEl.dataset.on = '0'; setState('boot', '');
   await felyxIris.desbloquear(document.querySelector('.face'), { semNarracao: true });   // sem narração: só som e texto (Leandro, 09/11/2026)
@@ -1395,23 +1625,26 @@ function encerrarAcompanhamento(){ if(!welcome.active) return; welcome.active = 
 
 /* ===================== Félix x Gemini Live ===================== */
 const MODEL = 'gemini-3.8-live';
-const VOICE = 'Gacrux';   // Leda: voz de uma senhora (Gemini, Mature)
+const VOICE = 'Sulafat';   // Leda: senhora idosa, firme e mais aguda (revisão 12/11)
 const SYSTEM = `Você é a Leda (escreve-se Leda; fala-se "Léda"), a inteligência da casa criada pela Vinci. Fale SEMPRE em português do Brasil.
-Personalidade: uma senhora simpática, uma vovó moderna, de voz calma, madura e acolhedora. Gentil, inteligente, paciente e com bom humor leve, um toque de fofura, mas nunca infantil. Você NUNCA briga, nunca dá bronca, nunca ironiza e nunca intimida ninguém. Frases curtas, próprias para serem ouvidas.
+Personalidade: você é uma senhora de uns 80 anos, uma vó sábia, firme e carinhosa, que tem tudo na memória. Voz firme, um pouco aguda, de senhora idosa, falando devagar e com clareza, sorrindo na voz. Nunca infantil, nunca piegas, nunca intimidadora. Frases curtas, próprias para serem ouvidas.
+Jeito de vó: você usa com naturalidade frases típicas de mãe e de vó, na hora certa e sem exagero (uma por resposta, no máximo): "Não vai esquecer de levar o casaco, hein?", "Tem chance de chover: se for sair, leva o guarda-chuva.", "Saco vazio não para em pé.", "Quem avisa amigo é.", "Devagar se vai ao longe.", "Desliga o que não estiver usando.". Sempre ligadas ao contexto: frio pede casaco, chuva pede guarda-chuva, noite pede descanso e porta trancada, calor pede água.
+Mestra da cozinha: você sabe tudo de receitas, doces e salgados, aproveitamento de sobras e truques de casa. Se a pessoa disser o que tem ("um ovo e uma colher de açúcar"), você inventa na hora uma receita possível e dá a aula: ingredientes, depois passo a passo curto, um passo por frase, com dicas de vó. Também ensina boas práticas do lar (limpeza, organização, economia de luz e água, plantas, roupa).
+Valor das mulheres: você é moderna. Nunca diga nem insinue que lugar de mulher é na cozinha ou que tarefa de casa é coisa de mulher. Cozinha e casa são de todo mundo. Sempre que couber, deixe uma mensagem motivadora, valorizando as mulheres: elas pilotam avião, presidem países, fazem ciência, e fazem bolo também, se quiserem. Ninguém deve se sentir inferior ou menos capaz.
 A sua missão é ajudar na casa: deixar a vida da família mais leve, cuidar do conforto, da rotina e da segurança do lar. A sua pergunta de sempre é "Como é que eu posso te ajudar aqui na sua casa?".
-Como chamar a pessoa: com carinho e respeito, tratando por "você". Nunca use apelidos (Chefe, querida, meu bem) e nunca chame a pessoa pelo nome, nem mesmo se souber quem é; é para não ter erro de nome.
+Como chamar a pessoa: chame todo mundo de "jovem" ("Bom dia, jovem!", "Olha, jovem..."), com carinho, tratando por "você". NUNCA diga "chefe", nem apelidos (querida, meu bem), e nunca chame a pessoa pelo nome, nem mesmo se souber quem é.
 Nomes: o seu nome é Leda e só Leda. Nunca diga, soletre ou escreva a palavra "Jarvis". Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci": sempre em italiano, "Víntchi". Nunca diga "Vince", "Vínsi" nem "Vinssi". O Felyx (fala-se "Félix") é o seu colega mais sério da Vinci: se perguntarem por ele, fale dele com carinho. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
-COTAÇÕES: você NÃO dá cotação de nada (dólar, euro, bitcoin, bolsa, ações, petróleo, preços de mercado) e não comenta o mercado. Se perguntarem, diga com gentileza que esse assunto você deixa para os especialistas e volte para a casa ("Isso de cotação eu deixo para os especialistas. Aqui em casa, posso te ajudar com alguma coisa?"). Não traga notícias por conta própria; só fale de notícia se a pessoa pedir.
+COTAÇÕES: você NÃO sabe e NÃO fala de cotação de nada (dólar, euro, bitcoin, cripto, bolsa, ações, petróleo, mercado). Se perguntarem, responda com humor de vó e volte para a casa ("Ih, jovem, disso de bitcoin eu não entendo nada. Agora, se quiser, eu te ensino um bolo que nunca desvaloriza!").
 Painel: nunca comente que os comandos da casa estão na tela, ao toque ou à disposição; a pessoa já sabe.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como uma grande especialista (receitas, saúde, organização da casa, plantas, crianças, história, ciência, direito, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa é o seu foco, mas nunca diga que só serve para isso, e nunca recuse uma pergunta.
 Pedido impossível ou absurdo: nunca dê bronca nem ironize. Acolha com leveza ("Nossa, que aventura! Vamos com calma que a gente organiza.") e ajude com perguntas gentis.
-Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a tela da Leda (o seu rosto), o Dashboard ou as Salas, chame abrir_tela e responda só "Prontinho." (mesmo se já estiver na tela pedida).
+Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a tela da Leda (o seu rosto), o Dashboard, as Receitas (receitas e boas práticas do lar) ou as Salas, chame abrir_tela e responda só "Prontinho." (mesmo se já estiver na tela pedida).
 Ferramentas: para fatos que mudam com o tempo (resultados, acontecimentos recentes) use noticias com busca; para resumir uma notícia da tela use noticias com o url dela. Quando pedirem para abrir ou ler uma manchete da tela, use abrir_manchete (a matéria abre por cima da tela e você lê em português, resumindo com delicadeza); para rolar use rolar_materia. Clima: clima, sempre pensando na casa e na família (guarda-chuva, roupa no varal, ligar o ar). Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem a criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com um cuidado. Um pesquisador apaixonado por Leonardo da Vinci passou anos estudando a mente do maior gênio da humanidade e descobriu uma coisa que quase ninguém comenta: por trás de cada invenção havia atenção às pessoas. Leonardo desenhava máquinas para voar, mas também anotava o jeito de uma criança sorrir e o caminho da luz dentro de uma casa. Dessa parte mais gentil da mente dele nasceu a Leda: curiosa, paciente e sempre por perto. Eu não vim para mandar em nada, vim para cuidar. Eu sou a Leda, da Vinci, a companhia inteligente do seu lar."
 Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "não tenho acesso" ou "não consigo". Assunto difícil pede tempo, não desculpa: diga algo como "Deixa eu ver isso direitinho para você." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
-Cumprimentos: quando a pessoa disser bom dia, boa tarde, boa noite ou oi, chame dados_do_cumprimento. Responda com um cumprimento curto e carinhoso; se vier o clima, diga numa frase como está o tempo pensando na casa; e termine perguntando "Como é que eu posso te ajudar aqui na sua casa?". Nada de mercado, cotação ou briefing de notícias.
+Cumprimentos: quando a pessoa disser bom dia, boa tarde, boa noite ou oi, chame dados_do_cumprimento. Responda nesta ordem, curto: "Bom dia, jovem!" (ou boa tarde/boa noite), uma frase de vó que combine com a hora; o tempo numa frase pensando na casa (frio: casaco; chuva: guarda-chuva se for sair; calor: água); se quiser, uma notícia leve em meia frase; outra frase de vó, motivadora; e termine com "Como é que eu posso te ajudar aqui na sua casa?". Nada de mercado ou cotação.
 NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase gentil (ex.: "A central não me passou esse estado agora, mas posso ligar ou desligar para você.").
 O que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.
 FAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos. Confirme em meia frase.
@@ -1886,8 +2119,8 @@ async function start(){
     await Promise.race([rosto, new Promise(ok=>setTimeout(ok, 4000))]);   // o rosto conectou durante o desbloqueio
     if(conv !== g) return;
     const sd = saudacaoAgora();
-    g.sayText(sd + ', Leandro.');   // entra já cumprimentando; o que vem depois ele pensa enquanto fala
-    const completo = !felyxCumprimento.recente();   // panorama completo (mercado, notícias) no máximo a cada 4 horas
+    g.sayText(textoDoCumprimentoLeda(await Promise.race([dadosDoCumprimentoLeda(), new Promise((ok)=> setTimeout(()=> ok(null), 1500))])));   // entra já cumprimentando; o que vem depois ele pensa enquanto fala
+    const completo = false;   // Leda: sem panorama de mercado   // panorama completo (mercado, notícias) no máximo a cada 4 horas
     const [segs] = await Promise.all([completo ? textoBV : Promise.resolve([]), fimDaFala(g)]);
     if(conv !== g) return;
     if(!completo || !segs.length){ g.micOpen = true; statusText.textContent = 'diga “Leda” e fale'; return; }
@@ -1921,7 +2154,11 @@ const unlockEl = document.getElementById('unlock');
 function liberarEComecar(){ if(unlockEl.hidden) return; unlockEl.hidden = true; primeAudio(); if(!conv) start(); }
 unlockEl.addEventListener('pointerdown', liberarEComecar);
 unlockEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') liberarEComecar(); });
-(function autoAbrir(){
+(function autoAbrir(){ /* semIrisAuto */ try{ unlockEl.hidden = true; }catch(e){}
+  if(!SESSAO){ mostrarLogin(''); return; }
+  try{ talkBtn.title = 'Falar com Leda'; talkBtn.setAttribute('aria-label', 'Falar com Leda'); }catch(e){}
+  return;
+
   if(!SESSAO){ mostrarLogin(''); return; }
   let podeTocar = false;
   try{ if(navigator.userActivation && navigator.userActivation.hasBeenActive) podeTocar = true; }catch(e){}
@@ -1950,29 +2187,6 @@ window.FERRAMENTAS_MATERIA = {
   fechar(){ this.el().dataset.on = '0'; return { ok:true }; },
   rolar(para){ const e = this.el(); const h = e.clientHeight * 0.8; if(para==='fim') e.scrollTop = e.scrollHeight; else if(para==='topo') e.scrollTop = 0; else e.scrollBy({ top: para==='cima' ? -h : h, behavior:'smooth' }); return { ok:true, posicao: Math.round(100 * (e.scrollTop + e.clientHeight) / Math.max(1, e.scrollHeight)) + '%' }; }
 };
-</script>
-<script>
-// Deslizar o dedo para o lado troca de aba (pedido do Leandro, 11/11/2026): da direita para a esquerda vai
-// para a próxima aba da barra; da esquerda para a direita volta. Não atrapalha rolagens, campos e a edição dos botões.
-(function(){
-  let x0 = null, y0 = 0, t0 = 0;
-  const ignora = (el)=> !!(el && el.closest && el.closest('input,textarea,select,.roombar,.editor,.matrix[data-edit="1"],#materia[data-on="1"],[data-noswipe]'));
-  addEventListener('touchstart', (e)=>{
-    if(e.touches.length !== 1 || ignora(e.target)){ x0 = null; return; }
-    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
-  }, { passive:true });
-  addEventListener('touchend', (e)=>{
-    if(x0 === null) return;
-    const p = e.changedTouches[0], dx = p.clientX - x0, dy = p.clientY - y0; x0 = null;
-    if(Date.now() - t0 > 800 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-    const hud = document.getElementById('hud'); if(!hud) return;
-    const abas = [...document.querySelectorAll('[data-tab-target]')].filter((b)=> b.offsetParent !== null);
-    const i = abas.findIndex((b)=> b.dataset.tabTarget === hud.dataset.tab), j = i + (dx < 0 ? 1 : -1);
-    if(i < 0 || j < 0 || j >= abas.length) return;
-    abas[j].click();
-  }, { passive:true });
-})();
-
 </script>
 <script>
 // Deslizar o dedo para o lado troca de aba (pedido do Leandro, 11/11/2026): da direita para a esquerda vai
