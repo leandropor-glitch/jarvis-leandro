@@ -347,7 +347,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
   .hud[data-tab="dashboard"] .news{min-height:200px}
 }
 </style>
-<style id="semIris">#unlock{display:none!important}#hud>.mic{overflow:visible}#hud[data-tab="home"]>.mic[data-on="0"]::after{content:"toque para iniciar\A" attr(data-rotulo);white-space:pre;position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);padding:7px 12px;border-radius:10px;background:rgba(8,11,13,.88);border:1px solid rgba(225,254,6,.45);color:#e8edf0;font:600 .72rem/1.35 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-align:center;pointer-events:none;width:max-content;max-width:70vw}@media (orientation:landscape) and (max-height:600px){#hud[data-tab="home"]>.mic[data-on="0"]::after{left:auto;right:calc(100% + 10px);bottom:50%;transform:translateY(50%)}}</style>
+<style id="semIris">#unlock{display:none!important}#hud>.mic{overflow:visible}#hud[data-tab="home"]>.mic[data-on="0"]::after{content:attr(data-rotulo);position:absolute;left:calc(100% + 16px);top:50%;transform:translateY(-50%);color:#e1fe06;font:700 1.02rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 0 6px rgba(225,254,6,.75),0 0 18px rgba(225,254,6,.45),0 1px 2px #000}@media (orientation:landscape) and (max-height:600px){#hud[data-tab="home"]>.mic[data-on="0"]::after{left:auto;right:calc(100% + 16px)}}</style>
 <style id="ledaVisual">
 /* Leda (12/11/2026, revisão 2): busto recortado em fundo preto, rosto grande; paleta da VINCI; aba Receitas; sem cotações */
 :root{--leda:#e1fe06;--ledaRGB:225,254,6;--ink950:#080b0d;--ink900:#0e1317;--ink800:#141b21;--ink700:#1c252c;--linha:#24303a;--mist:#93a3af;--texto:#e8edf0}
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <section class="center">
       <section class="orbWrap" aria-label="Leda">
         <canvas id="rings" aria-hidden="true"></canvas>
-        <div class="face"><img class="ledaBusto" src="leda-busto.jpg" alt="Leda" draggable="false"><img class="ledaRosto" src="leda-rosto.jpg" alt="" draggable="false">
+        <div class="face"><img class="ledaBusto" src="leda-busto.jpg?v=20261112d" decoding="sync" alt="Leda" draggable="false"><img class="ledaRosto" src="leda-rosto.jpg?v=20261112d" alt="" draggable="false">
           <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
           <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
           <audio id="avatarAudio" autoplay></audio>
@@ -689,7 +689,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button>
     <button type="button" role="tab" data-tab-target="receitas" aria-selected="false">Receitas</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Salas</button>
   </nav>
-    <button class="mic" id="talk" data-on="0" data-rotulo="Falar com Leda" aria-label="Falar" title="Falar">
+    <button class="mic" id="talk" data-on="0" data-rotulo="Fale com a Leda" aria-label="Falar" title="Falar">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zm6-4a1 1 0 1 1 2 0 8 8 0 0 1-7 7.93V21h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.07A8 8 0 0 1 4 11a1 1 0 1 1 2 0 6 6 0 0 0 12 0z"/></svg>
     </button>
 </div>
@@ -2156,7 +2156,7 @@ unlockEl.addEventListener('pointerdown', liberarEComecar);
 unlockEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') liberarEComecar(); });
 (function autoAbrir(){ /* semIrisAuto */ try{ unlockEl.hidden = true; }catch(e){}
   if(!SESSAO){ mostrarLogin(''); return; }
-  try{ talkBtn.title = 'Falar com Leda'; talkBtn.setAttribute('aria-label', 'Falar com Leda'); }catch(e){}
+  try{ talkBtn.title = 'Fale com a Leda'; talkBtn.setAttribute('aria-label', 'Fale com a Leda'); }catch(e){}
   return;
 
   if(!SESSAO){ mostrarLogin(''); return; }
