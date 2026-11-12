@@ -70,7 +70,7 @@
       let tam = Math.max(8 * dpr, R * 0.1), esp = 0.22;
       const medir = () => { c2.font = `600 ${tam}px ui-monospace, Menlo, monospace`; return c2.measureText(txt).width + txt.length * tam * esp; };
       while (medir() > larguraMax && tam > 6 * dpr) { tam *= 0.92; esp = Math.max(0.08, esp * 0.9); }
-      c2.save(); c2.textAlign = 'left'; c2.textBaseline = 'middle'; c2.fillStyle = '#d6ff1a'; c2.shadowColor = 'rgba(214,255,26,.6)'; c2.shadowBlur = 10 * dpr;
+      c2.save(); c2.textAlign = 'left'; c2.textBaseline = 'middle'; c2.fillStyle = '#c98a4b'; c2.shadowColor = 'rgba(201,138,75,.6)'; c2.shadowBlur = 10 * dpr;
       let x = cx - medir() / 2 + tam * esp / 2;
       for (const ch of txt) { c2.fillText(ch, x, y); x += c2.measureText(ch).width + tam * esp; }
       c2.restore();
@@ -82,14 +82,14 @@
       if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
       const cx = W / 2, cy = H * 0.46, R = Math.min(W, H) * 0.42, t = (agora - t0) / 1000, ang = t * 2.4;
       c2.clearRect(0, 0, W, H);
-      const ok = fase === 'ok', cor = (a) => `rgba(214,255,26,${a})`;
+      const ok = fase === 'ok', cor = (a) => `rgba(201,138,75,${a})`;
       c2.lineWidth = 1 * dpr;
       for (let i = 1; i <= 4; i++) { c2.strokeStyle = cor(0.12 + i * 0.05); c2.beginPath(); c2.arc(cx, cy, R * i / 4, 0, Math.PI * 2); c2.stroke(); }
       c2.strokeStyle = cor(0.18);
       c2.beginPath(); c2.moveTo(cx - R, cy); c2.lineTo(cx + R, cy); c2.moveTo(cx, cy - R); c2.lineTo(cx, cy + R); c2.stroke();
       if (!ok) { // feixe girando
         const g = c2.createConicGradient ? c2.createConicGradient(ang - 0.9, cx, cy) : null;
-        if (g) { g.addColorStop(0, 'rgba(214,255,26,0)'); g.addColorStop(0.14, 'rgba(214,255,26,.28)'); g.addColorStop(0.145, 'rgba(214,255,26,0)'); c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, R, 0, Math.PI * 2); c2.fill(); }
+        if (g) { g.addColorStop(0, 'rgba(201,138,75,0)'); g.addColorStop(0.14, 'rgba(201,138,75,.28)'); g.addColorStop(0.145, 'rgba(201,138,75,0)'); c2.fillStyle = g; c2.beginPath(); c2.arc(cx, cy, R, 0, Math.PI * 2); c2.fill(); }
         c2.strokeStyle = cor(0.9); c2.lineWidth = 2 * dpr;
         c2.beginPath(); c2.moveTo(cx, cy); c2.lineTo(cx + Math.cos(ang) * R, cy + Math.sin(ang) * R); c2.stroke();
         for (const p of pontos) { // pontos acendem quando o feixe passa

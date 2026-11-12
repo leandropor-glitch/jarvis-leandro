@@ -11,12 +11,12 @@
   }
   const CSS = '#felyxEsqueci{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:#050505;padding:16px;font-family:-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif}'
     + '#felyxEsqueci .cx{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}'
-    + '#felyxEsqueci h2{margin:0 0 4px;font-size:20px;font-weight:600;color:#d6ff1a;text-align:center}'
+    + '#felyxEsqueci h2{margin:0 0 4px;font-size:20px;font-weight:600;color:#c98a4b;text-align:center}'
     + '#felyxEsqueci p{margin:0;color:#9aa27a;font-size:14px;line-height:1.45;text-align:center}'
     + '#felyxEsqueci input{width:100%;box-sizing:border-box;padding:14px;border-radius:10px;border:1px solid #2a2f15;background:#101208;color:#eef7cc;font-size:16px}'
-    + '#felyxEsqueci button{padding:14px;border-radius:10px;border:0;background:#d6ff1a;color:#111;font-size:16px;font-weight:600;cursor:pointer}'
+    + '#felyxEsqueci button{padding:14px;border-radius:10px;border:0;background:#c98a4b;color:#111;font-size:16px;font-weight:600;cursor:pointer}'
     + '#felyxEsqueci button.sec{background:none;color:#9aa27a;font-weight:400;padding:6px}'
-    + '#felyxEsqueci .er{min-height:1.3em;font-size:14px;color:#ff8a7a;text-align:center}#felyxEsqueci .er.ok{color:#d6ff1a}';
+    + '#felyxEsqueci .er{min-height:1.3em;font-size:14px;color:#ff8a7a;text-align:center}#felyxEsqueci .er.ok{color:#c98a4b}';
 
   window.felyxEsqueciSenha = function (opcoes) {
     opcoes = opcoes || {};
