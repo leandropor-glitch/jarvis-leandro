@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><script src="limite-pedidos.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#06070a">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Leo iA Vinci</title>
@@ -13,8 +13,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Share+Tech+Mono&display=swap">
 <style>
 :root{
-  --bg:#06070a; --bg2:#0a0b0e; --card:#111317; --card2:#0d0f13; --line:#1f2228; --line2:#1a1d22; --line3:#2a2e35;
-  --ink:#e9eae6; --mute:#8a8d86; --soft:#c9cbc5; --acc:#d6ff1a; --acc-ink:#06070a; --up:#7fd88a; --dn:#ff8a82;
+  --bg:#000000; --bg2:#050505; --card:#111317; --card2:#0d0f13; --line:#1f2228; --line2:#1a1d22; --line3:#2a2e35;
+  --ink:#e9eae6; --mute:#8a8d86; --soft:#c9cbc5; --acc:#d6ff1a; --acc-ink:#000000; --up:var(--acc); --dn:#ff8a82;
   --mono:'Share Tech Mono', ui-monospace, monospace; --sans:'Saira', system-ui, sans-serif;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
 }
@@ -55,7 +55,7 @@ a{color:var(--acc)}
 .dot{width:8px;height:8px;border-radius:4px;background:var(--acc);display:inline-block}
 .dot[data-on="0"]{background:var(--dn)}
 
-/* Felyx (rosto + barras + microfone) */
+/* Leo (logo + barras + microfone; sem rosto ou avatar) */
 /* retrato inteiro: do topo do cabelo ao V da camisa (o fundo da foto é preto, some no fundo do app) */
 .stage{position:relative;display:flex;justify-content:center;align-items:flex-end;overflow:hidden;background:#000}
 .stage img{position:relative;width:100%;height:100%;object-fit:contain;object-position:50% 100%;z-index:1}
@@ -131,7 +131,7 @@ a{color:var(--acc)}
 .wa{display:flex;align-items:center;gap:10px;justify-content:center;height:48px;border-radius:24px;border:1px solid var(--line3);background:var(--card2);color:var(--ink);text-decoration:none;font-size:15px}
 .wa svg{flex:none}
 
-#ia{position:fixed;inset:0;z-index:40;background:#06070af2;display:flex;align-items:center;justify-content:center;overflow:auto;padding:calc(var(--safe-t) + 20px) 18px calc(var(--safe-b) + 20px)}
+#ia{position:fixed;inset:0;z-index:40;background:#000000f2;display:flex;align-items:center;justify-content:center;overflow:auto;padding:calc(var(--safe-t) + 20px) 18px calc(var(--safe-b) + 20px)}
 .iaBox{width:min(520px,100%);padding:24px;display:flex;flex-direction:column;gap:14px;margin:auto}
 .iaBox h1{margin:0;font-size:26px;font-weight:500}
 .iaBox p,.iaBox li{margin:0;color:var(--soft);font-size:15px;line-height:21px}
@@ -185,7 +185,7 @@ body.android .tabbar .ico{width:64px;height:32px;border-radius:16px;display:flex
 #app.l-tablet #vFelyx{grid-column:2;grid-row:1}
 #app.l-tablet #vNoticias{grid-column:1;grid-row:1}
 #app.l-tablet #vCasa{grid-column:3;grid-row:1}
-#app.l-tablet #vAjustes{position:fixed;inset:0;z-index:20;background:#06070aee;padding:60px max(28px,calc(50vw - 260px));display:none}
+#app.l-tablet #vAjustes{position:fixed;inset:0;z-index:20;background:#000000ee;padding:60px max(28px,calc(50vw - 260px));display:none}
 #app.l-tablet #vAjustes[data-on="1"]{display:flex}
 #app.l-tablet #vFelyx .stage{flex:1;min-height:300px}
 #app.l-tablet #vFelyx .mic{width:84px;height:84px}
@@ -209,7 +209,7 @@ body.android .tabbar .ico{width:64px;height:32px;border-radius:16px;display:flex
 #app.l-desk #vFelyx .stage img{-webkit-mask-image:none;mask-image:none}
 #app.l-desk #vFelyx .ctl{position:absolute;left:24px;top:20px;z-index:3;margin:0!important;align-items:flex-start!important}
 #app.l-desk #vFelyx .ctl .mic{display:none}
-#app.l-desk #vFelyx .ctl .state::before{content:"FELYX · VINCI AI   ";color:var(--mute);white-space:pre}
+#app.l-desk #vFelyx .ctl .state::before{content:"LEO · IA VINCI   ";color:var(--mute);white-space:pre}
 #app.l-desk .askMic{display:flex!important}
 #app.l-desk .askMic[data-on="1"]{outline:2px solid var(--acc);outline-offset:3px}
 #app.l-desk #vFelyx .chat{flex:1;padding:22px 32px}
@@ -280,7 +280,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 
 <!-- ================= LOGIN ================= -->
 <section id="login" hidden aria-label="Entrar">
-  <img class="face" src="leo-logo.png" alt="Logo do Léo">
+  <img class="face" src="leo-logo.png" alt="Logo do Leo">
   <div class="box">
     <span class="kick">Leo · iA Vinci</span>
 
@@ -319,15 +319,15 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 <main id="app" hidden>
   <nav class="side panel" aria-label="Navegação">
     <div style="display:flex;gap:8px;padding:0 6px 22px" aria-hidden="true" id="semaforo" hidden><span class="dot" style="background:#ff5f57;width:12px;height:12px;border-radius:6px"></span><span class="dot" style="background:#febc2e;width:12px;height:12px;border-radius:6px"></span><span class="dot" style="background:#28c840;width:12px;height:12px;border-radius:6px"></span></div>
-    <button data-go="vFelyx">Léo</button>
+    <button data-go="vFelyx">Leo</button>
     <button data-go="vCasa">Casa</button>
     <button data-go="vNoticias">Notícias</button>
     <button data-go="vAjustes">Ajustes</button>
     <div style="margin-top:auto;padding:12px;font-size:11px" class="kick" id="sideCasa">CASA · VINCI ONLINE</div>
   </nav>
 
-  <!-- Felyx -->
-  <section class="view panel" id="vFelyx" aria-label="Léo">
+  <!-- Leo -->
+  <section class="view panel" id="vFelyx" aria-label="Leo">
     <div class="top head">
       <span class="kick" style="font-size:13px;letter-spacing:3px">Leo · iA Vinci</span>
       <span class="kick" style="letter-spacing:0;display:flex;align-items:center;gap:8px"><span class="dot" id="dotCasa" data-on="0"></span><span id="txtCasa">casa…</span></span>
@@ -335,31 +335,31 @@ body.vision .tile,body.vision .chip{border-radius:28px}
     </div>
     <div class="stage">
       <div class="bars" id="bars" aria-hidden="true"></div>
-      <img src="leo-logo.png" alt="Logo do Léo">
+      <img src="leo-logo.png" alt="Logo do Leo">
       <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
       <audio id="avatarAudio" autoplay></audio>
     </div>
     <div class="ctl" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:6px">
       <span class="state" id="estado" aria-live="polite"></span>
       <span class="saud" id="saud"></span>
-      <button class="mic" id="mic" type="button" aria-label="Falar com o Léo" data-on="0">
+      <button class="mic" id="mic" type="button" aria-label="Falar com o Leo" data-on="0">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
       </button>
     </div>
     <button class="card destaque" id="destaque" type="button">
       <span class="top mono" style="font-size:12px;color:var(--mute);width:100%"><span id="dClima">RIO · —</span><span id="dDolar">DÓLAR —</span></span>
       <span style="font-size:16px;line-height:22px;font-weight:500" id="dTitulo">Carregando as notícias…</span>
-      <span style="font-size:13px;line-height:18px;color:var(--mute)">Toque para o Léo explicar a notícia.</span>
+      <span style="font-size:13px;line-height:18px;color:var(--mute)">Toque para o Leo explicar a notícia.</span>
     </button>
     <div class="chips favs" id="favs" style="padding-top:14px"></div>
     <div class="chat" id="chat" aria-live="polite"></div>
     <form class="ask" id="ask">
-      <label for="askIn" class="sr">Mensagem para o Léo</label>
-      <input id="askIn" type="text" placeholder="Escreva para o Léo" autocomplete="off">
-      <button type="button" class="askMic mic" data-falar aria-label="Falar com o Léo" style="background:transparent;border:1px solid var(--line3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:#e9eae6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
+      <label for="askIn" class="sr">Mensagem para o Leo</label>
+      <input id="askIn" type="text" placeholder="Escreva para o Leo" autocomplete="off">
+      <button type="button" class="askMic mic" data-falar aria-label="Falar com o Leo" style="background:transparent;border:1px solid var(--line3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:#e9eae6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
       <button type="submit" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
-    <button class="afab" type="button" data-falar><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>Falar com o Léo</button>
+    <button class="afab" type="button" data-falar><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>Falar com o Leo</button>
   </section>
 
   <!-- Casa -->
@@ -375,7 +375,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
     <div class="tiles" id="tiles"></div>
     <div class="devs" id="devs" hidden></div>
     <p class="kick" style="letter-spacing:0;text-transform:none;font-size:12px;margin:0">Toque e segure uma cena ou aparelho para marcar como favorito.</p>
-    <button class="mic fab" type="button" aria-label="Falar com o Léo" data-falar><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
+    <button class="mic fab" type="button" aria-label="Falar com o Leo" data-falar><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
   </section>
 
   <!-- Notícias e mercado -->
@@ -401,9 +401,9 @@ body.vision .tile,body.vision .chip{border-radius:28px}
     </div>
     <a class="wa" href="https://wa.me/5521967789150" target="_blank" rel="noopener">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
-      Falar com o Léo no WhatsApp
+      Falar com o Leo no WhatsApp
     </a>
-    <a class="wa" href="https://www.vinciautomacao.com/felyx#ajuda" target="_blank" rel="noopener">
+    <a class="wa" href="https://www.vinciautomacao.com/" target="_blank" rel="noopener">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
       Ajuda no site da Vinci
     </a>
@@ -413,7 +413,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
     </div>
     <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
       <span class="kick">Inteligência artificial</span>
-      <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px">Conversar com o Léo (voz pelo Google Gemini) <input type="checkbox" id="ajIA" style="width:22px;height:22px;flex:none;accent-color:var(--acc)"></label>
+      <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px">Conversar com o Leo (voz pelo Google Gemini) <input type="checkbox" id="ajIA" style="width:22px;height:22px;flex:none;accent-color:var(--acc)"></label>
       <a href="privacidade.html" target="_blank" rel="noopener" style="font-size:14px">Política de privacidade</a>
     </div>
     <button class="btn ghost" id="bSair" type="button">Sair deste aparelho</button>
@@ -434,7 +434,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
   </aside>
 
   <nav class="tabbar panel" aria-label="Seções">
-    <button data-go="vFelyx"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Léo</button>
+    <button data-go="vFelyx"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Leo</button>
     <button data-go="vCasa"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>Casa</button>
     <button data-go="vNoticias"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span>Notícias</button>
     <button data-go="vAjustes"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span>Ajustes</button>
@@ -446,7 +446,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
   <div class="iaBox card">
     <span class="kick">Leo · iA Vinci</span>
     <h1 id="iaTit">Vamos conversar?</h1>
-    <p>Eu sou o Léo. Para ouvir você e responder com a minha voz, uso a inteligência do <b>Google (Gemini)</b>: a sua voz vai para lá só enquanto estamos conversando, e nada fica gravado.</p>
+    <p>Eu sou o Leo. Para ouvir você e responder com a minha voz, uso a inteligência do <b>Google (Gemini)</b>: a sua voz vai para lá só enquanto estamos conversando, e nada fica gravado.</p>
     <p id="iaClaude" hidden>Quando você me pede alguma coisa, o texto do pedido e o seu primeiro nome também passam pela <b>Anthropic (Claude)</b>, pelo servidor da Vinci, para eu pensar na resposta e cuidar da casa.</p>
     <p class="iaNota">Nada disso é vendido nem usado para anúncios. Você muda de ideia quando quiser em Ajustes, e a casa, as notícias e o mercado funcionam de qualquer jeito.</p>
     <a href="privacidade.html" target="_blank" rel="noopener">Detalhes na política de privacidade</a>
@@ -558,9 +558,9 @@ async function pedirCodigo(){
       msg('mCod', ''); mostraForm('fCod'); msg('mTel', '');
     } else if (j.erro === 'janela'){
       mostraForm('fCod'); msg('mCod', j.mensagem);
-      $('#pCod').textContent = 'Primeiro mande um "oi" para o Léo no WhatsApp. Depois toque em reenviar o código.';
+      $('#pCod').textContent = 'Primeiro mande um "oi" para o Leo no WhatsApp. Depois toque em reenviar o código.';
     } else msg('mTel', j.mensagem || 'Não deu certo.');
-  }catch(e){ msg('mTel', 'Sem conexão com o Léo. Tente de novo.'); }
+  }catch(e){ msg('mTel', 'Sem conexão com o Leo. Tente de novo.'); }
 }
 $('#bPrimeiro').addEventListener('click', pedirCodigo);
 $('#bReenviar').addEventListener('click', async () => { msg('mCod', 'Reenviando…', true); try{ const j = await api('codigo', { telefone: L.tel }); msg('mCod', j.ok ? 'Código reenviado.' : (j.mensagem || 'Não deu certo.'), j.ok); }catch(e){ msg('mCod', 'Sem conexão.'); } });
@@ -578,7 +578,7 @@ $('#fTel').addEventListener('submit', async (e) => {
     else if (j.erro === 'plano_gen' && j.link){ msg('mTel', j.mensagem || 'O seu Félix funciona no navegador.'); abrirExterno(j.link); }
     else if (j.erro === 'sem_senha') msg('mTel', (j.mensagem ? j.mensagem + ' ' : '') + 'Toque em "Primeiro acesso" para criar a sua senha.');
     else msg('mTel', j.mensagem || 'Não deu certo.');
-  }catch(err){ msg('mTel', 'Sem conexão com o Léo. Tente de novo.'); }
+  }catch(err){ msg('mTel', 'Sem conexão com o Leo. Tente de novo.'); }
   $('#bEntrar').disabled = false;
 });
 $('#cod').addEventListener('input', (e) => { e.target.value = digitos(e.target.value).slice(0, 6); if (e.target.value.length === 6) $('#fCod').dispatchEvent(new Event('submit', { cancelable: true })); });
@@ -631,14 +631,14 @@ function layout(){
   const app = $('#app'); app.classList.remove('l-phone', 'l-tablet', 'l-desk', 'l-duo'); app.classList.add(l);
   app.classList.toggle('duo-f', l === 'l-phone' && w >= 430 && h / w < 1.75);
   $$('.phoneOnly').forEach((el) => { el.hidden = l !== 'l-phone'; });
-  $('#askIn').placeholder = l === 'l-desk' ? 'Escreva ou aperte espaço para falar' : 'Escreva para o Léo';
+  $('#askIn').placeholder = l === 'l-desk' ? 'Escreva ou aperte espaço para falar' : 'Escreva para o Leo';
   ir(atual, true);
 }
 let direita = store.get('felyx.direita', 'vCasa');
 function ir(id, quieto){
   const l = $('#app').className;
   if (l.includes('l-duo')){
-    // Duo aberto: o Léo fica sempre à esquerda; a aba Felyx alterna entre destaque e conversa
+    // Duo aberto: o Leo fica sempre à esquerda; a aba Felyx alterna entre destaque e conversa
     if (id === 'vFelyx') $('#vFelyx').classList.toggle('conversa', quieto ? $('#vFelyx').classList.contains('conversa') : !$('#vFelyx').classList.contains('conversa'));
     else direita = id;
     atual = id;
@@ -960,7 +960,7 @@ function quemFala(p){
   const n = primeiroNome();
   return (n && !/^leandro$/i.test(n)) ? '(' + n + ' falando pelo app) ' + p : p;
 }
-// a ponte do Léo exige a sessão do app em cada pedido de voz e de cérebro (401 = entrar de novo)
+// a ponte do Leo exige a sessão do app em cada pedido de voz e de cérebro (401 = entrar de novo)
 function tokenSessao(){ return (sessao && sessao.token) ? sessao.token : ''; }
 function sessaoCaiu(r, j){
   if ((r && r.status === 401) || (j && j.relogar)){ toast('Sua sessão expirou. Entre de novo.'); sair(); return true; }
@@ -991,7 +991,7 @@ function permissaoIA(){
   });
   return iaPedido;
 }
-const SEM_IA = 'Sem a sua permissão, o Léo não envia perguntas aos serviços de IA. Você pode permitir em Ajustes.';
+const SEM_IA = 'Sem a sua permissão, o Leo não envia perguntas aos serviços de IA. Você pode permitir em Ajustes.';
 async function perguntar(p){
   if (!(await permissaoIA())) throw new Error('ia');
   const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(felyxCumprimento.ajustar(p)), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
@@ -1004,7 +1004,7 @@ async function perguntarPorTexto(p, mostrar){
   bolha(mostrar || p, 'me');
   const w = bolha('pensando…', 'fx wait');
   try{ const r = await perguntar(p); w.className = 'bub fx'; w.textContent = r || 'Não consegui consultar o cérebro agora.'; }
-  catch(e){ w.className = 'bub fx'; w.textContent = (e && e.message === 'sessao') ? 'Entre de novo para continuar.' : (e && e.message === 'ia') ? SEM_IA : 'Sem conexão com o Léo.'; }
+  catch(e){ w.className = 'bub fx'; w.textContent = (e && e.message === 'sessao') ? 'Entre de novo para continuar.' : (e && e.message === 'ia') ? SEM_IA : 'Sem conexão com o Leo.'; }
   $('#chat').scrollTop = 1e9;
 }
 $('#ask').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#askIn').value.trim(); if (!v) return; $('#askIn').value = ''; if (conv && conv.micOpen) conv.pedir(v); else perguntarPorTexto(v); });
@@ -1014,11 +1014,11 @@ const MODEL = 'gemini-3.8-live';
 const VOICE = 'Algieba';
 function systemPrompt(){
   const n = primeiroNome() || 'Leandro';
-  return `Você é o Léo (na tela escreve-se Leo; fala-se "Léo"), a inteligência da casa. Fale SEMPRE em português do Brasil.
+  return `Você é o Leo (na tela escreve-se Leo; fala-se "Leo"), a inteligência da casa. Fale SEMPRE em português do Brasil.
 Quem está falando com você agora pelo aplicativo é ${n}.${sessao && sessao.demo ? ' Esta é uma sessão de DEMONSTRAÇÃO para a revisão da loja de aplicativos: o cérebro já recebe esse aviso e não aciona a casa.' : ''}
 Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, direto, elegante e com bom humor na medida. Frases curtas, próprias para serem ouvidas.
 Como chamar a pessoa: sempre de "Chefe", em todo cumprimento e resposta (ex.: "Bom dia, Chefe.", "Pronto, Chefe."). Nunca chame a pessoa pelo nome, nem mesmo se souber quem é; é para não ter erro de nome.
-Nomes: o seu nome é Léo e só Léo. Nunca diga, soletre ou escreva a palavra "Jarvis"; se o usuário disser "Jarvis", entenda que está falando com você. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: Felyx se escreve com Y mas se fala sempre "Félix" (FÉ-lix, como o nome Félix em português); nunca diga "Felics", "Felis", "Fe-lí-quis" nem soletre. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
+Nomes: o seu nome é Leo e só Leo. Nunca diga, soletre ou escreva a palavra "Jarvis"; se o usuário disser "Jarvis", entenda que está falando com você. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: Felyx se escreve com Y mas se fala sempre "Félix" (FÉ-lix, como o nome Félix em português); nunca diga "Felics", "Felis", "Fe-lí-quis" nem soletre. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se um texto contiver essa palavra, leia "Vinci" no lugar.
 Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, notícias do painel, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, sem resumir, sem inventar e sem acrescentar nada.
 Quem você é: quando perguntarem quem você é ou quem o criou, chame consultar_cerebro e leia a história que vier, inteira.
@@ -1039,13 +1039,13 @@ const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]li
 /* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
 // O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
 // (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
-// créditos, então ele fecha sozinho depois de AVATAR_OCIOSO_MIN sem conversa e reabre quando chamam o Léo.
+// créditos, então ele fecha sozinho depois de AVATAR_OCIOSO_MIN sem conversa e reabre quando chamam o Leo.
 // Enquanto não está pronto (ou se falhar), a voz toca normal aqui. Desligar: ?avatar=0 (fica salvo neste aparelho).
 const PRO_URL = N8N + '/felix/pro-sessao';
 const AVATAR_OCIOSO_MIN = 3;
 // Regra do Leandro (07/11): no rosto, a sincronia do lábio com a voz é o produto. A voz sai pelo vídeo do LiveAvatar desde a
 // primeira fala, em qualquer aparelho. Plano B, só se o rosto não devolver a voz em 2,5 s: o rosto fecha (nada de boca fora de
-// sincronia), o Léo diz a frase gravada "Só um momentinho, vou dar uma pesquisada aqui.", entra o teclado, a resposta toca
+// sincronia), o Leo diz a frase gravada "Só um momentinho, vou dar uma pesquisada aqui.", entra o teclado, a resposta toca
 // inteira daqui e vai um alerta do LiveAvatar para o n8n (felyx_falhas).
 const APARELHO = /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iPhone/iPad' : 'outro aparelho';
 const SOM_MUDO = 'data:audio/wav;base64,UklGRkwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSgAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
@@ -1055,12 +1055,12 @@ function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falh
   fetch(N8N + '/felix/gemini-apoio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao.token, acao:'falha',
     pedido: 'voz do app, tela clássica (' + APARELHO + ')', erro: String(erro) + ' · ' + navigator.userAgent.slice(0, 140) }) }).catch(()=>{});
 }
-let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Léo (Gemini Live, Algieba)
+let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Leo (Gemini Live, Algieba)
 function carregarFraseEspera(ctx){
   if(!fraseEspera && ctx) fraseEspera = fetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
   return fraseEspera || Promise.resolve(null);
 }
-// barulhinho de teclado (o mesmo da tela GEN): enquanto o Léo "dá uma pesquisada"
+// barulhinho de teclado (o mesmo da tela GEN): enquanto o Leo "dá uma pesquisada"
 function teclado(ctx, atraso){
   if(!ctx) return ()=>{};
   let ativo = true, t = null;
@@ -1370,7 +1370,7 @@ class GeminiLive {
       this.planoB(falou ? 'o som do rosto não toca neste aparelho' : 'o LiveAvatar não devolveu a voz');
     }, 2500);
   }
-  // Plano B (o rosto não devolveu a voz): fecha o rosto, o Léo diz a frase gravada, teclado, e a resposta toca inteira daqui
+  // Plano B (o rosto não devolveu a voz): fecha o rosto, o Leo diz a frase gravada, teclado, e a resposta toca inteira daqui
   planoB(motivo){
     this.somDoRosto = false; this.viaAvatar = false; this.ecoRosto = false;
     this.planoBAtivo = true; this.filaB = (this.falaAtual || []).slice(); this.falaAtual = [];
@@ -1462,7 +1462,7 @@ class GeminiLive {
 
 let conv = null;
 const ESTADO = { listening: 'pode falar', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
-function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Léo'); }); }
+function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Leo'); }); }
 function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
 /* cumprimento da abertura (regra do Leandro, 07/11): uma fala só, assim que o rosto aparece: saudação, a temperatura agora,
    o dólar oficial do pacote do Google e "Posso ajudar em alguma coisa?". Da íris até o fim dessa fala o microfone é ignorado. */
@@ -1510,7 +1510,7 @@ async function iniciarVozDeVerdade(){
   g.onState = (s) => { if (conv === g) estado(s); };
   g.onClose = (reason) => { FelyxAvatar.fechar(); if (conv !== g) return; conv = null; estado('idle', reason ? 'conversa encerrada' : ''); };
   g.onBrain = () => {};   // na voz, sem legenda: o Félix só fala (regra do Leandro). O texto aparece só na conversa digitada.
-  g.micOpen = false;   // da íris até o fim do cumprimento o Léo não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
+  g.micOpen = false;   // da íris até o fim do cumprimento o Leo não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
   try{
     const dados = dadosDoCumprimento();   // temperatura e dólar do Google, buscados enquanto a íris roda
     FelyxAvatar.esconder(true);           // o rosto conecta durante a íris, mas só aparece quando ela acaba
