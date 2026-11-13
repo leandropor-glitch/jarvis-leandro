@@ -977,7 +977,7 @@ function irParaGen(){
   // 13/11/2026 (Leandro): logado, abre sempre o Felyx Full (igual à Leda); a permissão de IA é pedida lá dentro. Só ?cerebro=claude fica nesta tela clássica.
   if (!sessao || !sessao.token || params.get('cerebro') === 'claude') return false;
   try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
-  const q = new URLSearchParams(location.search); q.set('v', '20261113c'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
+  const q = new URLSearchParams(location.search); q.set('v', '20261113d'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
 }
 let iaPedido = null;
 function permissaoIA(){
