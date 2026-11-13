@@ -2110,6 +2110,16 @@ const GEN_FERRAMENTAS = {
   },
   async clima(){ return (await climaAgora()) || { erro:'indisponível agora' }; },
   async bolsas(){ return apoioGen('mercado', { pedido:'como estão as bolsas' }); },
+  // 13/11/2026: notícias do dia de verdade (manchetes de hoje do Google Notícias, atualizadas a cada 15 min), para as três IAs
+  async manchetes_do_dia({ secao }){
+    const r = await apoioGen('mercado', { pedido:'manchetes do dia' });
+    if(!r || r.erro || r.ok === false) return { erro:'indisponível agora' };
+    const corta = (l)=> (Array.isArray(l) ? l : []).slice(0, 6).map(n => ({ titulo: n.titulo, fonte: n.fonte || '', url: n.link || '' }));
+    const todas = { destaques: corta(r.destaques), politica: corta(r.politica), tecnologia: corta(r.tecnologia), economia: corta(r.manchetes) };
+    const s = String(secao || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const so = /tec/.test(s) ? 'tecnologia' : (/pol/.test(s) ? 'politica' : (/econ|dinheiro|mercado/.test(s) ? 'economia' : ''));
+    return Object.assign({ atualizado: r.atualizado || null, instrucao: 'Diga as 3 mais importantes, curtas, em português do Brasil (traduza se preciso), citando a fonte. Para ler uma inteira, chame noticias com o url dela.' }, so ? { [so]: todas[so] } : todas);
+  },
   async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
   async abrir_manchete({ secao, posicao }){
     const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
@@ -2145,6 +2155,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
   { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'bolsas', description:'Moedas e mercado agora: dólar, euro e Bitcoin, Ibovespa, S&P 500 e Nasdaq com a variação do dia, e as manchetes de economia. Use quando perguntarem de dólar, euro, Bitcoin, bolsa, cotação ou economia.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
+  { name:'manchetes_do_dia', description:'Notícias de HOJE: manchetes do Google Notícias atualizadas a cada 15 minutos, com fonte e url. secao: destaques, politica, tecnologia ou economia (vazio = todas). Use sempre que pedirem as notícias do dia, as manchetes, o que está acontecendo ou notícias de tecnologia. Para um assunto específico use noticias com busca.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' } } } },
   { name:'noticias', description:'Com busca (assunto em poucas palavras): manchetes recentes com fonte e url. Com url: o texto completo da matéria.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, url:{ type:'STRING' } } } },
   { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a matéria de uma manchete do painel e traz o texto completo para você ler. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
