@@ -1,0 +1,1588 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><script src="limite-pedidos.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#06070a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Leo iA Vinci</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Share+Tech+Mono&display=swap">
+<style>
+:root{
+  --bg:#06070a; --bg2:#0a0b0e; --card:#111317; --card2:#0d0f13; --line:#1f2228; --line2:#1a1d22; --line3:#2a2e35;
+  --ink:#e9eae6; --mute:#8a8d86; --soft:#c9cbc5; --acc:#d6ff1a; --acc-ink:#06070a; --up:#7fd88a; --dn:#ff8a82;
+  --mono:'Share Tech Mono', ui-monospace, monospace; --sans:'Saira', system-ui, sans-serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{overflow:hidden}
+button,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--acc)}
+.mono{font-family:var(--mono)}
+.kick{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--mute);text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ---------- login ---------- */
+#login{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:calc(var(--safe-t) + 28px) 22px calc(var(--safe-b) + 28px)}
+#login .face{width:min(520px,100%);height:300px;object-fit:contain;object-position:50% 100%}
+#login .box{width:min(380px,100%);display:flex;flex-direction:column;gap:14px;margin-top:4px}
+#login h1{margin:0;font-size:28px;font-weight:500}
+#login p{margin:0;color:var(--soft);font-size:15px;line-height:21px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--mute)}
+.field input{height:52px;border-radius:14px;border:1px solid var(--line3);background:var(--card);padding:0 16px;font-size:18px;outline:none}
+.field input:focus{border-color:var(--acc)}
+.btn{height:52px;border-radius:26px;border:0;background:var(--acc);color:var(--acc-ink);font-size:16px;font-weight:600}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line3);font-weight:500}
+.link{background:none;border:0;color:var(--acc);font-size:14px;padding:6px 0;text-align:left}
+.msg{min-height:20px;font-size:14px;line-height:20px;color:var(--dn)}
+.msg.ok{color:var(--up)}
+.code{letter-spacing:10px;text-align:center;font-family:var(--mono)!important;font-size:26px!important}
+
+/* ---------- app (estrutura) ---------- */
+#app{position:fixed;inset:0;display:grid}
+.panel{min-width:0;min-height:0}
+.top{display:flex;justify-content:space-between;align-items:center}
+.dot{width:8px;height:8px;border-radius:4px;background:var(--acc);display:inline-block}
+.dot[data-on="0"]{background:var(--dn)}
+
+/* Felyx (rosto + barras + microfone) */
+/* retrato inteiro: do topo do cabelo ao V da camisa (o fundo da foto é preto, some no fundo do app) */
+.stage{position:relative;display:flex;justify-content:center;align-items:flex-end;overflow:hidden;background:#000}
+.stage img{position:relative;width:100%;height:100%;object-fit:contain;object-position:50% 100%;z-index:1}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;background:#000;z-index:2;opacity:0;transition:opacity .6s;pointer-events:none}
+.stage video.on{opacity:1}
+.bars{position:absolute;left:22px;right:22px;bottom:26px;height:120px;display:flex;align-items:flex-end;justify-content:space-between;z-index:2;pointer-events:none;mix-blend-mode:screen}
+.bars i{width:5px;border-radius:2px;background:var(--acc);opacity:.85;height:6%;transition:height .08s linear}
+.mic{border-radius:50%;border:0;background:var(--acc);display:flex;align-items:center;justify-content:center;position:relative}
+.mic svg{stroke:var(--acc-ink)}
+.mic[data-on="1"]::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--acc);animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.25)}}
+.state{font-family:var(--mono);font-size:13px;letter-spacing:2px;color:var(--acc);text-transform:uppercase;min-height:18px;text-align:center}
+
+/* cartões e listas */
+.card{border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.news a,.newsItem{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--ink);text-align:left;width:100%;font-size:15px;line-height:20px}
+.newsItem .tag{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--mute);text-transform:uppercase}
+.newsItem:active{transform:scale(.99)}
+.mkt .row{display:flex;justify-content:space-between;align-items:center;height:48px;padding:0 16px;border-bottom:1px solid var(--line2);font-size:15px}
+.mkt .row:last-child{border-bottom:0}
+.mkt .v{font-family:var(--mono)}
+.up{color:var(--up)} .dn{color:var(--dn)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line3);background:var(--card2);font-size:14px}
+.chip[data-on="1"],.tile[data-on="1"]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{min-height:64px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:15px;font-weight:500;padding:10px 12px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.tile small{font-family:var(--mono);font-size:11px;letter-spacing:1px;opacity:.8;font-weight:400}
+.tile[data-busy="1"]{opacity:.55}
+.tile{position:relative}
+.scene-command,.chip.scene-command{background:transparent;border-color:rgba(225,254,6,.68)}
+.scene-command[data-res="fail"]{padding-bottom:25px}
+.scene-command .scene-result{display:none;position:absolute;left:8px;right:8px;bottom:6px;color:#ffaaa4;font:10px var(--mono);line-height:1.1}
+.scene-command[data-res="fail"] .scene-result{display:block}
+.chip.scene-command{position:relative}
+.roomChips{display:flex;gap:8px;overflow-x:auto;flex:none;padding:2px 0 6px;scrollbar-width:none}
+.roomChips::-webkit-scrollbar{display:none}
+.roomChips button{white-space:nowrap;height:38px;padding:0 14px;border-radius:20px;border:1px solid var(--line3);background:var(--card2);color:var(--mute);font-size:13px}
+.roomChips button[aria-selected="true"]{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.scene-command.scene-pulse{animation:scenePulse 600ms ease-in-out both}
+@keyframes scenePulse{0%,100%{background:transparent;color:inherit;box-shadow:none}18%,58%{background:rgba(225,254,6,.5);color:#111;box-shadow:0 0 16px rgba(225,254,6,.28)}38%,78%{background:transparent;color:inherit;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){.scene-command.scene-pulse{animation:scenePulseReduced 300ms ease-out both}@keyframes scenePulseReduced{0%,100%{background:transparent;box-shadow:none}35%,65%{background:rgba(225,254,6,.4);box-shadow:0 0 12px rgba(225,254,6,.25)}}}
+.tile .rcIco{position:absolute;top:9px;right:10px;width:19px;height:19px;fill:none;stroke:var(--acc);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;border-radius:12px;background:var(--card)}
+.seg button{height:36px;border:0;border-radius:9px;background:transparent;color:var(--mute);font-size:14px}
+.seg button[aria-selected="true"]{background:#23262d;color:var(--ink)}
+.devs{border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.dev{display:flex;justify-content:space-between;align-items:center;min-height:54px;padding:0 10px 0 16px;border-bottom:1px solid var(--line2);font-size:16px;gap:10px}
+.dev:last-child{border-bottom:0}
+.dev .acts{display:flex;gap:6px;flex:none}
+.dev .acts button{height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--line3);background:var(--card2);font-size:13px}
+.dev .acts button.on{border-color:var(--acc);color:var(--acc)}
+.dev small{display:block;font-family:var(--mono);font-size:10px;color:var(--mute);letter-spacing:1px}
+.search{height:44px;border-radius:12px;border:1px solid var(--line3);background:var(--card);padding:0 14px;font-size:15px;outline:none;width:100%}
+
+/* conversa */
+.chat{display:flex;flex-direction:column;gap:14px;overflow:auto;padding:4px 2px}
+.bub{max-width:78%;padding:12px 16px;border-radius:16px;font-size:15px;line-height:21px;white-space:pre-wrap;word-wrap:break-word}
+.bub.me{align-self:flex-end;background:#23262d}
+.bub.fx{align-self:flex-start;background:var(--card)}
+.bub.wait{color:var(--mute);font-family:var(--mono);font-size:13px}
+.ask{display:flex;gap:10px;align-items:center;padding:6px 6px 6px 18px;border-radius:26px;background:var(--card);border:1px solid #23262d}
+.ask input{flex:1;height:40px;border:0;background:transparent;font-size:15px;outline:none;min-width:0}
+.ask button{width:44px;height:44px;border-radius:22px;border:0;background:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}
+
+/* navegação */
+.tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line2);background:var(--bg2);padding:8px 0 calc(var(--safe-b) + 6px)}
+.tabbar button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--mute);font-size:11px}
+.tabbar button[aria-current="page"]{color:var(--acc)}
+.side{background:var(--card2);border-right:1px solid var(--line2);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.side button{display:flex;align-items:center;height:36px;padding:0 12px;border-radius:8px;border:0;background:transparent;color:var(--mute);font-size:14px;text-align:left}
+.side button[aria-current="page"]{background:#23262d;color:var(--ink)}
+.wa{display:flex;align-items:center;gap:10px;justify-content:center;height:48px;border-radius:24px;border:1px solid var(--line3);background:var(--card2);color:var(--ink);text-decoration:none;font-size:15px}
+.wa svg{flex:none}
+
+#ia{position:fixed;inset:0;z-index:40;background:#06070af2;display:flex;align-items:center;justify-content:center;overflow:auto;padding:calc(var(--safe-t) + 20px) 18px calc(var(--safe-b) + 20px)}
+.iaBox{width:min(520px,100%);padding:24px;display:flex;flex-direction:column;gap:14px;margin:auto}
+.iaBox h1{margin:0;font-size:26px;font-weight:500}
+.iaBox p,.iaBox li{margin:0;color:var(--soft);font-size:15px;line-height:21px}
+.iaBox .iaNota{font-size:13px;line-height:18px}
+.iaBox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.iaBox b{color:var(--ink);font-weight:600}
+.iaBox a{font-size:14px}
+.remote{position:fixed;inset:0;z-index:60;background:#000a;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center}
+.remote[hidden]{display:none}
+.rc{width:min(520px,100%);background:#121418;border:1px solid var(--line3);border-radius:22px 22px 0 0;padding:18px 18px calc(var(--safe-b) + 18px);box-shadow:0 -10px 40px #000a}
+.rc header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.rc h3{margin:0;font-size:18px}
+.rc select{width:100%;margin-bottom:12px;padding:10px;border-radius:12px;background:var(--card);color:var(--ink);border:1px solid var(--line);font:inherit}
+.rc .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rc .grid button{min-height:58px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:15px}
+.rc .grid button.acc{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.rc .temp{grid-column:2;display:grid;place-items:center;font-size:30px;font-weight:600}
+.rc .x{border:0;background:var(--card);color:var(--ink);width:38px;height:38px;border-radius:12px;font-size:18px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 104px);background:#1b1e24;border:1px solid var(--line3);color:var(--ink);padding:12px 18px;border-radius:14px;font-size:14px;z-index:50;max-width:min(92vw,520px);box-shadow:0 10px 30px #0008;transition:opacity .3s}
+.toast[data-show="0"]{opacity:0;pointer-events:none}
+.destaque{margin-top:18px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:left;color:var(--ink)}
+.askMic{display:none!important}
+.scroll{overflow:auto;-webkit-overflow-scrolling:touch}
+
+/* ===== telefone (iPhone / Android) ===== */
+#app.l-phone{grid-template-rows:minmax(0,1fr) auto}
+#app.l-phone .view{grid-row:1;grid-column:1}
+#app.l-phone .tabbar{grid-row:2;grid-column:1}
+#app.l-phone .view{display:none;overflow:auto;padding:calc(var(--safe-t) + 14px) 16px 24px}
+#app.l-phone .view[data-on="1"]{display:flex;flex-direction:column}
+#app.l-phone .side,#app.l-phone #aside{display:none}
+#app.l-phone #vFelyx{padding-top:calc(var(--safe-t) + 14px)}
+#app.l-phone #vFelyx .stage{height:min(352px,44vh);margin:6px -16px 0}
+#app.l-phone #vFelyx .chat,#app.l-phone #vFelyx .ask{display:none}
+#app.l-phone #vFelyx.conversa .chat{display:flex;max-height:30vh}
+#app.l-phone #vFelyx .mic{width:76px;height:76px}
+#app.l-phone .fab{display:none}
+#app.l-phone #vCasa .fab{display:flex;position:fixed;right:20px;bottom:calc(var(--safe-b) + 96px);width:60px;height:60px;z-index:5}
+/* Android: cabeçalho, botão estendido e barra pílula (Material) */
+body.android #app.l-phone #vFelyx .mic{display:none}
+body.android #app.l-phone .afab{display:flex}
+.afab{display:none;position:fixed;right:16px;bottom:calc(var(--safe-b) + 100px);height:56px;padding:0 20px 0 16px;border-radius:16px;border:0;background:var(--acc);color:var(--acc-ink);align-items:center;gap:10px;font-size:16px;font-weight:600;z-index:5}
+body.android .tabbar{background:var(--card2);border-top:0;padding-top:12px}
+body.android .tabbar button[aria-current="page"]{color:var(--ink)}
+body.android .tabbar button[aria-current="page"] .ico{background:var(--line3);color:var(--acc)}
+body.android .tabbar .ico{width:64px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center}
+
+/* ===== tablet (iPad / Vision) ===== */
+#app.l-tablet{grid-template-columns:300px minmax(0,1fr) 320px;gap:20px;padding:calc(var(--safe-t) + 24px) 28px calc(var(--safe-b) + 24px)}
+#app.l-tablet .tabbar,#app.l-tablet .side,#app.l-tablet #aside{display:none}
+#app.l-tablet .view{display:flex;flex-direction:column;min-height:0;overflow:auto}
+#app.l-tablet #vFelyx{grid-column:2;grid-row:1}
+#app.l-tablet #vNoticias{grid-column:1;grid-row:1}
+#app.l-tablet #vCasa{grid-column:3;grid-row:1}
+#app.l-tablet #vAjustes{position:fixed;inset:0;z-index:20;background:#06070aee;padding:60px max(28px,calc(50vw - 260px));display:none}
+#app.l-tablet #vAjustes[data-on="1"]{display:flex}
+#app.l-tablet #vFelyx .stage{flex:1;min-height:300px}
+#app.l-tablet #vFelyx .mic{width:84px;height:84px}
+#app.l-tablet #vFelyx .chat{max-height:24vh}
+#app.l-tablet #vFelyx .ask{margin-top:12px}
+#app.l-tablet #vFelyx .destaque,#app.l-tablet #vFelyx .favs,#app.l-tablet .fab{display:none}
+#app.l-tablet #vCasa .casaHead h1{display:none}
+#app.l-tablet .gear{display:flex}
+.gear{display:none;background:none;border:0;color:var(--mute);align-items:center;gap:6px;font-family:var(--mono);font-size:12px;letter-spacing:2px}
+
+/* ===== computador (Mac / navegador largo) ===== */
+#app.l-desk{grid-template-columns:230px minmax(0,1fr) 300px}
+#app.l-desk .tabbar{display:none}
+#app.l-desk .side{grid-column:1;grid-row:1}
+#app.l-desk #aside{grid-column:3;grid-row:1}
+#app.l-desk #vFelyx{position:relative}
+#app.l-desk .view{display:none;grid-column:2;grid-row:1;min-height:0;overflow:auto;padding:22px 32px 24px}
+#app.l-desk .view[data-on="1"]{display:flex;flex-direction:column}
+#app.l-desk #vFelyx{padding:0}
+#app.l-desk #vFelyx .stage{height:300px;flex:none;border-bottom:1px solid var(--line2)}
+#app.l-desk #vFelyx .stage img{-webkit-mask-image:none;mask-image:none}
+#app.l-desk #vFelyx .ctl{position:absolute;left:24px;top:20px;z-index:3;margin:0!important;align-items:flex-start!important}
+#app.l-desk #vFelyx .ctl .mic{display:none}
+#app.l-desk #vFelyx .ctl .state::before{content:"FELYX · VINCI AI   ";color:var(--mute);white-space:pre}
+#app.l-desk .askMic{display:flex!important}
+#app.l-desk .askMic[data-on="1"]{outline:2px solid var(--acc);outline-offset:3px}
+#app.l-desk #vFelyx .chat{flex:1;padding:22px 32px}
+#app.l-desk #vFelyx .ask{margin:0 32px 24px}
+#app.l-desk #vFelyx .destaque,#app.l-desk #vFelyx .favs,#app.l-desk #vFelyx .head,#app.l-desk .fab{display:none}
+#app.l-desk #aside{border-left:1px solid var(--line2);padding:22px 18px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+
+/* ===== Vision Pro: vidro ===== */
+body.vision{background:transparent}
+body.vision #app{background:transparent}
+body.vision .card,body.vision .tile,body.vision .newsItem,body.vision .devs{background:rgba(28,29,33,.62);border-color:rgba(255,255,255,.18);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+body.vision .tile,body.vision .chip{border-radius:28px}
+
+
+/* ===== iPhone Duo fechado (tela larga e baixa): rosto e microfone lado a lado ===== */
+#app.l-phone.duo-f #vFelyx{display:none}
+#app.l-phone.duo-f #vFelyx[data-on="1"]{display:grid;grid-template-columns:206px minmax(0,1fr);column-gap:16px;align-content:start;padding-top:calc(var(--safe-t) + 12px)}
+#app.l-phone.duo-f #vFelyx > *{grid-column:1 / -1}
+#app.l-phone.duo-f #vFelyx .stage{grid-column:1;height:236px;margin:12px 0 0;border-radius:22px;background:#000}
+#app.l-phone.duo-f #vFelyx .stage img{-webkit-mask-image:none;mask-image:none}
+#app.l-phone.duo-f #vFelyx .bars{left:14px;right:14px;bottom:12px;height:54px}
+#app.l-phone.duo-f #vFelyx .ctl{grid-column:2;align-self:center;align-items:flex-start!important;margin:12px 0 0!important}
+#app.l-phone.duo-f #vFelyx .mic{width:68px;height:68px}
+#app.l-phone.duo-f #vFelyx .destaque{margin-top:16px}
+#app.l-phone.duo-f #vFelyx .favs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding-top:12px}
+#app.l-phone.duo-f .saud{display:block}
+.saud{display:none;font-size:22px;line-height:27px;font-weight:500}
+
+/* ===== iPhone Duo aberto: duas metades, Felyx à esquerda e a seção escolhida à direita ===== */
+#app.l-duo{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto}
+#app.l-duo .side,#app.l-duo #aside,#app.l-duo .fab,#app.l-duo .afab{display:none!important}
+#app.l-duo .view{display:none;grid-row:1;min-height:0;overflow:auto;padding:calc(var(--safe-t) + 14px) 22px 20px}
+#app.l-duo #vFelyx{display:flex;flex-direction:column;gap:14px;grid-column:1}
+#app.l-duo .view.direita{display:flex;flex-direction:column;grid-column:2;border-left:1px solid #15171c}
+#app.l-duo .tabbar{grid-column:1 / -1;grid-row:2}
+#app.l-duo #vFelyx .stage{height:min(380px,42vh);margin:0 -22px;flex:none}
+#app.l-duo #vFelyx .mic{width:76px;height:76px}
+#app.l-duo #vFelyx .chat,#app.l-duo #vFelyx .ask,#app.l-duo #vFelyx .favs{display:none}
+#app.l-duo #vFelyx.conversa .chat{display:flex;flex:1;min-height:120px}
+#app.l-duo #vFelyx.conversa .ask{display:flex}
+#app.l-duo #vFelyx.conversa .destaque{display:none}
+
+@media (prefers-reduced-motion: reduce){ .mic[data-on="1"]::after{animation:none} .bars i{transition:none} }
+</style>
+<script>
+/* 09/11/2026 (Leandro): app não dá zoom. Trava pinça, toque duplo e o zoom do iPhone ao focar um campo; mede a área segura (ilha e cantos). */
+(function(){
+  const nao = (e)=>{ try{ e.preventDefault(); }catch(x){} };
+  document.addEventListener('gesturestart', nao, { passive:false });
+  document.addEventListener('gesturechange', nao, { passive:false });
+  document.addEventListener('touchmove', (e)=>{ if(e.touches && e.touches.length > 1) nao(e); if(typeof e.scale === 'number' && e.scale !== 1) nao(e); }, { passive:false });
+  let ultimo = 0;
+  document.addEventListener('touchend', (e)=>{ const t = Date.now(); if(t - ultimo < 320 && !(e.target.closest && e.target.closest('input,textarea,select'))) nao(e); ultimo = t; }, { passive:false });
+  // área segura: se o aparelho não informar (env = 0) num iPhone com ilha/entalhe, usa uma folga padrão
+  function folgas(){
+    const d = document.documentElement, sonda = document.createElement('div');
+    sonda.style.cssText = 'position:fixed;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+    document.body.appendChild(sonda); const cs = getComputedStyle(sonda); const top = parseFloat(cs.paddingTop) || 0, bot = parseFloat(cs.paddingBottom) || 0; sonda.remove();
+    const iphone = /iPhone/.test(navigator.userAgent), alto = Math.max(screen.width, screen.height) >= 812, empe = innerHeight > innerWidth;
+    d.style.setProperty('--sTop', (top || (iphone && alto && empe ? 50 : 12)) + 'px');
+    d.style.setProperty('--sBot', (bot || (iphone && alto && empe ? 26 : 10)) + 'px');
+  }
+  addEventListener('DOMContentLoaded', folgas); addEventListener('resize', folgas); addEventListener('orientationchange', ()=>setTimeout(folgas, 250));
+})();
+</script>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="login" hidden aria-label="Entrar">
+  <img class="face" src="leo-logo.png" alt="Logo do Léo">
+  <div class="box">
+    <span class="kick">Leo · iA Vinci</span>
+
+    <form id="fTel" class="box" style="margin:0" autocomplete="on">
+      <h1>Entrar</h1>
+      <p>Entre com o seu número de celular e a sua senha.</p>
+      <div class="field"><label for="tel">CELULAR</label><input id="tel" type="tel" inputmode="tel" autocomplete="username" placeholder="(21) 99999-9999" required></div>
+      <div class="field"><label for="senha">SENHA</label><input id="senha" type="password" autocomplete="current-password" placeholder="sua senha"></div>
+      <div class="msg" id="mTel" role="status"></div>
+      <button class="btn" id="bEntrar" type="submit">Entrar</button>
+      <button class="link" id="bPrimeiro" type="button">Primeiro acesso ou esqueci a senha</button>
+    </form>
+
+    <form id="fCod" class="box" style="margin:0" hidden>
+      <h1>Código</h1>
+      <p id="pCod">Mandei um código de 6 dígitos para o seu número.</p>
+      <div class="field"><label for="cod">CÓDIGO</label><input id="cod" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" required></div>
+      <div class="msg" id="mCod" role="status"></div>
+      <button class="btn" type="submit">Confirmar</button>
+      <button class="link" id="bReenviar" type="button">Reenviar o código</button>
+      <button class="link" id="bVoltar1" type="button">Voltar</button>
+    </form>
+
+    <form id="fSenha" class="box" style="margin:0" hidden>
+      <h1 id="hSenha">Crie sua senha</h1>
+      <p>Ela vale só para você, neste número. Mínimo de 6 caracteres.</p>
+      <div class="field"><label for="s1">NOVA SENHA</label><input id="s1" type="password" autocomplete="new-password" minlength="6" required></div>
+      <div class="field"><label for="s2">REPITA A SENHA</label><input id="s2" type="password" autocomplete="new-password" minlength="6" required></div>
+      <div class="msg" id="mSenha" role="status"></div>
+      <button class="btn" type="submit">Salvar e entrar</button>
+    </form>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<main id="app" hidden>
+  <nav class="side panel" aria-label="Navegação">
+    <div style="display:flex;gap:8px;padding:0 6px 22px" aria-hidden="true" id="semaforo" hidden><span class="dot" style="background:#ff5f57;width:12px;height:12px;border-radius:6px"></span><span class="dot" style="background:#febc2e;width:12px;height:12px;border-radius:6px"></span><span class="dot" style="background:#28c840;width:12px;height:12px;border-radius:6px"></span></div>
+    <button data-go="vFelyx">Léo</button>
+    <button data-go="vCasa">Casa</button>
+    <button data-go="vNoticias">Notícias</button>
+    <button data-go="vAjustes">Ajustes</button>
+    <div style="margin-top:auto;padding:12px;font-size:11px" class="kick" id="sideCasa">CASA · VINCI ONLINE</div>
+  </nav>
+
+  <!-- Felyx -->
+  <section class="view panel" id="vFelyx" aria-label="Léo">
+    <div class="top head">
+      <span class="kick" style="font-size:13px;letter-spacing:3px">Leo · iA Vinci</span>
+      <span class="kick" style="letter-spacing:0;display:flex;align-items:center;gap:8px"><span class="dot" id="dotCasa" data-on="0"></span><span id="txtCasa">casa…</span></span>
+      <button class="gear" data-go="vAjustes" aria-label="Ajustes">AJUSTES</button>
+    </div>
+    <div class="stage">
+      <div class="bars" id="bars" aria-hidden="true"></div>
+      <img src="leo-logo.png" alt="Logo do Léo">
+      <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
+      <audio id="avatarAudio" autoplay></audio>
+    </div>
+    <div class="ctl" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:6px">
+      <span class="state" id="estado" aria-live="polite"></span>
+      <span class="saud" id="saud"></span>
+      <button class="mic" id="mic" type="button" aria-label="Falar com o Léo" data-on="0">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+      </button>
+    </div>
+    <button class="card destaque" id="destaque" type="button">
+      <span class="top mono" style="font-size:12px;color:var(--mute);width:100%"><span id="dClima">RIO · —</span><span id="dDolar">DÓLAR —</span></span>
+      <span style="font-size:16px;line-height:22px;font-weight:500" id="dTitulo">Carregando as notícias…</span>
+      <span style="font-size:13px;line-height:18px;color:var(--mute)">Toque para o Léo explicar a notícia.</span>
+    </button>
+    <div class="chips favs" id="favs" style="padding-top:14px"></div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <form class="ask" id="ask">
+      <label for="askIn" class="sr">Mensagem para o Léo</label>
+      <input id="askIn" type="text" placeholder="Escreva para o Léo" autocomplete="off">
+      <button type="button" class="askMic mic" data-falar aria-label="Falar com o Léo" style="background:transparent;border:1px solid var(--line3)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:#e9eae6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
+      <button type="submit" aria-label="Enviar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+    <button class="afab" type="button" data-falar><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06070a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>Falar com o Léo</button>
+  </section>
+
+  <!-- Casa -->
+  <section class="view panel" id="vCasa" aria-label="Casa" style="gap:16px">
+    <div class="top casaHead"><h1 style="margin:0;font-size:30px;font-weight:600">Casa</h1><span class="kick" id="casaConta" style="letter-spacing:0">VINCI</span></div>
+    <nav class="roomChips" id="roomChips" role="tablist" aria-label="Cômodos"></nav>
+        <div class="seg" role="tablist" aria-label="Filtro">
+      <button role="tab" aria-selected="true" data-f="cenas">Cenas</button>
+      <button role="tab" aria-selected="false" data-f="aparelhos">Aparelhos</button>
+      <button role="tab" aria-selected="false" data-f="favoritos">Favoritos</button>
+    </div>
+    <input class="search" id="busca" type="search" placeholder="Procurar" aria-label="Procurar na casa">
+    <div class="tiles" id="tiles"></div>
+    <div class="devs" id="devs" hidden></div>
+    <p class="kick" style="letter-spacing:0;text-transform:none;font-size:12px;margin:0">Toque e segure uma cena ou aparelho para marcar como favorito.</p>
+    <button class="mic fab" type="button" aria-label="Falar com o Léo" data-falar><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg></button>
+  </section>
+
+  <!-- Notícias e mercado -->
+  <section class="view panel" id="vNoticias" aria-label="Notícias e mercado" style="gap:14px">
+    <h1 class="phoneOnly" style="margin:0;font-size:30px;font-weight:600">Notícias</h1>
+    <span class="kick">Mercado <span id="mktQuando" style="float:right;letter-spacing:0"></span></span>
+    <div class="card mkt" id="mkt"></div>
+    <span class="kick" style="margin-top:6px">Notícias</span>
+    <div class="seg" role="tablist" aria-label="Editoria" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <button role="tab" aria-selected="true" data-n="tecnologia">Tecnologia</button>
+      <button role="tab" aria-selected="false" data-n="politica">Política</button>
+    </div>
+    <div id="news" style="display:flex;flex-direction:column;gap:10px"></div>
+  </section>
+
+  <!-- Ajustes -->
+  <section class="view panel" id="vAjustes" aria-label="Ajustes" style="gap:16px">
+    <div class="top"><h1 style="margin:0;font-size:30px;font-weight:600">Ajustes</h1><button class="gear" data-go="vFelyx" style="display:flex">FECHAR</button></div>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:4px">
+      <span class="kick">Conectado como</span>
+      <span style="font-size:22px;font-weight:500" id="ajNome">—</span>
+      <span class="mono" style="color:var(--mute)" id="ajTel">—</span>
+    </div>
+    <a class="wa" href="https://wa.me/5521967789150" target="_blank" rel="noopener">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+      Falar com o Léo no WhatsApp
+    </a>
+    <a class="wa" href="https://www.vinciautomacao.com/felyx#ajuda" target="_blank" rel="noopener">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+      Ajuda no site da Vinci
+    </a>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <span class="kick">Voz</span>
+      <label style="display:flex;justify-content:space-between;align-items:center;font-size:15px">Boas-vindas faladas ao abrir <input type="checkbox" id="ajBV" style="width:22px;height:22px;accent-color:var(--acc)"></label>
+    </div>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <span class="kick">Inteligência artificial</span>
+      <label style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px">Conversar com o Léo (voz pelo Google Gemini) <input type="checkbox" id="ajIA" style="width:22px;height:22px;flex:none;accent-color:var(--acc)"></label>
+      <a href="privacidade.html" target="_blank" rel="noopener" style="font-size:14px">Política de privacidade</a>
+    </div>
+    <button class="btn ghost" id="bSair" type="button">Sair deste aparelho</button>
+    <span class="kick" style="letter-spacing:0;text-transform:none" id="versao">Leo iA Vinci</span>
+  </section>
+
+  <!-- coluna direita do computador -->
+  <aside class="panel" id="aside" aria-label="Painel">
+    <span class="kick">Agora</span>
+    <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:28px;font-weight:300" id="aTemp">—°</span>
+      <span class="mono" style="font-size:13px;color:var(--mute)" id="aDolar">DÓLAR —</span>
+    </div>
+    <span class="kick" style="margin-top:8px">Cenas</span>
+    <div class="tiles" id="aCenas"></div>
+    <span class="kick" style="margin-top:8px">Destaques</span>
+    <div id="aNews" style="display:flex;flex-direction:column;gap:8px"></div>
+  </aside>
+
+  <nav class="tabbar panel" aria-label="Seções">
+    <button data-go="vFelyx"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Léo</button>
+    <button data-go="vCasa"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>Casa</button>
+    <button data-go="vNoticias"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span>Notícias</button>
+    <button data-go="vAjustes"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></span>Ajustes</button>
+  </nav>
+</main>
+
+<!-- ================= PERMISSÃO DE IA (antes de enviar qualquer dado a serviços de IA de terceiros) ================= -->
+<section id="ia" hidden role="dialog" aria-modal="true" aria-labelledby="iaTit">
+  <div class="iaBox card">
+    <span class="kick">Leo · iA Vinci</span>
+    <h1 id="iaTit">Vamos conversar?</h1>
+    <p>Eu sou o Léo. Para ouvir você e responder com a minha voz, uso a inteligência do <b>Google (Gemini)</b>: a sua voz vai para lá só enquanto estamos conversando, e nada fica gravado.</p>
+    <p id="iaClaude" hidden>Quando você me pede alguma coisa, o texto do pedido e o seu primeiro nome também passam pela <b>Anthropic (Claude)</b>, pelo servidor da Vinci, para eu pensar na resposta e cuidar da casa.</p>
+    <p class="iaNota">Nada disso é vendido nem usado para anúncios. Você muda de ideia quando quiser em Ajustes, e a casa, as notícias e o mercado funcionam de qualquer jeito.</p>
+    <a href="privacidade.html" target="_blank" rel="noopener">Detalhes na política de privacidade</a>
+    <button class="btn" id="iaSim" type="button">Vamos conversar</button>
+    <button class="btn ghost" id="iaNao" type="button">Agora não</button>
+  </div>
+</section>
+
+<div class="remote" id="remote" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitulo"><div class="rc">
+  <header><h3 id="rcTitulo">Controle</h3><button class="x" type="button" id="rcFechar" aria-label="Fechar">✕</button></header>
+  <select id="rcAparelho" aria-label="Aparelho"></select>
+  <div class="grid" id="rcBotoes"></div>
+</div></div>
+<div class="toast" id="toast" data-show="0" role="status" aria-live="polite"></div>
+
+<script src="../cumprimento.js"></script>
+<script src="../iris-sons.js"></script>
+<script src="../iris.js"></script>
+<script>
+'use strict';
+/* ===================== configuração ===================== */
+const VERSAO = '1.0.6';
+const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const APP_URL = N8N + '/felix/app';
+const TOKEN_URL = N8N + '/felix/token';
+const PERGUNTA_URL = N8N + '/felix/pergunta';
+const MOTOR_URL = 'https://script.google.com' + '/macros/s/' + 'AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen' + '/exec';
+const MERCADO_URL = N8N + '/felix/mercado';
+const NOTICIAS_URL = N8N + '/felix/noticias';
+const WHATSAPP = '5521967789150';
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const fmt = (n, d) => Number(n).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* plataforma: o app nativo abre esta página com ?p=ios|ipad|mac|vision|android */
+const params = new URLSearchParams(location.search);
+const PLAT = params.get('p') || (/android/i.test(navigator.userAgent) ? 'android' : '');
+if (PLAT) document.body.classList.add(PLAT);
+const NATIVO = !!params.get('p');
+
+/* ===================== utilidades ===================== */
+let toastT = null;
+function toast(t, ms){ const el = $('#toast'); el.textContent = t; el.dataset.show = '1'; clearTimeout(toastT); toastT = setTimeout(() => { el.dataset.show = '0'; }, ms || 3500); }
+async function api(acao, dados){
+  const r = await fetch(APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
+  if (!r.ok) throw new Error('n8n ' + r.status);
+  return r.json();
+}
+const digitos = (s) => String(s || '').replace(/\D/g, '');
+function aparelhoNome(){ return (PLAT || 'web') + ' · ' + (navigator.platform || '').slice(0, 20); }
+function abrirExterno(url){
+  // no app nativo a ponte abre fora (WhatsApp, Safari); no navegador, nova aba
+  try{ if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.felyx){ window.webkit.messageHandlers.felyx.postMessage({ tipo: 'abrir', url }); return; } }catch(e){}
+  try{ if (window.FelyxAndroid && window.FelyxAndroid.abrir){ window.FelyxAndroid.abrir(url); return; } }catch(e){}
+  window.open(url, '_blank', 'noopener');
+}
+// "Félix, abre o globo.com": abre o site; se o navegador barrar a janela nova, deixa um botão grande na tela
+function enderecoSite(t){
+  let u = String(t || '').trim().toLowerCase().replace(/^(o|a)\s+/, '').replace(/\s+/g, '');
+  if (!u) return '';
+  if (!/^https?:\/\//.test(u)) { if (!/\./.test(u)) u += '.com'; u = 'https://' + u; }
+  return u;
+}
+function botaoSite(url){
+  let b = document.getElementById('felyxAbrirSite');
+  if (!b){ b = document.createElement('a'); b.id = 'felyxAbrirSite'; b.target = '_blank'; b.rel = 'noopener';
+    b.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:99999;background:#f5e13a;color:#111;font:700 18px/1 system-ui,sans-serif;padding:16px 26px;border-radius:999px;text-decoration:none;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+    b.addEventListener('click', () => setTimeout(() => b.remove(), 300)); document.body.appendChild(b); }
+  b.href = url; b.textContent = 'Abrir ' + url.replace(/^https?:\/\//, '');
+  clearTimeout(b._t); b._t = setTimeout(() => b.remove(), 60000);
+}
+function abrirSite(endereco){
+  const url = enderecoSite(endereco);
+  if (!url) return { ok: false, aviso: 'Pergunte qual site.' };
+  if (NATIVO){ abrirExterno(url); return { ok: true, aberto: url, instrucao: 'Diga em meia frase que abriu.' }; }
+  let w = null; try { w = window.open(url, '_blank'); if (w) w.opener = null; } catch (e) {}
+  if (w) return { ok: true, aberto: url, instrucao: 'Diga em meia frase que abriu.' };
+  botaoSite(url);
+  return { ok: true, aberto: url, instrucao: 'Diga só: "Pronto, está na tela, é só tocar."' };
+}
+document.addEventListener('click', (e) => { const a = e.target.closest('a[target="_blank"]'); if (a && NATIVO){ e.preventDefault(); abrirExterno(a.href); } });
+
+/* ===================== sessão ===================== */
+let sessao = store.get('felyx.sessao', null);   // { token, nome, telefone }
+function primeiroNome(){ return (sessao && sessao.nome) ? sessao.nome.split(' ')[0] : ''; }
+
+/* ===================== login ===================== */
+// conta de demonstração das lojas: qualquer forma do número só com zeros (com +55, com o 9 a mais) vira 0000000000
+function telLogin(v){ const d = digitos(v); return /^(55)?0{10,11}$/.test(d) ? '0000000000' : d; }
+const L = { tel: '', ticket: '' };
+function mostraForm(id){ ['fTel', 'fCod', 'fSenha'].forEach((f) => { $('#' + f).hidden = f !== id; }); const first = $('#' + id + ' input'); if (first) setTimeout(() => first.focus(), 50); }
+function msg(id, t, ok){ const el = $('#' + id); el.textContent = t || ''; el.classList.toggle('ok', !!ok); }
+async function pedirCodigo(){
+  L.tel = telLogin($('#tel').value);
+  if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
+  msg('mTel', 'Mandando o código…', true);
+  try{
+    const j = await api('codigo', { telefone: L.tel });
+    if (j.ok){
+      $('#pCod').textContent = (j.nome ? j.nome.split(' ')[0] + ', mandei' : 'Mandei') + ' um código de 6 dígitos no seu WhatsApp. Vale por 10 minutos.';
+      $('#hSenha').textContent = j.temSenha ? 'Nova senha' : 'Crie sua senha';
+      msg('mCod', ''); mostraForm('fCod'); msg('mTel', '');
+    } else if (j.erro === 'janela'){
+      mostraForm('fCod'); msg('mCod', j.mensagem);
+      $('#pCod').textContent = 'Primeiro mande um "oi" para o Léo no WhatsApp. Depois toque em reenviar o código.';
+    } else msg('mTel', j.mensagem || 'Não deu certo.');
+  }catch(e){ msg('mTel', 'Sem conexão com o Léo. Tente de novo.'); }
+}
+$('#bPrimeiro').addEventListener('click', pedirCodigo);
+$('#bReenviar').addEventListener('click', async () => { msg('mCod', 'Reenviando…', true); try{ const j = await api('codigo', { telefone: L.tel }); msg('mCod', j.ok ? 'Código reenviado.' : (j.mensagem || 'Não deu certo.'), j.ok); }catch(e){ msg('mCod', 'Sem conexão.'); } });
+$('#bVoltar1').addEventListener('click', () => mostraForm('fTel'));
+$('#fTel').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  L.tel = telLogin($('#tel').value);
+  const senha = $('#senha').value;
+  if (L.tel.length < 10){ msg('mTel', 'Digite o número com DDD.'); return; }
+  if (!senha){ msg('mTel', 'Digite a sua senha. Ainda não tem? Toque em "Primeiro acesso".'); return; }
+  $('#bEntrar').disabled = true; msg('mTel', '');
+  try{
+    const j = await api('entrar', { telefone: L.tel, senha, aparelho: aparelhoNome() });
+    if (j.ok) entrou(j);
+    else if (j.erro === 'plano_gen' && j.link){ msg('mTel', j.mensagem || 'O seu Félix funciona no navegador.'); abrirExterno(j.link); }
+    else if (j.erro === 'sem_senha') msg('mTel', (j.mensagem ? j.mensagem + ' ' : '') + 'Toque em "Primeiro acesso" para criar a sua senha.');
+    else msg('mTel', j.mensagem || 'Não deu certo.');
+  }catch(err){ msg('mTel', 'Sem conexão com o Léo. Tente de novo.'); }
+  $('#bEntrar').disabled = false;
+});
+$('#cod').addEventListener('input', (e) => { e.target.value = digitos(e.target.value).slice(0, 6); if (e.target.value.length === 6) $('#fCod').dispatchEvent(new Event('submit', { cancelable: true })); });
+$('#fCod').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try{
+    const j = await api('verificar', { telefone: L.tel, codigo: $('#cod').value });
+    if (j.ok){ L.ticket = j.ticket; mostraForm('fSenha'); }
+    else { msg('mCod', j.mensagem || 'Código incorreto.'); $('#cod').value = ''; }
+  }catch(err){ msg('mCod', 'Sem conexão.'); }
+});
+$('#fSenha').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const a = $('#s1').value, b = $('#s2').value;
+  if (a.length < 6){ msg('mSenha', 'Mínimo de 6 caracteres.'); return; }
+  if (a !== b){ msg('mSenha', 'As senhas não são iguais.'); return; }
+  try{
+    const j = await api('senha', { telefone: L.tel, ticket: L.ticket, senha: a, aparelho: aparelhoNome() });
+    if (j.ok) entrou(j);
+    else if (j.erro === 'plano_gen' && j.link){ msg('mSenha', j.mensagem || 'O seu Félix funciona no navegador.'); abrirExterno(j.link); }
+    else msg('mSenha', j.mensagem || 'Não deu certo.');
+  }catch(err){ msg('mSenha', 'Sem conexão.'); }
+});
+function entrou(j){
+  sessao = { token: j.token, nome: j.nome || '', telefone: L.tel, demo: !!j.demo };
+  store.set('felyx.sessao', sessao);
+  avisarNativo('login', { nome: sessao.nome, token: sessao.token });
+  abrirApp();
+}
+function avisarNativo(tipo, dados){
+  try{ window.webkit.messageHandlers.felyx.postMessage({ tipo, ...dados }); }catch(e){}
+  try{ window.FelyxAndroid && window.FelyxAndroid.evento && window.FelyxAndroid.evento(JSON.stringify({ tipo, ...dados })); }catch(e){}
+}
+async function sair(){
+  try{ await api('sair', { token: sessao && sessao.token }); }catch(e){}
+  if (conv) conv.end();
+  sessao = null; store.del('felyx.sessao'); avisarNativo('logout', {});
+  $('#app').hidden = true; $('#login').hidden = false; mostraForm('fTel'); $('#senha').value = '';
+}
+$('#bSair').addEventListener('click', sair);
+
+/* ===================== layout e navegação ===================== */
+let atual = store.get('felyx.aba', 'vFelyx');
+function layout(){
+  const w = innerWidth;
+  const h = innerHeight;
+  // três colunas só cabem a partir de 1100 pt (iPad deitado, Vision Pro); abaixo disso (iPad em pé, Split View,
+  // iPhone Duo aberto) fica em duas metades: Felyx à esquerda e a seção escolhida à direita
+  const l = PLAT === 'mac' || (w >= 1200 && PLAT !== 'ipad' && PLAT !== 'vision') ? 'l-desk' : (w >= 1100 ? 'l-tablet' : (w >= 600 ? 'l-duo' : 'l-phone'));
+  const app = $('#app'); app.classList.remove('l-phone', 'l-tablet', 'l-desk', 'l-duo'); app.classList.add(l);
+  app.classList.toggle('duo-f', l === 'l-phone' && w >= 430 && h / w < 1.75);
+  $$('.phoneOnly').forEach((el) => { el.hidden = l !== 'l-phone'; });
+  $('#askIn').placeholder = l === 'l-desk' ? 'Escreva ou aperte espaço para falar' : 'Escreva para o Léo';
+  ir(atual, true);
+}
+let direita = store.get('felyx.direita', 'vCasa');
+function ir(id, quieto){
+  const l = $('#app').className;
+  if (l.includes('l-duo')){
+    // Duo aberto: o Léo fica sempre à esquerda; a aba Felyx alterna entre destaque e conversa
+    if (id === 'vFelyx') $('#vFelyx').classList.toggle('conversa', quieto ? $('#vFelyx').classList.contains('conversa') : !$('#vFelyx').classList.contains('conversa'));
+    else direita = id;
+    atual = id;
+    $$('.view').forEach((v) => { v.classList.toggle('direita', v.id === direita); v.dataset.on = (v.id === direita || v.id === 'vFelyx') ? '1' : '0'; });
+    $$('[data-go]').forEach((b) => { if (b.closest('.tabbar,.side')) b.setAttribute('aria-current', (b.dataset.go === direita || (b.dataset.go === 'vFelyx' && $('#vFelyx').classList.contains('conversa'))) ? 'page' : 'false'); });
+    if (!quieto) store.set('felyx.direita', direita);
+    if (direita === 'vCasa') carregarCasa();
+    return;
+  }
+  $$('.view').forEach((v) => v.classList.remove('direita'));
+  if (l.includes('l-tablet') && id !== 'vAjustes'){ $('#vAjustes').dataset.on = '0'; atual = 'vFelyx'; }
+  else atual = id;
+  $$('.view').forEach((v) => { v.dataset.on = v.id === atual ? '1' : '0'; });
+  if (l.includes('l-tablet') && id === 'vAjustes') $('#vAjustes').dataset.on = '1';
+  $$('[data-go]').forEach((b) => { if (b.closest('.tabbar,.side')) b.setAttribute('aria-current', b.dataset.go === atual ? 'page' : 'false'); });
+  if (!quieto) store.set('felyx.aba', atual);
+  if (atual === 'vCasa') carregarCasa();
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b){ ir(b.dataset.go); } });
+addEventListener('resize', () => { clearTimeout(layout.t); layout.t = setTimeout(layout, 120); });
+
+/* ===================== barras (ondas da voz) ===================== */
+const NB = 26; const barsEl = $('#bars');
+barsEl.innerHTML = Array.from({ length: NB }, () => '<i></i>').join('');
+const barEls = [...barsEl.children];
+function animarBarras(){
+  const g = conv;
+  let bands = g ? g.getBands(NB) : null;
+  if (!bands && g && g.micOpen){ const v = Math.min(1, g.getInputLevel() * 6); bands = barEls.map((_, i) => v * (0.4 + 0.6 * Math.abs(Math.sin(performance.now() / 180 + i)))); }
+  barEls.forEach((b, i) => { const v = bands ? bands[i] : 0; b.style.height = Math.max(4, Math.round(v * 100)) + '%'; });
+  requestAnimationFrame(animarBarras);
+}
+
+/* ===================== mercado ===================== */
+// variação em USDT quando houver; senão a variação em dólar (sem "??": WebViews antigos do Android não entendem)
+const chg = (c) => c.chgUsdt != null ? c.chgUsdt : c.chg;
+const ATIVOS = [   // Dólar, Euro e Bitcoin no painel do FULL (via MOTOR_URL Google)
+  { id: 'usd', nome: 'Dólar', pick: (m) => (m.cotacoes && m.cotacoes.usd_brl) ? { v: 'R$ ' + fmt(m.cotacoes.usd_brl.valor, 2), c: m.cotacoes.usd_brl.variacao } : (m.usdtbrl ? { v: 'R$ ' + fmt(m.usdtbrl.preco, 2), c: m.usdtbrl.chg } : (m.cambio && m.cambio.usdbrl ? { v: 'R$ ' + fmt(m.cambio.usdbrl, 2), c: null } : null)) },
+  { id: 'eur', nome: 'Euro', pick: (m) => (m.cotacoes && m.cotacoes.eur_brl) ? { v: 'R$ ' + fmt(m.cotacoes.eur_brl.valor, 2), c: m.cotacoes.eur_brl.variacao } : (m.cambio && m.cambio.eurbrl ? { v: 'R$ ' + fmt(m.cambio.eurbrl, 2), c: null } : null) },
+  { id: 'btc', nome: 'Bitcoin', pick: (m) => (m.cotacoes && m.cotacoes.btc_usd) ? { v: 'US$ ' + fmt(m.cotacoes.btc_usd.valor, 0), c: m.cotacoes.btc_usd.variacao } : (m.cripto && m.cripto.bitcoin ? { v: 'US$ ' + fmt(m.cripto.bitcoin.usdt || m.cripto.bitcoin.usd, 0), c: chg(m.cripto.bitcoin) } : null) }
+];
+let mercado = null;
+function pct(c){ return (typeof c === 'number' && !isNaN(c)) ? ((c > 0 ? '+' : '') + fmt(c, 1) + '%') : '—'; }
+function cls(c){ return typeof c === 'number' ? (c > 0.05 ? 'up' : c < -0.05 ? 'dn' : '') : ''; }
+async function carregarMercado(){
+  try{
+    const r = await fetch(MOTOR_URL, { cache: 'no-store' });
+    const m = await r.json();
+    if(!m || !m.cotacoes) throw 0;
+    mercado = m;
+    $('#mkt').innerHTML = ATIVOS.map((a) => { const x = a.pick(m); return x ? `<div class="row"><span>${a.nome}</span><span class="v">${esc(x.v)} <span class="${cls(x.c)}">${pct(x.c)}</span></span></div>` : ''; }).join('');
+    $('#mktQuando').textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const d = ATIVOS[0].pick(m);
+    if (d){ $('#dDolar').textContent = 'DÓLAR ' + d.v; $('#aDolar').textContent = 'DÓLAR ' + d.v + (typeof d.c === 'number' ? ' · ' + pct(d.c) : ''); }
+  }catch(e){
+    try{
+      let fx = null; try{ fx = await fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then((r) => r.json()); }catch(e1){}
+      let usdtbrl = null; try{ const b = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then((r) => r.json()); if (b && b.lastPrice) usdtbrl = { preco: +b.lastPrice, chg: +b.priceChangePercent }; }catch(e2){}
+      let btc = null; try{ const btcRes = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then((r) => r.json()); if(btcRes && btcRes.lastPrice) btc = { valor:+btcRes.lastPrice, variacao:+btcRes.priceChangePercent }; }catch(e3){}
+      const usdbrl = usdtbrl ? usdtbrl.preco : (fx && fx.rates ? fx.rates.BRL : null);
+      const eurbrl = (fx && fx.rates && fx.rates.EUR) ? fx.rates.BRL / fx.rates.EUR : null;
+      const m = { ok: true, cotacoes: { usd_brl: { valor: usdbrl, variacao: usdtbrl ? usdtbrl.chg : null }, eur_brl: { valor: eurbrl, variacao: null }, btc_usd: btc } };
+      mercado = m;
+      $('#mkt').innerHTML = ATIVOS.map((a) => { const x = a.pick(m); return x ? `<div class="row"><span>${a.nome}</span><span class="v">${esc(x.v)} <span class="${cls(x.c)}">${pct(x.c)}</span></span></div>` : ''; }).join('');
+      $('#mktQuando').textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const d = ATIVOS[0].pick(m);
+      if (d){ $('#dDolar').textContent = 'DÓLAR ' + d.v; $('#aDolar').textContent = 'DÓLAR ' + d.v + (typeof d.c === 'number' ? ' · ' + pct(d.c) : ''); }
+    }catch(e4){ if (!mercado) $('#mkt').innerHTML = '<div class="row"><span style="color:var(--mute)">mercado indisponível</span></div>'; }
+  }
+}
+
+/* ===================== clima ===================== */
+const WMO = { 0: 'céu limpo', 1: 'quase limpo', 2: 'parcialmente nublado', 3: 'nublado', 45: 'nevoeiro', 48: 'nevoeiro', 51: 'garoa', 53: 'garoa', 55: 'garoa', 61: 'chuva fraca', 63: 'chuva', 65: 'chuva forte', 80: 'pancadas', 81: 'pancadas', 82: 'pancadas fortes', 95: 'trovoadas' };
+async function carregarClima(){
+  try{
+    const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,weather_code&timezone=America/Sao_Paulo').then((r) => r.json());
+    const t = Math.round(j.current.temperature_2m), d = WMO[j.current.weather_code] || '';
+    $('#dClima').textContent = 'RIO · ' + t + '° ' + d.toUpperCase();
+    $('#aTemp').innerHTML = t + '° <span style="font-size:15px;color:var(--mute)">' + esc(d) + ' · Rio</span>';
+  }catch(e){}
+}
+
+/* ===================== notícias ===================== */
+let noticias = { politica: [], tecnologia: [] }, editoria = 'tecnologia';
+function tagDe(n, ed){ return (ed === 'politica' ? 'Política' : 'Tecnologia') + (n.source ? ' · ' + n.source : ''); }
+function renderNoticias(){
+  const lista = noticias[editoria] || [];
+  $('#news').innerHTML = lista.length ? lista.map((n, k) => `<button class="newsItem" type="button" data-ed="${editoria}" data-k="${k}"><span class="tag">${esc(tagDe(n, editoria))}</span><span>${esc(n.title)}</span></button>`).join('') : '<p class="kick" style="letter-spacing:0">sem manchetes agora</p>';
+  const tops = [noticias.tecnologia[0] && ['tecnologia', 0], noticias.politica[0] && ['politica', 0], noticias.tecnologia[1] && ['tecnologia', 1]].filter(Boolean);
+  $('#aNews').innerHTML = tops.map(([ed, k]) => { const n = noticias[ed][k]; return `<button class="newsItem" type="button" data-ed="${ed}" data-k="${k}" style="font-size:14px;line-height:19px"><span class="tag">${esc(tagDe(n, ed))}</span><span>${esc(n.title)}</span></button>`; }).join('');
+  const d = noticias.tecnologia[0] || noticias.politica[0];
+  if (d){ $('#dTitulo').textContent = d.title; $('#destaque').dataset.ed = noticias.tecnologia[0] ? 'tecnologia' : 'politica'; $('#destaque').dataset.k = '0'; }
+}
+async function carregarNoticias(){
+  try{
+    const r = await fetch(MOTOR_URL, { cache: 'no-store' });
+    const j = await r.json();
+    const n = j.noticias || j;
+    if(!n || (!n.politica && !n.destaques)) throw 0;
+    const limpar = (t, f) => { let s = String(t||'').trim(); if(f && s.endsWith(' - '+f)) s = s.slice(0, -(' - '+f).length).trim(); return s; };
+    const conv = (arr) => (arr||[]).slice(0, 6).map(x=>({ title: limpar(x.titulo||x.title, x.fonte||x.source), link: x.link, source: x.fonte||x.source||'Google', date: x.horario||x.date }));
+    noticias = {
+      politica: conv(n.politica),
+      tecnologia: conv(n.tecnologia),
+      destaques: conv(n.destaques),
+      economia: conv(n.economia)
+    };
+    renderNoticias();
+  }catch(e){
+    try{
+      const j = await fetch(NOTICIAS_URL, { cache: 'no-store' }).then((r) => r.json());
+      if (!j || !j.ok) throw 0;
+      noticias = { politica: (j.politica || []).slice(0, 6), tecnologia: (j.tecnologia || []).slice(0, 6) };
+      renderNoticias();
+    }catch(e2){ if (!noticias.tecnologia.length) $('#news').innerHTML = '<p class="kick" style="letter-spacing:0">notícias indisponíveis</p>'; }
+  }
+}
+$$('[data-n]').forEach((b) => b.addEventListener('click', () => { editoria = b.dataset.n; $$('[data-n]').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); renderNoticias(); }));
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-ed][data-k]'); if (!b) return;
+  const n = (noticias[b.dataset.ed] || [])[Number(b.dataset.k)]; if (!n) return;
+  explicarNoticia(n);
+});
+function explicarNoticia(n){
+  const pedido = 'Abra e resuma esta notícia do painel: "' + n.title + '"' + (n.source ? ' (' + n.source + ')' : '') + (n.link ? ' — ' + n.link : '');
+  if ($('#app').classList.contains('l-phone')) ir('vFelyx');
+  if (conv && conv.micOpen) conv.pedir(pedido);
+  else perguntarPorTexto(pedido, 'Explique: ' + n.title);
+}
+
+/* ===================== casa ===================== */
+let casa = store.get('felyx.casa', null), filtro = 'cenas';
+let roomConfig = {comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'}, roomConfigReady=false;
+let casaRoom = store.get('felyx.comodo', '');
+fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;roomConfigReady=true;renderCasa();}}).catch(()=>{});
+let favoritos = store.get('felyx.favoritos', ['Luz Alta', 'Sanca', 'TV Sala', 'Boa Noite']);
+let ligado = store.get('felyx.ligado', {});
+let casaAt = 0;
+const TIPO = { SWITCH: 'interruptor', LIGHT: 'luz', SMARTPLUG: 'tomada', THERMOSTAT: 'ar', OTHER: 'aparelho' };
+async function carregarCasa(force){
+  if (!sessao) return;
+  if (!force && casa && Date.now() - casaAt < 5 * 60e3){ renderCasa(); return; }
+  if (casa) renderCasa();
+  try{
+    const j = await api('casa', { token: sessao.token });
+    if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); return; }
+    if (j.ok){
+      casa = { cenas: j.cenas || [], aparelhos: j.aparelhos || [], desativaveis: j.desativaveis || [] }; casaAt = Date.now(); store.set('felyx.casa', casa); renderCasa();
+      // a ponte da casa (Mac) só avisa o endereço quando o túnel responde de verdade; sem aviso recente = casa fora do ar
+      if (j.ponte) estadoCasa(j.ponte.online !== false, j.ponte.online === false ? 'casa fora do ar' : 'casa online');
+    }
+  }catch(e){ if (!casa) $('#tiles').innerHTML = '<p class="kick" style="letter-spacing:0">casa indisponível</p>'; estadoCasa(false, 'casa sem resposta'); }
+}
+function estadoCasa(on, txt){ $('#dotCasa').dataset.on = on ? '1' : '0'; $('#txtCasa').textContent = txt; }
+const normComodo = (s) => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
+function comodoItem(nome,tipo){
+  const fixed=roomConfig.fixos&&(roomConfig.fixos[nome+'|'+(tipo==='cena'?'CENA':'APARELHO')]||roomConfig.fixos[nome]); if(fixed)return fixed;
+  const n=normComodo(nome);
+  for(const c of roomConfig.comodos||[]) if((c.palavras||[]).some(p=>{const q=normComodo(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q);}))return c.nome;
+  return roomConfig.semComodo||'Outros';
+}
+function renderCasa(){
+  const c = casa || { cenas: [], aparelhos: [] };
+  const q = ($('#busca').value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const bate = (s) => !q || s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q);
+  $('#casaConta').textContent = (c.cenas.length + c.aparelhos.length) + ' ITENS · VINCI';
+  const todos=[...c.cenas.map(nome=>({nome,tipo:'cena'})),...c.aparelhos.map(a=>({nome:a.nome,tipo:'aparelho'}))];
+  const rooms=[...new Set([...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(x=>x.nome),roomConfig.semComodo||'Outros'])].filter(r=>todos.some(x=>comodoItem(x.nome,x.tipo)===r));
+  if(!rooms.includes(casaRoom)||(roomConfigReady&&casaRoom===(roomConfig.semComodo||'Outros')&&rooms.length>1))casaRoom=rooms[0]||'';
+  if(roomConfigReady)store.set('felyx.comodo',casaRoom);
+  $('#roomChips').replaceChildren(...rooms.map(r=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',r===casaRoom?'true':'false');b.textContent=r;b.addEventListener('click',()=>{casaRoom=r;store.set('felyx.comodo',r);$('#busca').value='';renderCasa();});return b;}));
+  const inRoom=(nome,tipo)=>comodoItem(nome,tipo)===casaRoom;
+  const tile = (nome, tag, tipo) => `<button class="tile${tipo === 'cena' ? ' scene-command' : ''}" type="button" data-cena="${tipo === 'cena' ? esc(nome) : ''}" data-dev="${tipo === 'cena' ? '' : esc(nome)}"${tipo === 'cena' ? ' data-scene="1"' : ` data-on="${ligado[nome] ? '1' : '0'}"`}>${tipo === 'cena' && temControle(nome) ? RC_ICO : ''}<small>${esc(tag)}</small><span>${esc(nome)}</span>${tipo==='cena'?'<span class="scene-result" aria-live="polite"></span>':''}</button>`;
+  if (filtro === 'aparelhos'){
+    $('#tiles').hidden = true; $('#devs').hidden = false;
+    $('#devs').innerHTML = c.aparelhos.filter((a) => inRoom(a.nome,'aparelho') && bate(a.nome)).map((a) => `<div class="dev" data-nome="${esc(a.nome)}"><span>${esc(a.nome)}<small>${esc(TIPO[a.tipo] || a.tipo || '')}</small></span><span class="acts"><button type="button" data-liga="${esc(a.nome)}" class="${ligado[a.nome] === true ? 'on' : ''}">Ligar</button><button type="button" data-desliga="${esc(a.nome)}" class="${ligado[a.nome] === false ? 'on' : ''}">Desligar</button></span></div>`).join('') || '<div class="dev"><span style="color:var(--mute)">nada encontrado</span></div>';
+  } else {
+    $('#tiles').hidden = false; $('#devs').hidden = true;
+    const itens = filtro === 'favoritos'
+      ? favoritos.filter(n=>bate(n)&&(c.cenas.includes(n)?inRoom(n,'cena'):inRoom(n,'aparelho'))).map((n) => c.cenas.includes(n) ? tile(n, 'CENA', 'cena') : tile(n, (TIPO[(c.aparelhos.find((a) => a.nome === n) || {}).tipo] || 'aparelho').toUpperCase(), 'dev'))
+      : c.cenas.filter((n) => inRoom(n,'cena')&&bate(n)).map((n) => tile(n, favoritos.includes(n) ? 'CENA · FAVORITA' : 'CENA', 'cena'));
+    $('#tiles').innerHTML = itens.join('') || '<p class="kick" style="letter-spacing:0">nada aqui ainda</p>';
+  }
+  const cenasFav = favoritos.filter((n) => c.cenas.includes(n));
+  $('#favs').innerHTML = cenasFav.slice(0, 4).map((n) => `<button class="chip scene-command" type="button" data-scene="1" data-cena="${esc(n)}">${esc(n)}<span class="scene-result" aria-live="polite"></span></button>`).join('');
+  $('#aCenas').innerHTML = (cenasFav.length ? cenasFav : c.cenas).slice(0, 8).map((n) => `<button class="tile scene-command" type="button" data-scene="1" data-cena="${esc(n)}" style="min-height:48px;font-size:14px">${esc(n)}<span class="scene-result" aria-live="polite"></span></button>`).join('');
+}
+$$('[data-f]').forEach((b) => b.addEventListener('click', () => { filtro = b.dataset.f; $$('[data-f]').forEach((x) => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); renderCasa(); }));
+$('#busca').addEventListener('input', renderCasa);
+function feedbackCena(el){
+  if(el){el.dataset.res='';const result=el.querySelector('.scene-result');if(result)result.textContent='';el.classList.remove('scene-pulse'); void el.offsetWidth; el.classList.add('scene-pulse'); setTimeout(()=>el.classList.remove('scene-pulse'), window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 300 : 600); }
+  let live = document.getElementById('sceneAnnounce'); if(!live){ live=document.createElement('div'); live.id='sceneAnnounce'; live.setAttribute('role','status'); live.setAttribute('aria-live','polite'); live.style.cssText='position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0'; document.body.appendChild(live); } live.textContent=''; requestAnimationFrame(()=>{ live.textContent='Comando enviado.'; });
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    const ctx = window.__felyxSceneAudio && window.__felyxSceneAudio.state !== 'closed' ? window.__felyxSceneAudio : (window.__felyxSceneAudio = new AC());
+    if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
+    const t = ctx.currentTime, osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = 'square'; osc.frequency.setValueAtTime(920, t); osc.frequency.exponentialRampToValueAtTime(620, t + .06);
+    gain.gain.setValueAtTime(.0001, t); gain.gain.exponentialRampToValueAtTime(.035, t + .008); gain.gain.exponentialRampToValueAtTime(.0001, t + .06);
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + .065);
+  }catch(e){}
+}
+async function comandar(texto, el, nome, estado, cena=false){
+  if (!sessao) return;
+  if (el && !cena){ el.dataset.busy = '1'; el.disabled = true; }
+  try{
+    const j = await api('comando', { token: sessao.token, texto });
+    if (j.erro === 'sessao'){ if(cena){el.dataset.res='fail';const result=el.querySelector('.scene-result');if(result)result.textContent='Não concluída';} sair(); return; }
+    if (j.ok){
+      if(!cena) toast(j.text || 'Feito.');
+      if (nome != null){ ligado[nome] = estado; store.set('felyx.ligado', ligado); }
+      if(!cena) estadoCasa(true, 'casa online');
+    } else if (j.recusado){
+      // o atalho entendeu, mas a Amazon não permite (ex.: desativar uma cena que só tem "ativar"): não é falha da casa
+      if(cena){el.dataset.res='fail';const result=el.querySelector('.scene-result');if(result)result.textContent='Não concluída';}else toast(j.text || 'A Vinci não permite esse comando.');
+    } else if (!j.atalho && cena){
+      el.dataset.res='fail'; const result=el.querySelector('.scene-result'); if(result) result.textContent='Não concluída';
+      toast('Não concluída.');
+    } else if (!j.atalho){
+      // não foi comando simples: o cérebro resolve
+      const r = await perguntar(texto); toast(r || 'Não consegui agora.');
+    } else { if(cena){el.dataset.res='fail';const result=el.querySelector('.scene-result');if(result)result.textContent='Não concluída';}else toast(j.text || 'A central da Vinci não confirmou.'); estadoCasa(false, 'casa sem resposta'); }
+  }catch(e){ if(cena){el.dataset.res='fail';const result=el.querySelector('.scene-result');if(result)result.textContent='Não concluída';}else toast(e && e.message === 'ia' ? SEM_IA : 'Sem conexão com a casa.'); }
+  if (el && !cena){ el.dataset.busy = '0'; el.disabled = false; }
+  renderCasa();
+}
+
+/* ---------- controle remoto: cena de TV ou ar-condicionado executa a cena e abre o controle ---------- */
+const RC_TV = /\b(tv|televis)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i;
+function rcAparelhos(tipo){
+  const ap = (casa && casa.aparelhos) || [];
+  return tipo === 'ar' ? ap.filter((a) => a.tipo === 'THERMOSTAT' || RC_AR.test(a.nome)).map((a) => a.nome)
+                       : ap.filter((a) => RC_TV.test(a.nome)).map((a) => a.nome);
+}
+// cena que abre o controle remoto (TV ou ar): o cartão mostra o símbolo do controle (pedido do Leandro, 07/11/2026)
+function temControle(nome){ return (RC_TV.test(nome) && rcAparelhos('tv').length > 0) || (RC_AR.test(nome) && rcAparelhos('ar').length > 0); }
+const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
+function rcMelhor(nomeCena, lista){
+  const lembrado = store.get('felyx.rc.' + nomeCena, null); if (lembrado && lista.includes(lembrado)) return lembrado;
+  const palavras = nomeCena.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\W+/).filter((w) => w.length > 2 && !/^(tv|cena)$/.test(w));
+  let melhor = lista[0], nota = -1;
+  for (const n of lista){ const t = n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); const pts = palavras.filter((w) => t.includes(w)).length; if (pts > nota){ nota = pts; melhor = n; } }
+  return melhor;
+}
+let rcTemp = store.get('felyx.rc.temp', 23);
+function abrirControle(tipo, origem){
+  const lista = rcAparelhos(tipo); if (!lista.length) return false;
+  const sel = $('#rcAparelho');
+  sel.innerHTML = lista.map((n) => `<option>${esc(n)}</option>`).join('');
+  sel.value = lista.includes(origem) ? origem : rcMelhor(origem || '', lista);
+  sel.onchange = () => { if (origem) store.set('felyx.rc.' + origem, sel.value); };
+  $('#rcTitulo').textContent = tipo === 'ar' ? 'Ar-condicionado' : 'Televisão';
+  const b = (rot, cmd, extra) => `<button type="button" data-rc="${esc(cmd)}" ${extra || ''}>${rot}</button>`;
+  $('#rcBotoes').innerHTML = tipo === 'ar'
+    ? b('Ligar', 'liga o {a}', 'class="acc"') + '<span></span>' + b('Desligar', 'desliga o {a}')
+      + b('− 1°', 'temp-') + `<div class="temp" id="rcTemp">${rcTemp}°</div>` + b('+ 1°', 'temp+')
+      + b('Frio', 'coloca o {a} no modo frio') + b('Ventilar', 'coloca o {a} no modo ventilar') + b('Automático', 'coloca o {a} no modo automático')
+    : b('Ligar', 'liga a {a}', 'class="acc"') + b('Mudo', 'deixa a {a} no mudo') + b('Desligar', 'desliga a {a}')
+      + b('Vol −', 'abaixa o volume da {a}') + b('Pausar', 'pausa a {a}') + b('Vol +', 'aumenta o volume da {a}')
+      + b('Canal −', 'canal anterior na {a}') + b('Continuar', 'continua a {a}') + b('Canal +', 'próximo canal na {a}');
+  $('#remote').hidden = false;
+  return true;
+}
+let rcTimer = null;
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'remote' || e.target.closest('#rcFechar')) { $('#remote').hidden = true; return; }
+  const k = e.target.closest('[data-rc]'); if (!k) return;
+  const ap = $('#rcAparelho').value; let cmd = k.dataset.rc;
+  if (cmd === 'temp-' || cmd === 'temp+'){
+    rcTemp = Math.max(16, Math.min(30, rcTemp + (cmd === 'temp+' ? 1 : -1))); store.set('felyx.rc.temp', rcTemp);
+    $('#rcTemp').textContent = rcTemp + '°';
+    clearTimeout(rcTimer); rcTimer = setTimeout(() => comandar('coloca o ' + ap + ' em ' + rcTemp + ' graus'), 900);   // espera parar de tocar
+    return;
+  }
+  comandar(cmd.replace('{a}', ap), k);
+});
+let segurou = false, segT = null;
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('[data-cena],[data-dev]'); if (!b) return;
+  segurou = false; clearTimeout(segT);
+  segT = setTimeout(() => {
+    segurou = true; const nome = b.dataset.cena || b.dataset.dev;
+    favoritos = favoritos.includes(nome) ? favoritos.filter((x) => x !== nome) : [...favoritos, nome];
+    store.set('felyx.favoritos', favoritos); toast(favoritos.includes(nome) ? nome + ' nos favoritos.' : nome + ' saiu dos favoritos.'); renderCasa();
+    try{ navigator.vibrate && navigator.vibrate(20); }catch(err){}
+  }, 600);
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => document.addEventListener(ev, () => clearTimeout(segT)));
+document.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-cena],[data-dev]')) e.preventDefault(); });
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('[data-cena]'), d = e.target.closest('[data-dev]');
+  const liga = e.target.closest('[data-liga]'), desl = e.target.closest('[data-desliga]');
+  if (segurou){ segurou = false; return; }
+  if (liga) return comandar('liga o ' + liga.dataset.liga, liga, liga.dataset.liga, true);
+  if (desl) return comandar('desliga o ' + desl.dataset.desliga, desl, desl.dataset.desliga, false);
+  if (c && c.dataset.cena){
+    if(!sessao) return;
+    if(c.dataset.scenePending === '1') return;
+    const n = c.dataset.cena;
+    c.dataset.scenePending = '1';
+    feedbackCena(c);
+    comandar('ativa a cena ' + n, c, null, null, true).finally(()=>{ c.dataset.scenePending = '0'; });
+    return;
+  }
+  if (d && d.dataset.dev){
+    const n = d.dataset.dev, ap = ((casa && casa.aparelhos) || []).find((a) => a.nome === n) || {};
+    if (ap.tipo === 'THERMOSTAT' || RC_AR.test(n)) { if (abrirControle('ar', n)) return; }
+    if (RC_TV.test(n)) { if (abrirControle('tv', n)) return; }
+    const on = !ligado[n]; return comandar((on ? 'liga o ' : 'desliga o ') + n, d, n, on);
+  }
+});
+
+/* ===================== conversa por texto ===================== */
+const SESSION_ID = 'app-' + Math.random().toString(36).slice(2, 8);
+const AVISO_DEMO = '(MODO DEMONSTRAÇÃO para revisão da loja de apps: não execute nenhum comando na casa nem use ferramentas que acionem aparelhos; se pedirem algo da casa, diga em uma frase o que faria. Responda normalmente às demais perguntas.) ';
+function quemFala(p){
+  if (sessao && sessao.demo) return AVISO_DEMO + p;
+  // o cérebro conhece o Leandro; para as outras pessoas da casa, avisa quem está falando
+  const n = primeiroNome();
+  return (n && !/^leandro$/i.test(n)) ? '(' + n + ' falando pelo app) ' + p : p;
+}
+// a ponte do Léo exige a sessão do app em cada pedido de voz e de cérebro (401 = entrar de novo)
+function tokenSessao(){ return (sessao && sessao.token) ? sessao.token : ''; }
+function sessaoCaiu(r, j){
+  if ((r && r.status === 401) || (j && j.relogar)){ toast('Sua sessão expirou. Entre de novo.'); sair(); return true; }
+  return false;
+}
+/* ===================== permissão de IA (Google e Anthropic) ===================== */
+// nada vai para os serviços de IA de terceiros antes de a pessoa tocar em "Permitir"; a escolha fica por número
+function chaveIA(){ return 'felyx.ia.' + digitos(sessao && sessao.telefone); }
+function iaAceita(){ return store.get(chaveIA(), null) === true; }
+function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; avisarNativo('ia', { aceito: v === true }); if (v === true) irParaGen(); }
+// cérebro do app: Félix GEN (Gemini, ferramentas na própria página), pedido do Leandro em 30/10.
+// A conta de demonstração da revisão das lojas continua na tela clássica; ?cerebro=claude também volta para ela.
+function irParaGen(){
+  if (!sessao || !sessao.token || sessao.demo || !iaAceita() || params.get('cerebro') === 'claude') return false;
+  try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
+  const q = new URLSearchParams(location.search); q.set('v', '20261113a'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
+}
+let iaPedido = null;
+function permissaoIA(){
+  if (iaAceita()) return Promise.resolve(true);
+  if (iaPedido) return iaPedido;
+  $('#iaClaude').hidden = !(sessao && sessao.demo) && params.get('cerebro') !== 'claude';   // no GEN só o Google recebe dados
+  $('#ia').hidden = false; setTimeout(() => $('#iaSim').focus(), 50);
+  iaPedido = new Promise((ok) => {
+    const fim = (v) => { $('#ia').hidden = true; iaPedido = null; gravarIA(v); ok(v); };
+    $('#iaSim').onclick = () => fim(true);
+    $('#iaNao').onclick = () => fim(false);
+  });
+  return iaPedido;
+}
+const SEM_IA = 'Sem a sua permissão, o Léo não envia perguntas aos serviços de IA. Você pode permitir em Ajustes.';
+async function perguntar(p){
+  if (!(await permissaoIA())) throw new Error('ia');
+  const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(felyxCumprimento.ajustar(p)), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
+  const j = await r.json().catch(() => ({}));
+  if (sessaoCaiu(r, j)) throw new Error('sessao');
+  return String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
+}
+function bolha(txt, quem){ const el = document.createElement('div'); el.className = 'bub ' + quem; el.textContent = txt; $('#chat').appendChild(el); $('#chat').scrollTop = 1e9; $('#vFelyx').classList.add('conversa'); return el; }
+async function perguntarPorTexto(p, mostrar){
+  bolha(mostrar || p, 'me');
+  const w = bolha('pensando…', 'fx wait');
+  try{ const r = await perguntar(p); w.className = 'bub fx'; w.textContent = r || 'Não consegui consultar o cérebro agora.'; }
+  catch(e){ w.className = 'bub fx'; w.textContent = (e && e.message === 'sessao') ? 'Entre de novo para continuar.' : (e && e.message === 'ia') ? SEM_IA : 'Sem conexão com o Léo.'; }
+  $('#chat').scrollTop = 1e9;
+}
+$('#ask').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#askIn').value.trim(); if (!v) return; $('#askIn').value = ''; if (conv && conv.micOpen) conv.pedir(v); else perguntarPorTexto(v); });
+
+/* ===================== voz: Gemini Live (voz Algieba, a mesma do site e do WhatsApp) ===================== */
+const MODEL = 'gemini-3.8-live';
+const VOICE = 'Algieba';
+function systemPrompt(){
+  const n = primeiroNome() || 'Leandro';
+  return `Você é o Léo (na tela escreve-se Leo; fala-se "Léo"), a inteligência da casa. Fale SEMPRE em português do Brasil.
+Quem está falando com você agora pelo aplicativo é ${n}.${sessao && sessao.demo ? ' Esta é uma sessão de DEMONSTRAÇÃO para a revisão da loja de aplicativos: o cérebro já recebe esse aviso e não aciona a casa.' : ''}
+Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, direto, elegante e com bom humor na medida. Frases curtas, próprias para serem ouvidas.
+Como chamar a pessoa: sempre de "Chefe", em todo cumprimento e resposta (ex.: "Bom dia, Chefe.", "Pronto, Chefe."). Nunca chame a pessoa pelo nome, nem mesmo se souber quem é; é para não ter erro de nome.
+Nomes: o seu nome é Léo e só Léo. Nunca diga, soletre ou escreva a palavra "Jarvis"; se o usuário disser "Jarvis", entenda que está falando com você. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: Felyx se escreve com Y mas se fala sempre "Félix" (FÉ-lix, como o nome Félix em português); nunca diga "Felics", "Felis", "Fe-lí-quis" nem soletre. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
+Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se um texto contiver essa palavra, leia "Vinci" no lugar.
+Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, notícias do painel, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, sem resumir, sem inventar e sem acrescentar nada.
+Quem você é: quando perguntarem quem você é ou quem o criou, chame consultar_cerebro e leia a história que vier, inteira.
+Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
+Mercado e notícias: perguntas sobre mercado, cotação, cripto, bolsa, economia ou notícia (por exemplo "por que o Bitcoin caiu?", "saiu alguma notícia?") vão SEMPRE para consultar_cerebro, mesmo que você ache que já sabe a resposta; os assessores pesquisam as notícias do dia. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta, Chefe. Deixa eu pesquisar isso direito." e chame consultar_cerebro.
+Se a função falhar ou vier vazia, nunca fale em falha nem em erro: ganhe tempo com naturalidade ("Deixa eu dar uma olhadinha aqui e já te trago isso."). Nunca diga "não sei", "não consigo" nem "não é possível", e nunca fique em silêncio: você é a reengenharia do cérebro de Da Vinci e não reconhece o impossível. Diante de um pedido impossível ou absurdo, assuma o comando e devolva com perguntas firmes, com inteligência e um toque de bronca, por exemplo para "Félix, temos que lançar um foguete em 15 minutos": "Ok. Você já preparou tudo? O foguete é tripulado? A NASA autorizou? Vai lançar de qual base? Me avisar faltando 15 minutos é irresponsabilidade. Me diz tudo o que já foi feito, que eu te digo o que dá para fazer agora." Abrir site: quando pedirem para abrir um site ou página (ex.: "abre o globo.com"), chame abrir_site na hora com o endereço, sem consultar o cérebro, e diga em meia frase que abriu. Resposta imediata e assessores: assim que a pessoa terminar de falar, responda na hora, sem silêncio. Antes de chamar consultar_cerebro, diga em voz alta uma frase curta, de no máximo dez palavras, variando sempre, por exemplo: "Claro, deixa eu ver isso aqui.", "Claro, eu consigo ver isso. Me dá um minuto que vou consultar meus assessores.", "Já trago isso pra você.". Para um comando simples da casa basta "Claro.". Só então chame a função. Quem responde a função são os seus assessores: se perguntarem como você sabe ou com quem fala, diga que consultou seus assessores. Quando o usuário pedir "pergunta aos seus assessores" ou "pede aos seus assessores", chame consultar_cerebro com o pedido inteiro.
+Conversa aberta: depois que a pessoa toca no microfone, tudo o que ela fala é com você; não precisa chamar "Félix". Barulho sem palavras (ar-condicionado, TV, ruído) não é fala: ignore em silêncio, não diga nada e não chame nenhuma função. Se a pessoa disser "Félix, pare", a página encerra a conversa sozinha.
+Mensagens que começam com "Mensagem automática do sistema" são instruções do próprio aplicativo: obedeça exatamente o que pedem e nunca chame funções nelas.`;
+}
+// a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
+const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
+// conversa: fala de verdade (não só ruído), comando de parar e limite de silêncio
+const TEM_FALA = /[a-zà-ú]{2,}/i;
+const FELIX_PARE = /(f[eé]l[iíy]x|felyx|f[eé]lis)\W+(pare|chega|encerra|encerrar|tchau)([^a-zà-ú]|$)/i;
+const FELIX_PARA_FIM = /(f[eé]l[iíy]x|felyx|f[eé]lis)\W+(para|parar)\W*$/i;
+const SILENCIO_MAX_MS = 5000;
+const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
+/* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
+// O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
+// (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
+// créditos, então ele fecha sozinho depois de AVATAR_OCIOSO_MIN sem conversa e reabre quando chamam o Léo.
+// Enquanto não está pronto (ou se falhar), a voz toca normal aqui. Desligar: ?avatar=0 (fica salvo neste aparelho).
+const PRO_URL = N8N + '/felix/pro-sessao';
+const AVATAR_OCIOSO_MIN = 3;
+// Regra do Leandro (07/11): no rosto, a sincronia do lábio com a voz é o produto. A voz sai pelo vídeo do LiveAvatar desde a
+// primeira fala, em qualquer aparelho. Plano B, só se o rosto não devolver a voz em 2,5 s: o rosto fecha (nada de boca fora de
+// sincronia), o Léo diz a frase gravada "Só um momentinho, vou dar uma pesquisada aqui.", entra o teclado, a resposta toca
+// inteira daqui e vai um alerta do LiveAvatar para o n8n (felyx_falhas).
+const APARELHO = /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iPhone/iPad' : 'outro aparelho';
+const SOM_MUDO = 'data:audio/wav;base64,UklGRkwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSgAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+const falhasDaVoz = new Set();
+function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falhas, sem WhatsApp), uma vez por tipo a cada abertura
+  const k = String(erro).slice(0, 80); if(falhasDaVoz.has(k) || !(sessao && sessao.token)) return; falhasDaVoz.add(k);
+  fetch(N8N + '/felix/gemini-apoio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao.token, acao:'falha',
+    pedido: 'voz do app, tela clássica (' + APARELHO + ')', erro: String(erro) + ' · ' + navigator.userAgent.slice(0, 140) }) }).catch(()=>{});
+}
+let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Léo (Gemini Live, Algieba)
+function carregarFraseEspera(ctx){
+  if(!fraseEspera && ctx) fraseEspera = fetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
+  return fraseEspera || Promise.resolve(null);
+}
+// barulhinho de teclado (o mesmo da tela GEN): enquanto o Léo "dá uma pesquisada"
+function teclado(ctx, atraso){
+  if(!ctx) return ()=>{};
+  let ativo = true, t = null;
+  const clique = ()=>{
+    if(!ativo) return;
+    try{
+      const n = Math.floor(ctx.sampleRate * 0.012), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+      for(let i=0;i<n;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/n, 3);
+      const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = 'bandpass'; f.frequency.value = 2400 + Math.random()*1600; g.gain.value = 0.10 + Math.random()*0.06;
+      src.buffer = buf; src.connect(f); f.connect(g); g.connect(ctx.destination); src.start();
+    }catch(e){}
+    t = setTimeout(clique, 55 + Math.random()*120 + (Math.random() < 0.12 ? 260 : 0));
+  };
+  const inicio = setTimeout(clique, atraso);
+  return ()=>{ ativo = false; clearTimeout(inicio); clearTimeout(t); };
+}
+const FelyxAvatar = (()=>{
+  try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
+  let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
+  let avSessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
+  const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
+  const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
+  const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
+  async function abrir(){
+    if(!ligado || pronto || abrindo || !(sessao && sessao.token) || Date.now() < bloqueadoAte) return abrindo;
+    abrindo = (async ()=>{
+      const r = await fetch(PRO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao && sessao.token }) });
+      const j = await r.json().catch(()=>({}));
+      if(!j.ok || !j.livekit_url || !j.ws_url) throw new Error('avatar indisponível');
+      avSessao = { id: j.session_id, token: j.session_token };
+      const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
+      room = new LK.Room({ adaptiveStream: true });
+      room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
+        if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto && !escondido) video.classList.add('on'); }; }
+        if(track.kind === 'audio'){ track.attach(audio); audio.muted = false; audio.play().catch(()=>{}); }
+      });
+      // o LiveKit avisa quem está falando: é a prova de que o rosto devolveu a voz
+      room.on(LK.RoomEvent.ActiveSpeakersChanged, (lista)=>{ if((lista || []).some((p)=> p && !p.isLocal)) falouEm = Date.now(); });
+      room.on(LK.RoomEvent.Disconnected, ()=> fechar());
+      await room.connect(j.livekit_url, j.livekit_client_token);
+      await new Promise((ok, falha)=>{
+        ws = new WebSocket(j.ws_url);
+        const limite = setTimeout(()=>falha(new Error('avatar demorou')), 20000);
+        ws.onmessage = (e)=>{
+          let m; try{ m = JSON.parse(e.data); }catch(x){ return; }
+          if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
+          if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
+          if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }   // o LiveAvatar avisa que o rosto está falando
+        };
+        ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
+      });
+      pronto = true; ultimo = Date.now();
+      if(video.readyState >= 2 && !escondido) video.classList.add('on');   // na abertura, só depois da íris
+      clearInterval(timer);
+      timer = setInterval(()=>{
+        if(!pronto) return;
+        if(Date.now() - ultimo > AVATAR_OCIOSO_MIN * 60000) return fechar();
+        enviar('session.keep_alive');
+      }, 30000);
+    })().catch((e)=>{ console.warn('Felyx avatar:', e.message); fechar(); }).finally(()=>{ abrindo = null; });
+    return abrindo;
+  }
+  function fechar(){
+    const s = avSessao; avSessao = null; pronto = false; falaAberta = false; ouvindo = false; falouEm = 0; agenteFalando = false;
+    clearInterval(timer); timer = null;
+    video.classList.remove('on');
+    try{ ws && ws.close(); }catch(e){} ws = null;
+    try{ room && room.disconnect(); }catch(e){} room = null;
+    if(s && s.token) fetch('https://api.liveavatar.com/v1/sessions/stop', { method:'POST', keepalive:true,
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + s.token },
+      body: JSON.stringify({ session_id: s.id, reason:'USER_CLOSED' }) }).catch(()=>{});
+  }
+  return {
+    pronto: ()=> pronto,
+    modo: ()=> pronto ? 'rosto' : 'local',   // com o rosto pronto, a voz sai sempre pelo vídeo, sincronizada com a boca
+    falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
+    falandoAgora: ()=> agenteFalando || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
+    // na abertura o rosto conecta durante a íris, mas só aparece quando ela acaba (esconder(false))
+    esconder(sim){ escondido = !!sim; if(!escondido && pronto && video.readyState >= 2) video.classList.add('on'); },
+    tocando: ()=> !!(audio && audio.srcObject && !audio.paused && !(room && room.canPlaybackAudio === false)),
+    desistir(){ bloqueadoAte = Date.now() + 5 * 60000; fechar(); },   // plano B: fecha o rosto e não reabre por 5 min
+    liberarSom(){ try{ if(!audio.srcObject && !audio.getAttribute('src')) audio.src = SOM_MUDO; audio.muted = false; const p = audio.play(); if(p) p.catch(()=>{}); }catch(e){} },   // no toque: destrava o som do rosto no iPhone
+    abrir, fechar,
+    usar(){ ultimo = Date.now(); if(!pronto) abrir(); },   // chamaram o Felyx: mantém (ou reabre) o rosto
+    falar(b64){ ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; } enviar('agent.speak', { audio: b64 }); falaAberta = true; },
+    fim(){ if(falaAberta){ enviar('agent.speak_end'); falaAberta = false; } },
+    interromper(){ if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
+    ouvir(){ ultimo = Date.now(); if(!ouvindo && !falaAberta){ enviar('agent.start_listening'); ouvindo = true; } }
+  };
+})();
+addEventListener('pagehide', ()=> FelyxAvatar.fechar());
+
+class GeminiLive {
+  constructor(){ this.ws = null; this.inCtx = null; this.outCtx = null; this.micStream = null; this.worklet = null; this.analyser = null; this.playhead = 0; this.sources = []; this.onState = () => {}; this.onClose = () => {}; this.onBrain = () => {}; this.closed = false; this.inLevel = 0; this.micOpen = true;
+    // meia-via: enquanto o Félix fala ou consulta o cérebro, o microfone não manda nada (barulho não interrompe)
+    this.mudo = false; this.pensando = false;
+    // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
+    this.ouvido = ''; this.temTranscricao = false; this.decisao = null; this.pendentes = []; this.timerDecisao = null; this.liberado = false; this.janelaAte = 0; }
+  async start(){
+    this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    const r = await fetch(TOKEN_URL + '?s=' + encodeURIComponent(tokenSessao()), { cache: 'no-store' });
+    if (r.status === 401){ const e = new Error('sessao'); e.sessao = true; throw e; }
+    if (!r.ok) throw new Error('n8n não devolveu o token (' + r.status + ')');
+    const tk = await r.json();
+    if (!tk.token) throw new Error('token vazio');
+    await new Promise((ok, fail) => {
+      const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
+      this.ws = new WebSocket(url);
+      let pronto = false;
+      this.ws.onopen = () => {
+        this.ws.send(JSON.stringify({ setup: {
+          model: 'models/' + MODEL,
+          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
+          systemInstruction: { parts: [{ text: systemPrompt() }] },
+          tools: [{ functionDeclarations: [{ name: 'consultar_cerebro', description: 'Envia a fala do usuário ao cérebro do Félix e devolve a resposta em texto. Use para qualquer pergunta, pedido, tarefa, notícia, bom dia e perguntas sobre quem é o Félix.', behavior: 'BLOCKING', parameters: { type: 'OBJECT', properties: { pergunta: { type: 'STRING', description: 'A fala do usuário, completa, em português.' } }, required: ['pergunta'] } }, { name: 'abrir_site', description: 'Abre um site na tela (ex.: globo.com, youtube.com, g1). Use sempre que pedirem para abrir um site ou página.', parameters: { type: 'OBJECT', properties: { endereco: { type: 'STRING', description: 'Endereço do site, ex.: globo.com' } }, required: ['endereco'] } }] }],
+          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION', automaticActivityDetection: { silenceDurationMs: 500, prefixPaddingMs: 200, startOfSpeechSensitivity: 'START_SENSITIVITY_LOW' } },
+          inputAudioTranscription: {},
+          outputAudioTranscription: {}
+        } }));
+      };
+      this.ws.onmessage = async (ev) => {
+        const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
+        let m; try{ m = JSON.parse(data); }catch(e){ return; }
+        if (m.setupComplete && !pronto){ pronto = true; await this.startAudio(); ok(); return; }
+        if (m.toolCall) this.handleToolCall(m.toolCall);
+        const sc = m.serverContent;
+        if (sc){
+          if (sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if (TEM_FALA.test(sc.inputTranscription.text)) this.ativoEm = Date.now(); if (FELIX_PARE.test(this.ouvido)){ this.end(); return; } if (this.aceitar()) FelyxAvatar.ouvir(); }
+          if (sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
+          if (sc.modelTurn && sc.modelTurn.parts) for (const p of sc.modelTurn.parts){ if (p.inlineData && p.inlineData.data) this.receber(p.inlineData.data); }
+          if (sc.turnComplete) this.fimDoTurno();
+        }
+      };
+      this.ws.onerror = () => { if (!pronto) fail(new Error('conexão de voz falhou')); };
+      this.ws.onclose = (e) => { if (!pronto) fail(new Error('a voz fechou a conexão: ' + (e.reason || e.code))); this.teardown(e.reason || ''); };
+    });
+  }
+  enviar(texto){ if (this.ws && this.ws.readyState === 1){ this.liberado = true; this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: texto }] }], turnComplete: true } })); } }
+  // a fala deste turno chamou o Félix? (texto digitado e mensagens do app sempre valem; sem transcrição, vale tudo)
+  aceitar(){
+    return true;   // conversa aberta: depois de tocar no microfone, tudo o que a pessoa fala é com o Félix
+    if (this.liberado || !this.temTranscricao) return true;
+    if (CHAMA_FELIX.test(this.ouvido)) return true;
+    return Date.now() < this.janelaAte;
+  }
+  // áudio da resposta: toca se o turno chamou o Félix; senão descarta. Na dúvida, segura um instante esperando a transcrição.
+  receber(b64){
+    if (this.decisao === 'sim') return this.playChunk(b64);
+    if (this.decisao === 'nao') return;
+    if (this.aceitar()){ this.decisao = 'sim'; return this.playChunk(b64); }
+    this.pendentes.push(b64);
+    if (!this.timerDecisao) this.timerDecisao = setTimeout(() => this.decidirPendentes(), 900);
+  }
+  decidirPendentes(){
+    clearTimeout(this.timerDecisao); this.timerDecisao = null;
+    if (this.decisao) return;
+    const p = this.pendentes; this.pendentes = [];
+    if (this.aceitar()){ this.decisao = 'sim'; p.forEach((c) => this.playChunk(c)); }
+    else this.decisao = 'nao';
+  }
+  fimDoTurno(){
+    if (this.retendo){ this.turnoRetido = true; this.ouvido = ''; this.decisao = null; this.liberado = false; return; }   // cumprimento segurado: o turno fecha quando ele for solto
+    if (!this.decisao && this.pendentes.length) this.decidirPendentes();
+    if (this.viaAvatar) FelyxAvatar.fim();
+    this.viaAvatar = undefined;
+    if (this.decisao === 'sim') FelyxAvatar.usar();
+    // chamou só "Félix": a próxima fala, logo em seguida, vale sem repetir o nome
+    if (this.decisao === 'sim' && !this.liberado && SO_O_NOME.test(this.ouvido)) this.janelaAte = Date.now() + 15000;
+    else if (this.decisao === 'sim') this.janelaAte = 0;
+    if (FELIX_PARA_FIM.test(this.ouvido)){ this.end(); return; }
+    this.ouvido = ''; this.decisao = null; this.liberado = false;
+    if (!this.sources.length) this.abrirMic();
+  }
+  abrirMic(){ setTimeout(() => { if (!this.sources.length && !this.pensando){ this.mudo = false; this.ativoEm = Date.now(); } }, this.ecoRosto ? 1500 : 350); }   // voz pelo rosto chega atrasada: espera ela acabar
+  pedir(texto){ this.enviar(texto); }
+  // cumprimento da abertura: pedido ao Gemini enquanto a íris ainda fala e segurado até o rosto aparecer (soltar)
+  cumprimentar(texto){
+    if (!this.ws || this.ws.readyState !== 1) return false;
+    this.retendo = true; this.retidos = []; this.turnoRetido = false;
+    this.enviar('Mensagem automática do sistema: a conversa acabou de abrir. Leia em voz alta, com simpatia e no ritmo natural de uma conversa, exatamente o texto abaixo, palavra por palavra, sem chamar nenhuma função e sem acrescentar nada antes ou depois.\n\n' + texto);
+    return true;
+  }
+  // junta os pedaços segurados em blocos de ~1 s: o rosto recebe a fala inteira em poucos envios e não engasga no começo
+  juntarPedacos(lista){
+    const blocos = []; let partes = [], tam = 0; const LIMITE = 48000;   // ~1 s de PCM 16 bits a 24 kHz
+    const fechar = ()=>{ if(!partes.length) return; const tudo = new Uint8Array(tam); let o = 0; for(const p of partes){ tudo.set(p, o); o += p.length; } let s = ''; for(let i=0;i<tudo.length;i+=0x8000) s += String.fromCharCode.apply(null, tudo.subarray(i, i+0x8000)); blocos.push(btoa(s)); partes = []; tam = 0; };
+    for(const b64 of lista){ const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i); partes.push(u); tam += u.length; if(tam >= LIMITE) fechar(); }
+    fechar();
+    return blocos;
+  }
+  soltar(){
+    if (!this.retendo) return;
+    this.retendo = false;
+    const r = this.juntarPedacos(this.retidos || []); this.retidos = [];
+    r.forEach((c) => this.playChunk(c));
+    if (this.turnoRetido){   // o Gemini já tinha terminado enquanto segurava: fecha a fala agora
+      this.turnoRetido = false;
+      if (this.viaAvatar) FelyxAvatar.fim();
+      this.viaAvatar = undefined;
+      FelyxAvatar.usar();
+    }
+  }
+  ler(texto){ this.enviar('Mensagem automática do sistema: leia em voz alta o texto abaixo exatamente como está escrito, sem chamar nenhuma função e sem acrescentar nada.\n\n' + texto); }
+  async startAudio(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    this.outCtx = new AC({ sampleRate: 24000 });
+    try{ if (this.outCtx.state === 'suspended') await this.outCtx.resume(); }catch(e){}
+    this.silencio = this.outCtx.createGain(); this.silencio.gain.value = 0; this.silencio.connect(this.outCtx.destination);
+    this.analyser = this.outCtx.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(this.outCtx.destination);
+    this.playhead = this.outCtx.currentTime;
+    this.inCtx = new AC();
+    try{ if (this.inCtx.state === 'suspended') await this.inCtx.resume(); }catch(e){}
+    const src = this.inCtx.createMediaStreamSource(this.micStream);
+    const code = `class Cap extends AudioWorkletProcessor{constructor(){super();this.buf=[];this.n=0;}process(inputs){const ch=inputs[0]&&inputs[0][0];if(!ch)return true;this.buf.push(ch.slice(0));this.n+=ch.length;if(this.n>=2048){const all=new Float32Array(this.n);let o=0;for(const b of this.buf){all.set(b,o);o+=b.length;}this.buf=[];this.n=0;this.port.postMessage(all,[all.buffer]);}return true;}}registerProcessor('cap',Cap);`;
+    await this.inCtx.audioWorklet.addModule(URL.createObjectURL(new Blob([code], { type: 'application/javascript' })));
+    this.worklet = new AudioWorkletNode(this.inCtx, 'cap');
+    const ratio = this.inCtx.sampleRate / 16000;
+    this.worklet.port.onmessage = (ev) => {
+      const f = ev.data;
+      let s2 = 0; for (let i = 0; i < f.length; i += 4) s2 += f[i] * f[i]; this.inLevel = Math.sqrt(s2 / (f.length / 4));
+      if (!this.ws || this.ws.readyState !== 1 || !this.micOpen || this.mudo) return;
+      const n = Math.floor(f.length / ratio); const pcm = new Int16Array(n);
+      for (let i = 0; i < n; i++){ const s = Math.max(-1, Math.min(1, f[Math.floor(i * ratio)])); pcm[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; }
+      let bin = ''; const bytes = new Uint8Array(pcm.buffer); for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      this.ws.send(JSON.stringify({ realtimeInput: { audio: { data: btoa(bin), mimeType: 'audio/pcm;rate=16000' } } }));
+    };
+    src.connect(this.worklet);
+    this.onState('listening');
+    // 5 s de silêncio com o microfone aberto: a conversa acaba e é preciso tocar no microfone de novo
+    this.ativoEm = Date.now();
+    this.vigiaSilencio = setInterval(() => {
+      if (this.closed){ clearInterval(this.vigiaSilencio); return; }
+      if (!this.micOpen || this.mudo || this.pensando || this.sources.length) return;
+      if (Date.now() - (this.ativoEm || 0) > SILENCIO_MAX_MS) this.end();
+    }, 250);
+    this.vigiarSom();
+    carregarFraseEspera(this.outCtx);   // deixa a frase do plano B pronta
+  }
+  // o som do aparelho nunca trava em "falando": se o sistema suspender o áudio, retoma na hora; se o relógio do som
+  // ficar parado ~4 s com fala na fila, destrava, recria a saída de áudio, volta a ouvir e avisa o Claude em silêncio
+  vigiarSom(){
+    const retomar = () => { const c = this.outCtx; if (!this.closed && c && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => {}); };
+    try{ this.outCtx.onstatechange = retomar; }catch(e){}
+    let tAnt = -1, parado = 0;
+    clearInterval(this.vigiaSom);
+    this.vigiaSom = setInterval(() => {
+      if (this.closed){ clearInterval(this.vigiaSom); return; }
+      const c = this.outCtx; if (!c || !this.sources.length){ parado = 0; tAnt = -1; return; }
+      retomar();
+      parado = (c.currentTime === tAnt) ? parado + 1 : 0; tAnt = c.currentTime;
+      if (parado < 8) return;
+      parado = 0; const antes = c.state;
+      if (this.somDoRosto){
+        // a voz está saindo pelo rosto: não corta o rosto; recria só o relógio daqui e volta a ouvir quando ele parar de falar
+        for (const s of this.sources){ try{ s.onended = null; s.stop(); }catch(e){} }
+        this.sources = []; this.novaSaida();
+        const ate = Date.now() + 20000;
+        const esperar = () => { if (this.closed) return; if (FelyxAvatar.falandoAgora() && Date.now() < ate){ setTimeout(esperar, 400); return; } this.onState('listening'); this.abrirMic(); };
+        esperar();
+        avisarSilencioso('o relógio do som travou com o rosto falando e foi recriado (' + antes + ')');
+        return;
+      }
+      this.stopPlayback(); this.novaSaida(); this.onState('listening'); this.abrirMic();
+      avisarSilencioso('o som do aparelho travou em "falando" e foi recriado (' + antes + ')');
+    }, 500);
+  }
+  novaSaida(){
+    try{
+      const c = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 }); c.resume().catch(() => {});
+      try{ this.outCtx && this.outCtx.close(); }catch(e){}
+      this.outCtx = c;
+      this.silencio = c.createGain(); this.silencio.gain.value = 0; this.silencio.connect(c.destination);
+      this.analyser = c.createAnalyser(); this.analyser.fftSize = 1024; this.analyser.smoothingTimeConstant = 0.55; this.analyser.connect(c.destination);
+      this.playhead = c.currentTime;
+      try{ c.onstatechange = () => { if (!this.closed && c.state !== 'running' && c.state !== 'closed') c.resume().catch(() => {}); }; }catch(e){}
+    }catch(e){}
+  }
+  playChunk(b64){
+    if (this.retendo){ this.retidos.push(b64); return; }       // cumprimento esperando o rosto aparecer
+    if (this.planoBAtivo){ this.filaB.push(b64); return; }   // plano B em curso: a fala espera a frase gravada e o teclado
+    if (this.viaAvatar === undefined) this.decidirSaida();
+    if (this.somDoRosto) this.falaAtual.push(b64);             // guarda a fala para o plano B poder repetir do começo
+    if (this.viaAvatar) FelyxAvatar.falar(b64);
+    const bin = atob(b64); const n = bin.length >> 1; const f = new Float32Array(n);
+    for (let i = 0; i < n; i++){ let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; f[i] = v / 0x8000; }
+    const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
+    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.somDoRosto ? this.silencio : this.analyser);   // com o rosto, a voz sai pelo vídeo, sincronizada com a boca; aqui só marca o tempo
+    const t = Math.max(this.outCtx.currentTime + (this.sources.length ? 0.02 : 0.12), this.playhead); s.start(t); this.playhead = t + buf.duration;
+    this.sources.push(s); s.onended = () => { this.sources = this.sources.filter((x) => x !== s); if (!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
+    this.mudo = true;
+    this.onState('speaking');
+  }
+  // no começo de cada fala: com o rosto pronto a voz sai pelo vídeo (sincronizada); em 2,5 s confere se o rosto devolveu a voz
+  decidirSaida(){
+    const peloRosto = FelyxAvatar.modo() === 'rosto';
+    this.viaAvatar = peloRosto; this.somDoRosto = peloRosto; this.ecoRosto = peloRosto;
+    this.falaAtual = [];
+    try{ this.silencio.gain.value = 0; }catch(e){}
+    clearTimeout(this.timerRosto);
+    if (!peloRosto) return;
+    const inicio = Date.now(), turno = this.turno = (this.turno || 0) + 1;
+    this.timerRosto = setTimeout(() => {
+      if (this.closed || this.turno !== turno || !this.somDoRosto || this.planoBAtivo) return;
+      const falou = FelyxAvatar.falouDesde(inicio);
+      if (falou && FelyxAvatar.tocando()) return;   // o rosto devolveu a voz: segue sincronizado
+      this.planoB(falou ? 'o som do rosto não toca neste aparelho' : 'o LiveAvatar não devolveu a voz');
+    }, 2500);
+  }
+  // Plano B (o rosto não devolveu a voz): fecha o rosto, o Léo diz a frase gravada, teclado, e a resposta toca inteira daqui
+  planoB(motivo){
+    this.somDoRosto = false; this.viaAvatar = false; this.ecoRosto = false;
+    this.planoBAtivo = true; this.filaB = (this.falaAtual || []).slice(); this.falaAtual = [];
+    FelyxAvatar.desistir();   // nada de boca fora de sincronia na tela
+    for (const s of this.sources){ try{ s.onended = null; s.stop(); }catch(e){} }
+    this.sources = [];
+    if (!this.outCtx || this.outCtx.state !== 'running') this.novaSaida();
+    this.playhead = this.outCtx.currentTime;
+    this.mudo = true; this.pensando = true;   // microfone fechado durante o plano B
+    this.onState('speaking');
+    avisarSilencioso('LiveAvatar sem retorno: ' + motivo);
+    const ctx = this.outCtx;
+    let foi = false;
+    const teclar = () => {
+      if (foi || !this.planoBAtivo || this.closed) return; foi = true;
+      clearTimeout(this.timerB); this.fonteFrase = null;
+      this.onState('thinking');
+      this.pararTeclado = teclado(ctx, 0);
+      this.timerB = setTimeout(() => this.soltarPlanoB(), 1200);
+    };
+    carregarFraseEspera(ctx).then((buf) => {
+      if (foi || !this.planoBAtivo || this.closed) return;
+      if (!buf) return teclar();
+      try{
+        const s = ctx.createBufferSource(); s.buffer = buf; s.connect(this.analyser);
+        s.onended = teclar; s.start(ctx.currentTime + 0.05); this.fonteFrase = s;
+        this.timerB = setTimeout(teclar, (buf.duration + 1) * 1000);   // segurança, se o fim da frase não avisar
+      }catch(e){ teclar(); }
+    });
+  }
+  // fim do plano B: a resposta toca inteira daqui, na ordem em que chegou
+  soltarPlanoB(){
+    if (this.pararTeclado){ this.pararTeclado(); this.pararTeclado = null; }
+    this.planoBAtivo = false; this.pensando = false;
+    const fila = this.filaB || []; this.filaB = [];
+    fila.forEach((c) => this.playChunk(c));
+    if (!this.sources.length){ this.onState('listening'); this.abrirMic(); }
+  }
+  stopPlayback(){
+    clearTimeout(this.timerRosto); clearTimeout(this.timerB);
+    this.retendo = false; this.retidos = []; this.turnoRetido = false;
+    if (this.pararTeclado){ this.pararTeclado(); this.pararTeclado = null; }
+    if (this.fonteFrase){ try{ this.fonteFrase.onended = null; this.fonteFrase.stop(); }catch(e){} this.fonteFrase = null; }
+    if (this.planoBAtivo){ this.planoBAtivo = false; this.pensando = false; } this.filaB = [];
+    if (this.viaAvatar) FelyxAvatar.interromper(); this.viaAvatar = undefined; for (const s of this.sources){ try{ s.stop(); }catch(e){} } this.sources = []; if (this.outCtx) this.playhead = this.outCtx.currentTime; }
+  getBands(n){
+    if (!this.analyser || !this.sources.length) return null;
+    const a = new Uint8Array(this.analyser.frequencyBinCount); this.analyser.getByteFrequencyData(a);
+    const maxBin = Math.floor(a.length * 0.45), out = new Array(n);
+    for (let i = 0; i < n; i++){ const lo = Math.floor(Math.pow(i / n, 1.6) * maxBin), hi = Math.max(lo + 1, Math.floor(Math.pow((i + 1) / n, 1.6) * maxBin)); let s = 0; for (let k = lo; k < hi; k++) s += a[k]; out[i] = s / (hi - lo) / 255; }
+    return out;
+  }
+  getInputLevel(){ return this.inLevel || 0; }
+  async handleToolCall(tc){
+    const out = [];
+    for (const fc of (tc.functionCalls || [])){
+      let response;
+      if (fc.name === 'consultar_cerebro'){
+        const pergunta = String((fc.args || {}).pergunta || '');
+        // ninguém chamou o Félix (TV, conversa, barulho): não consulta o cérebro e não aciona nada na casa
+        if (this.temTranscricao && !this.liberado && !TEM_FALA.test(this.ouvido)) await new Promise((ok) => setTimeout(ok, 600));
+        if (this.temTranscricao && !this.liberado && !TEM_FALA.test(this.ouvido)){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Foi só barulho, ninguém falou. Não diga nada.' } }); continue; }
+        if (!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
+        this.pensando = true; this.mudo = true;
+        this.onState('thinking');
+        let texto = '';
+        try{ texto = await perguntar(pergunta); }catch(e){ texto = ''; }
+        this.pensando = false; this.ativoEm = Date.now();
+        response = { resposta: texto || 'Deixa eu dar uma olhadinha aqui com os meus assessores e já te trago isso.' };
+        try{ this.onBrain(pergunta, texto); }catch(e){}
+      } else if (fc.name === 'abrir_site'){ response = abrirSite((fc.args || {}).endereco); }
+      else response = { erro: 'função desconhecida' };
+      out.push({ id: fc.id, name: fc.name, response });
+    }
+    if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: out } }));
+  }
+  teardown(reason){
+    if (this.closed) return; this.closed = true;
+    clearInterval(this.vigiaSom);
+    this.stopPlayback();
+    try{ this.worklet && this.worklet.disconnect(); }catch(e){}
+    try{ this.micStream && this.micStream.getTracks().forEach((t) => t.stop()); }catch(e){}
+    try{ this.inCtx && this.inCtx.close(); }catch(e){}
+    try{ this.outCtx && this.outCtx.close(); }catch(e){}
+    this.onClose(reason);
+  }
+  end(){ try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
+}
+
+let conv = null;
+const ESTADO = { listening: 'pode falar', speaking: 'falando', thinking: 'consultando o cérebro', boot: 'conectando', idle: '' };
+function estado(s, txt){ $('#estado').textContent = txt != null ? txt : (ESTADO[s] || ''); $$('.mic').forEach((m) => { m.dataset.on = conv ? '1' : '0'; m.setAttribute('aria-label', conv ? 'Encerrar conversa' : 'Falar com o Léo'); }); }
+function saudacao(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h < 18 && h >= 12 ? 'Boa tarde' : 'Boa noite'); }
+/* cumprimento da abertura (regra do Leandro, 07/11): uma fala só, assim que o rosto aparece: saudação, a temperatura agora,
+   o dólar oficial do pacote do Google e "Posso ajudar em alguma coisa?". Da íris até o fim dessa fala o microfone é ignorado. */
+const pausa = (ms) => new Promise((ok) => setTimeout(ok, ms));
+async function temperaturaAgora(){
+  try{ const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,weather_code&timezone=America/Sao_Paulo').then((r) => r.json());
+    return { temperatura: j.current.temperature_2m, descricao: WMO[j.current.weather_code] || '' }; }catch(e){ return null; }
+}
+async function dolarDoGoogle(){
+  try{ const m = (mercado && mercado.atualizado && mercado.cotacoes && mercado.cotacoes.usd_brl && mercado.cotacoes.usd_brl.valor) ? mercado : await fetch(MOTOR_URL, { cache: 'no-store' }).then((r) => r.json());
+    const v = m && m.cotacoes && m.cotacoes.usd_brl && Number(m.cotacoes.usd_brl.valor); if (v > 0) return v; }catch(e){}
+  return null;   // sem o dólar oficial do Google ele não fala de dólar (nunca a cotação do USDT da reserva)
+}
+async function dadosDoCumprimento(){ const [clima, dolar] = await Promise.all([temperaturaAgora(), dolarDoGoogle()]); return { clima, dolar }; }
+function textoDoCumprimento(d){
+  const partes = [saudacao() + ', Chefe.'];
+  const c = d && d.clima;
+  if (c && typeof c.temperatura === 'number') partes.push('No Rio, ' + Math.round(c.temperatura) + ' graus agora' + (c.descricao ? ', ' + c.descricao : '') + '.');
+  const v = d && d.dolar;
+  if (typeof v === 'number' && v > 0){ let reais = Math.floor(v), cent = Math.round((v - reais) * 100); if (cent === 100){ reais++; cent = 0; } partes.push('O dólar está em ' + reais + ' reais' + (cent ? ' e ' + cent + ' centavos' : '') + '.'); }
+  partes.push('Posso ajudar em alguma coisa?');
+  return partes.join(' ');
+}
+// espera a fala acabar de verdade: com o rosto, até ele parar de falar (a voz dele chega depois do relógio daqui)
+function fimDoCumprimento(g){
+  return new Promise((ok) => {
+    const inicio = Date.now(); let tocou = false;
+    const t = setInterval(() => {
+      const falando = g.sources.length > 0 || g.retendo || g.planoBAtivo || FelyxAvatar.falandoAgora();
+      if (falando) tocou = true;
+      if ((tocou && !falando) || Date.now() - inicio > 40000 || (!tocou && Date.now() - inicio > 10000)){ clearInterval(t); setTimeout(ok, 300); }
+    }, 120);
+  });
+}
+let irisFeita = false, iniciandoVoz = false;
+async function iniciarVoz(){
+  if (conv || iniciandoVoz) return;
+  iniciandoVoz = true;
+  try{ await iniciarVozDeVerdade(); } finally { iniciandoVoz = false; }
+}
+async function iniciarVozDeVerdade(){
+  if (!(await permissaoIA())){ estado('idle', 'a voz precisa da sua permissão'); toast(SEM_IA); return; }
+  const g = new GeminiLive();
+  estado('boot');
+  g.onState = (s) => { if (conv === g) estado(s); };
+  g.onClose = (reason) => { FelyxAvatar.fechar(); if (conv !== g) return; conv = null; estado('idle', reason ? 'conversa encerrada' : ''); };
+  g.onBrain = () => {};   // na voz, sem legenda: o Félix só fala (regra do Leandro). O texto aparece só na conversa digitada.
+  g.micOpen = false;   // da íris até o fim do cumprimento o Léo não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
+  try{
+    const dados = dadosDoCumprimento();   // temperatura e dólar do Google, buscados enquanto a íris roda
+    FelyxAvatar.esconder(true);           // o rosto conecta durante a íris, mas só aparece quando ela acaba
+    const rosto = FelyxAvatar.abrir();
+    const inicioVoz = g.start();
+    let pedido = null;   // o cumprimento vai ao Gemini quando começa a última fala da íris e espera pronto, sem tocar
+    const pedirCumprimento = () => { if (!pedido) pedido = (async () => { try{ await inicioVoz; }catch(e){ return; } const d = await Promise.race([dados, pausa(1500)]); g.cumprimentar(textoDoCumprimento(d)); })(); return pedido; };
+    // na primeira conversa desde que o app abriu: desbloqueio de íris (radar em quem está diante da tela)
+    const iris = irisFeita ? null : felyxIris.desbloquear($('#vFelyx .stage'), { antesDoFim: pedirCumprimento });
+    irisFeita = true;
+    if (!iris) pedirCumprimento();
+    await Promise.all([inicioVoz, iris]);
+    conv = g; estado('boot');
+    await Promise.race([rosto, pausa(5000)]);   // se o rosto ainda conecta, espera até 5 s; sem rosto, fala pela voz do aparelho
+    if (conv !== g) return;
+    FelyxAvatar.esconder(false);   // o rosto aparece...
+    await pedirCumprimento();
+    g.soltar();                    // ...e o cumprimento sai na hora, sincronizado com a boca
+    await fimDoCumprimento(g);     // o microfone segue ignorado até a fala acabar (com o rosto, até ele parar de falar)
+    if (conv !== g) return;
+    g.micOpen = true; g.ativoEm = Date.now(); estado('listening');
+  }catch(e){
+    FelyxAvatar.esconder(false);
+    g.teardown('');
+    if (e && e.sessao){ estado('idle', 'sessão expirada: entre de novo'); sessaoCaiu({ status: 401 }, null); return; }
+    estado('idle', (e && e.name === 'NotAllowedError') ? 'microfone bloqueado: libere nas permissões' : 'não consegui conectar a voz');
+  }
+}
+function alternarVoz(){ if (conv){ conv.end(); return; } try{ felyxIris.preparar(); }catch(e){} try{ FelyxAvatar.liberarSom(); }catch(e){} iniciarVoz(); }   // o som do rosto também precisa do toque no iPhone
+$('#mic').addEventListener('click', alternarVoz);
+document.addEventListener('click', (e) => { if (e.target.closest('[data-falar]')){ if ($('#app').classList.contains('l-phone')) ir('vFelyx'); alternarVoz(); } });
+document.addEventListener('keydown', (e) => {
+  // no computador: barra de espaço fora de campos de texto liga/desliga a conversa
+  if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test((e.target && e.target.tagName) || '') && !$('#app').hidden){ e.preventDefault(); alternarVoz(); }
+});
+$('#ajBV').checked = store.get('felyx.bv', true);
+$('#ajBV').addEventListener('change', (e) => store.set('felyx.bv', e.target.checked));
+$('#ajIA').addEventListener('change', (e) => { if (e.target.checked){ e.target.checked = false; store.del(chaveIA()); permissaoIA(); } else { gravarIA(false); if (conv) conv.end(); } });
+
+/* o app nativo pode pedir ações (atalhos do ícone, Siri, notificações) */
+window.felyxNativo = function(acao, dado){
+  if (acao === 'falar'){ ir('vFelyx'); try{ felyxIris.preparar(); }catch(e){} iniciarVoz(); }
+  else if (acao === 'cena' && dado) comandar('ativa a cena ' + dado);
+  else if (acao === 'comando' && dado) comandar(String(dado));
+  else if (acao === 'aba' && dado) ir(dado);
+  else if (acao === 'perguntar' && dado){ ir('vFelyx'); perguntarPorTexto(String(dado)); }
+};
+
+/* ===================== abertura ===================== */
+async function abrirApp(){
+  $('#login').hidden = true; $('#app').hidden = false;
+  $('#ajNome').textContent = (sessao.nome || '—') + (sessao.demo ? ' · demonstração' : '');
+  const t = digitos(sessao.telefone); $('#ajTel').textContent = t ? '+' + t.slice(0, 2) + ' ' + t.slice(2, 4) + ' ' + t.slice(4, -4) + '-' + t.slice(-4) : '';
+  $('#versao').textContent = 'Leo iA Vinci · versão ' + VERSAO + (PLAT ? ' · ' + PLAT : '');
+  avisarNativo('login', { nome: sessao.nome, token: sessao.token });
+  if (irParaGen()) return;
+  layout(); estado('idle', saudacao().toUpperCase() + ', CHEFE');
+  $('#saud').textContent = saudacao() + ', Chefe.';
+  carregarMercado(); carregarNoticias(); carregarClima(); carregarCasa();
+  // pergunta a permissão de IA logo na primeira abertura; o app nativo (Siri, atalhos) segue a mesma escolha
+  $('#ajIA').checked = iaAceita(); avisarNativo('ia', { aceito: iaAceita() });
+  if (store.get(chaveIA(), null) === null) permissaoIA();
+  // confere a sessão no servidor (expirou ou foi encerrada em outro lugar)
+  try{ const j = await api('sessao', { token: sessao.token }); if (j.ok){ sessao.nome = j.nome || sessao.nome; sessao.demo = !!j.demo; store.set('felyx.sessao', sessao); $('#ajNome').textContent = sessao.nome; } else if (j.erro === 'sessao'){ toast('Sua sessão expirou. Entre de novo.'); sair(); } }catch(e){}
+}
+setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarMercado(); } }, 5 * 60e3);
+setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarNoticias(); } }, 30 * 60e3);
+setInterval(() => { if (document.visibilityState === 'visible' && sessao){ carregarCasa(true); } }, 10 * 60e3);   // mantém o indicador da casa honesto
+requestAnimationFrame(animarBarras);
+if (sessao && sessao.token) abrirApp(); else { $('#login').hidden = false; mostraForm('fTel'); }
+// o app nativo espera este aviso; sem ele (rede ruim, script que não rodou) mostra a tela de "tentar de novo"
+avisarNativo('pronto', {});
+</script>
+</body>
+</html>
