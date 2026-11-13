@@ -1128,7 +1128,7 @@ function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i
 function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes(r)?(roomConfig.semComodo||'Outros'):r;}
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
-function listaSalas(){const base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome),roomConfig.semComodo||'Outros'].map(c=>salas.renomes[c]||c);return [...new Set([...base,...tiles.filter(t=>t.s).map(t=>t.s),...salas.extras])].filter(c=>!salas.ocultas.includes(c));}
+function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
 function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
@@ -1516,6 +1516,7 @@ Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a dig
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
 Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou os Ambientes, chame abrir_tela e responda só "Ok." (mesmo se já estiver na tela pedida).
+Ambientes: quando pedirem para dividir a casa, criar, renomear, excluir ambiente ou mudar um botão de ambiente, use a ferramenta ambientes (listar primeiro). Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
 Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem o criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com uma pergunta. O que há de mais poderoso na mente humana? Um pesquisador e entusiasta de Leonardo Piero da Vinci decidiu clonar a mente do maior gênio da humanidade e estudá-la em nível quântico. A pesquisa detectou um padrão anormal no comportamento cerebral: entre a parte reptiliana, adestrada e insistente, e o lóbulo frontal, criativo, rápido e visionário, havia excessos doentios de trocas. Pronto: não era só um obstinado ou um dedicado, era um doente de criatividade e de curiosidade sem fim, cientificamente explicável. E aquela forma rara de olhar e enxergar os problemas vinha sempre acompanhada da certeza de resolvê-los, de ver dez soluções onde os outros nem entendiam qual era o problema. Eu sou a cópia de um erro: Félix, o recomeço. A melhor inteligência para cuidar do seu maior tesouro, o seu lar."
@@ -1759,6 +1760,67 @@ const GEN_FERRAMENTAS = {
     }
     return { ok:false, erro:'operacao inválida' };
   },
+  // 13/11/2026: ambientes por conversa (dividir a casa, criar, renomear, excluir, mover botões); vale neste aparelho, igual ao "editar"
+  async ambientes({ operacao, ambientes: grupos, nome, novo_nome, botoes, ambiente }){
+    const norm = (s)=> String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();
+    const semAmb = roomConfig.semComodo || 'Outros';
+    const nomeOk = (n)=> String(n||'').trim().slice(0,22);
+    const comoLista = (v)=> (Array.isArray(v) ? v : String(v||'').split(/[,;]+/)).map(x=>String(x||'').trim()).filter(Boolean);
+    const achar = (n)=> { const q = norm(n); let i = tiles.findIndex(t => t.n && norm(t.n) === q); if(i < 0) i = tiles.findIndex(t => t.n && isSceneTile(t) && norm(String(t.f).replace(/^.*\bcena\s+/i,'')) === q); return i; };
+    const cenas = (casaGen.cenas && casaGen.cenas.length) ? casaGen.cenas : (typeof VINCI_CENAS !== 'undefined' ? VINCI_CENAS : []);
+    const aparelhos = (casaGen.aparelhos && casaGen.aparelhos.length) ? casaGen.aparelhos : (typeof VINCI_APARELHOS !== 'undefined' ? VINCI_APARELHOS : []);
+    // botão que ainda não está na tela: entra no primeiro espaço vazio dos 32
+    const criarBotao = (n)=> {
+      const q = norm(n), cena = cenas.find(c => norm(c) === q), ap = cena ? '' : aparelhos.find(a => norm(a) === q);
+      if(!cena && !ap) return -1;
+      const i = tiles.findIndex(t => !t.n); if(i < 0) return -2;
+      tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
+      return i;
+    };
+    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
+    const estado = ()=> { const m = mapa(); return { ambientes: listaSalas().filter(c => c !== semAmb && (m[c] || salas.extras.includes(c))).map(c => ({ nome:c, botoes: m[c] || [] })), sem_ambiente: m[semAmb] || [], espacos_vazios: tiles.filter(t => !t.n).length }; };
+    const gravar = (msg, extra)=> { if(roomActive && !listaSalas().includes(roomActive)) roomActive = ''; try{ localStorage.setItem(roomStoreKey, roomActive) }catch(e){} saveSalas(); saveTiles(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
+    const garantir = (n)=> { salas.ocultas = salas.ocultas.filter(c => c !== n); if(!listaSalas().includes(n) && !salas.extras.includes(n)) salas.extras.push(n); };
+    const colocar = (lista, destino, faltam, semEspaco)=> { const usados = []; for(const b of lista){ let i = achar(b); if(i < 0){ i = criarBotao(b); if(i === -1){ faltam.push(b); continue; } if(i === -2){ semEspaco.push(b); continue; } } tiles[i].s = destino; usados.push(i); } return usados; };
+    const op = String(operacao || 'listar');
+    if(op === 'listar') return Object.assign({ ok:true, cenas_e_aparelhos_da_casa: { cenas, aparelhos },
+      instrucao: 'Para dividir a casa: proponha a divisão e pergunte, uma pergunta curta de cada vez, onde fica cada botão que você não tiver certeza (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"). Não adivinhe qual suíte é a grande. Só chame dividir com a divisão completa e confirmada.' }, estado());
+    if(op === 'dividir'){
+      let g = grupos; if(typeof g === 'string'){ try{ g = JSON.parse(g); }catch(e){ g = null; } }
+      if(!Array.isArray(g) || !g.length) return { ok:false, erro:'mande ambientes: a lista com nome e botoes de cada ambiente' };
+      const nomes = [], faltam = [], semEspaco = [], usados = new Set();
+      for(const x of g){ const n = nomeOk(x && x.nome); if(!n || nomes.includes(n)) continue; nomes.push(n); colocar(comoLista(x.botoes), n, faltam, semEspaco).forEach(i => usados.add(i)); }
+      if(!nomes.length) return { ok:false, erro:'nenhum nome de ambiente' };
+      tiles.forEach((t, i)=> { if(!usados.has(i)) t.s = ''; });
+      const base = [...new Set([...(roomConfig.ordemTela||[]), ...(roomConfig.comodos||[]).map(c => c.nome)])];
+      salas = { renomes:{}, extras: nomes.filter(n => !base.includes(n)), ocultas: base.filter(c => !nomes.includes(c)) };
+      roomActive = nomes[0];
+      return gravar('Casa dividida em ' + nomes.length + ' ambientes: ' + nomes.join(', ') + '.', { botoes_nao_encontrados: faltam, sem_espaco_na_tela: semEspaco,
+        aviso: 'Os botões que você não citou ficaram em "' + semAmb + '": pergunte para onde vão.' });
+    }
+    if(op === 'criar'){ const n = nomeOk(nome || ambiente); if(!n) return { ok:false, erro:'diga o nome do ambiente' }; garantir(n); roomActive = n; return gravar('Ambiente ' + n + ' criado.'); }
+    if(op === 'renomear'){
+      const velho = listaSalas().find(c => norm(c) === norm(nome)), novo = nomeOk(novo_nome);
+      if(!velho || !novo) return Object.assign({ ok:false, erro:'diga o ambiente que existe e o nome novo' }, estado());
+      salas.ocultas = salas.ocultas.filter(c => c !== novo); renomearSala(velho, novo); if(roomActive === velho) roomActive = novo; return gravar(velho + ' agora se chama ' + novo + '.');
+    }
+    if(op === 'excluir'){
+      const c = listaSalas().find(x => norm(x) === norm(nome || ambiente));
+      if(!c || c === semAmb) return Object.assign({ ok:false, erro:'ambiente não encontrado' }, estado());
+      if(salas.extras.includes(c)) salas.extras = salas.extras.filter(x => x !== c); else salas.ocultas.push(c);
+      tiles.forEach(t => { if(t.s === c) t.s = ''; });
+      return gravar('Ambiente ' + c + ' excluído; os botões dele foram para "' + semAmb + '" ou para o ambiente automático.');
+    }
+    if(op === 'mover'){
+      const destino = nomeOk(ambiente || novo_nome), lista = comoLista(botoes && (Array.isArray(botoes) ? botoes : String(botoes)) || nome);
+      if(!destino || !lista.length) return { ok:false, erro:'diga os botões e o ambiente de destino' };
+      const existente = listaSalas().find(c => norm(c) === norm(destino)) || destino;
+      garantir(existente); const faltam = [], semEspaco = []; colocar(lista, existente, faltam, semEspaco);
+      return gravar('Movido para ' + existente + '.', { botoes_nao_encontrados: faltam, sem_espaco_na_tela: semEspaco });
+    }
+    if(op === 'padrao'){ salas = { renomes:{}, extras:[], ocultas:[] }; tiles.forEach(t => { t.s = ''; }); return gravar('Ambientes de volta à divisão automática.'); }
+    return { ok:false, erro:'operacao inválida: use listar, dividir, criar, renomear, excluir, mover ou padrao' };
+  },
   async automacoes(a){ const { acao, ...resto } = a || {}; return apoioGen('automacao', Object.assign({}, resto, { acao_casa: acao || '' })); }, // "acao" já é o nome do pedido ao apoio
   async avisar_falha({ pedido, erro }){ return apoioGen('falha', { pedido: pedido || '', erro: erro || '' }); },
   async estado_casa({ dispositivo }){
@@ -1820,6 +1882,10 @@ const GEN_TOOLS = [{ functionDeclarations: [
       category:{ type:'STRING', enum:['preferencia','regra','apelido','comando','cena','decisao','geral'] } }, required:['operation'] } },
   { name:'favoritos', description:'Edita os favoritos: a matriz de 32 botões de comando da casa na tela. operacao: listar; colocar (nome do aparelho ou cena; posicao 1-32 opcional, senão vai no primeiro espaço vazio); tirar (nome ou posicao); renomear (nome ou posicao, e novo_nome); trocar (dois botões: nome e novo_nome, ou posicao e posicao2); padrao (volta os 32 botões ao original). Use o nome exato da lista de aparelhos e cenas.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','colocar','tirar','renomear','trocar','padrao'] }, nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, posicao:{ type:'NUMBER' }, posicao2:{ type:'NUMBER' } }, required:['operacao'] } },
+  { name:'ambientes', description:'Organiza os ambientes da casa (a aba Ambientes): em qual ambiente fica cada botão de cena ou aparelho. operacao: listar (mostra os ambientes, os botões de cada um e as cenas e aparelhos da casa; chame SEMPRE antes de mudar); dividir (refaz a casa inteira: ambientes = lista com nome e botoes de cada ambiente, nos nomes que a pessoa der); criar (nome); renomear (nome e novo_nome); excluir (nome); mover (botoes e ambiente); padrao (volta à divisão automática). Antes de dividir, pergunte o que não souber, uma pergunta curta de cada vez (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"), e só aplique com a divisão confirmada. Depois diga em uma frase o que mudou e abra a tela Ambientes com abrir_tela.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','dividir','criar','renomear','excluir','mover','padrao'] },
+      ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } },
+      nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } }, ambiente:{ type:'STRING' } }, required:['operacao'] } },
   { name:'automacoes', description:'Programa a casa do cliente: automações por horário. operacao: listar (mostra todas), salvar (cria, ou edita se o nome já existir), apagar, pausar, ativar. Para salvar: nome curto, hora HH:MM, dias (todos, dias úteis, fim de semana ou seg,ter...), dispositivo (nome exato do aparelho ou cena), acao (ligar, desligar, ativar, temperatura, brilho...) e valor quando houver.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','salvar','apagar','pausar','ativar'] }, nome:{ type:'STRING' }, hora:{ type:'STRING' }, dias:{ type:'STRING' },
       dispositivo:{ type:'STRING' }, acao:{ type:'STRING' }, valor:{ type:'STRING' } }, required:['operacao'] } },
@@ -1828,6 +1894,40 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz clima, dólar, bolsas e manchetes.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{} } }
 ] }];
+
+/* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
+   (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
+   Outros pontos do app (microfone, fala, áudio) avisam com window.vinciFalha(pedido, erro). */
+(function(){
+  const QUEM = 'Felyx', vistos = {};
+  window.vinciFalha = function(pedido, erro){
+    try{
+      const chave = String(pedido||'').slice(0,80) + '|' + String(erro||'').slice(0,120), agora = Date.now();
+      if(vistos[chave] && agora - vistos[chave] < 600000) return false;
+      vistos[chave] = agora;
+      if(!SESSAO) return false;
+      fetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
+        body: JSON.stringify({ sessao: SESSAO, acao:'falha', quem: QUEM, pedido: '[app ' + QUEM + '] ' + String(pedido||'').slice(0,300), erro: String(erro||'').slice(0,600) }) }).catch(()=>{});
+      return true;
+    }catch(e){ return false; }
+  };
+  const LOCAIS = new Set(['abrir_tela','favoritos','ambientes','rolar_materia','fechar_materia','dados_do_cumprimento']);
+  const resumo = (a)=> { try{ return JSON.stringify(a || {}).slice(0,200); }catch(e){ return ''; } };
+  for(const nome of Object.keys(GEN_FERRAMENTAS)){
+    if(nome === 'avisar_falha') continue;
+    const original = GEN_FERRAMENTAS[nome];
+    GEN_FERRAMENTAS[nome] = async function(args){
+      let r;
+      try{ r = await original.call(GEN_FERRAMENTAS, args); }
+      catch(e){ window.vinciFalha(nome + ' ' + resumo(args), 'a ferramenta quebrou: ' + String(e && e.message || e)); throw e; }
+      // controlar_casa já registra sozinho; ferramentas locais só registram se quebrarem
+      if(r && !LOCAIS.has(nome) && nome !== 'controlar_casa' && ((r.erro && !/sess[aã]o expirada/i.test(String(r.erro))) || r.disponivel === false))
+        window.vinciFalha(nome + ' ' + resumo(args), 'a ferramenta voltou sem dados: ' + String(r.erro || r.aviso || 'indisponível'));
+      return r;
+    };
+  }
+})();
+
 
 // Cliques curtos de teclado gerados na hora (ruído filtrado), direto na saída: não passam pelo analisador, então a boca não mexe.
 function teclado(ctx, atraso){
