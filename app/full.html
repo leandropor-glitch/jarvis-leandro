@@ -2337,6 +2337,17 @@ window.felyxIA = (function(){
 })();
 </script>
 <script>
+/* 13/11/2026: recados do app nativo (Siri, atalhos do ícone, notificações) agora também no Full; antes só a tela clássica respondia */
+window.felyxNativo = function(acao, dado){
+  const aba = (t)=>{ const m = { vFelyx:'home', felyx:'home', home:'home', dashboard:'dashboard', vDash:'dashboard', rooms:'rooms', salas:'rooms', ambientes:'rooms' }; const b = document.querySelector('[data-tab-target="' + (m[t] || t) + '"]'); if(b) b.click(); };
+  const comando = (frase)=>{ try{ fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: String(frase) }) }).catch(()=>{}); }catch(e){} };
+  if(acao === 'falar' || acao === 'perguntar'){ aba('home'); try{ primeAudio(); }catch(e){} try{ if(!conv) start(); }catch(e){} }
+  else if(acao === 'cena' && dado) comando('ativa a cena ' + dado);
+  else if(acao === 'comando' && dado) comando(dado);
+  else if(acao === 'aba' && dado) aba(String(dado));
+};
+</script>
+<script>
 /* 13/11/2026: painel de clima do Dashboard (mesma fonte do briefing, sem criar card) */
 (function(){
   async function painelClima(){
