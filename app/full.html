@@ -464,6 +464,58 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 
+<style id="dash1311">/* 13/11/2026: Dashboard que aproveita a tela deitada (rosto pequeno + clima + mercado | cenas | notícias), rolagem com o dedo; microfone com a frase centralizada embaixo dele */
+.clima .climaBox{display:flex;align-items:center;gap:14px;padding:8px 12px 12px}
+.clima .climaBox b{font:600 2.1rem/1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;color:var(--ink)}
+.clima .climaBox span{display:block;font-size:.92rem;color:var(--ink)}
+.clima .climaBox span::first-letter{text-transform:uppercase}
+.clima .climaBox small{display:block;margin-top:3px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#hud:not([data-tab="dashboard"]) #climaP{display:none}
+#hud[data-tab="dashboard"]>.stage{overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+@media (orientation:landscape){
+ html:has(#hud[data-tab="dashboard"]),html:has(#hud[data-tab="dashboard"]) body{height:100%;overflow:hidden}
+ #hud[data-tab="dashboard"]{height:100dvh;min-height:0}
+ #hud[data-tab="dashboard"]>.top{display:none}
+ #hud[data-tab="dashboard"]>.stage{display:grid;overflow-y:auto;align-content:start;align-items:start;gap:12px;padding:0 2px 12px;
+   grid-template-columns:minmax(210px,.9fr) minmax(250px,1.25fr) minmax(220px,1fr);
+   grid-template-rows:max-content max-content max-content minmax(max-content,1fr);
+   grid-template-areas:"center cmd n1" "clima cmd n1" "market cmd n2" ". cmd n2";
+   height:calc(100dvh - var(--sTop) - var(--tabsH) - 22px);max-height:none}
+ #hud[data-tab="dashboard"] .col{display:contents}
+ #hud[data-tab="dashboard"] .center{grid-area:center;min-height:0;display:flex;justify-content:center;padding:0}
+ #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(100%,24dvh,190px);position:relative;top:auto}
+ #hud[data-tab="dashboard"] .deck{display:none}
+ #hud[data-tab="dashboard"] #climaP{grid-area:clima}
+ #hud[data-tab="dashboard"] #market{grid-area:market}
+ #hud[data-tab="dashboard"] #matrix{grid-area:cmd}
+ #hud[data-tab="dashboard"] #newsPol{grid-area:n1;min-height:230px}
+ #hud[data-tab="dashboard"] #newsTec{grid-area:n2;min-height:230px}
+}
+@media (orientation:landscape) and (max-height:560px){
+ #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(190px,.85fr) minmax(230px,1.2fr) minmax(200px,1fr)}
+ #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(100%,30dvh,130px)}
+ #hud[data-tab="dashboard"] #newsPol,#hud[data-tab="dashboard"] #newsTec{min-height:200px}
+}
+@media (orientation:landscape) and (max-width:1020px){
+ #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);grid-template-rows:repeat(5,max-content);grid-template-areas:"center cmd" "clima cmd" "market cmd" "n1 n1" "n2 n2"}
+}
+@media (orientation:landscape){
+ #hud[data-tab="dashboard"]{padding-bottom:calc(var(--tabsH) + 8px)!important}
+ #hud[data-tab="dashboard"] .center{height:auto;align-self:start}
+ #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{flex:none;height:auto;margin:0 auto}
+ #hud[data-tab="dashboard"] .boot{display:none}
+}
+/* frase "Fale com ..." sempre centralizada logo abaixo do microfone; deitado, o microfone se afasta da borda para a frase caber */
+@media (orientation:landscape){
+ html body #hud[data-tab="home"]>.mic[data-on="0"]::after{left:50%!important;right:auto!important;transform:translateX(-50%)!important;text-align:center!important}
+ html body #hud>.mic{right:max(52px,calc(env(safe-area-inset-right) + 28px))!important}
+ #hud:not([data-tab="home"]){padding-right:calc(max(52px,env(safe-area-inset-right) + 28px) + 70px)}
+}
+@media (orientation:landscape) and (min-height:561px){
+ html body #hud>.mic{right:max(72px,calc(env(safe-area-inset-right) + 36px))!important}
+ #hud:not([data-tab="home"]){padding-right:calc(max(72px,env(safe-area-inset-right) + 36px) + 92px)}
+}
+</style>
 </head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
@@ -493,6 +545,10 @@ input,select,textarea{font-size:16px!important}
         <div class="ph"><span class="k"><i></i>mercado · binance</span><span class="pr" id="marketWhen">carregando</span></div>
         <div class="rows" id="marketRows"></div>
         <div class="pf" id="marketFoot">pares binance · spot e futuros</div>
+      </section>
+      <section class="panel clima" id="climaP" aria-label="Clima">
+        <div class="ph"><span class="k"><i></i>clima · rio de janeiro</span><span class="pr" id="climaWhen">carregando</span></div>
+        <div class="climaBox"><b id="climaT">—</b><div><span id="climaD">—</span><small id="climaX"></small></div></div>
       </section>
       <section class="panel news" id="newsPol" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
@@ -2135,6 +2191,7 @@ function fimDaFala(g){
 let iniciando = false;   // login, tela da íris e botão podem chamar ao mesmo tempo: a abertura roda uma vez só
 async function start(){
   if(iniciando || conv) return;
+  if(!window.felyxIA || !felyxIA.ok()){ if(window.felyxIA) felyxIA.pedir(); return; }   // 13/11: permissão de IA antes da primeira conversa (era feita na tela clássica)
   iniciando = true;
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
@@ -2241,6 +2298,60 @@ window.FERRAMENTAS_MATERIA = {
   }, { passive:true });
 })();
 
+</script>
+<section id="iaFull" hidden role="dialog" aria-modal="true" aria-labelledby="iaFullTit">
+  <div class="iaFullBox">
+    <span class="k">Felyx · Vinci AI</span>
+    <h1 id="iaFullTit">Vamos conversar?</h1>
+    <p>Eu sou o Felyx. Para ouvir você e responder com a minha voz, uso a inteligência do <b>Google (Gemini)</b>: a sua voz vai para lá só enquanto estamos conversando, e nada fica gravado.</p>
+    <p class="nota">Nada disso é vendido nem usado para anúncios. Você muda de ideia quando quiser, e a casa, as notícias e o mercado funcionam de qualquer jeito.</p>
+    <a href="privacidade.html" target="_blank" rel="noopener">Detalhes na política de privacidade</a>
+    <button type="button" id="iaFullSim">Vamos conversar</button>
+    <button type="button" id="iaFullNao" class="ghost">Agora não</button>
+  </div>
+</section>
+<style>
+#iaFull{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.72);padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));overflow:auto}
+#iaFull[hidden]{display:none}
+.iaFullBox{width:min(460px,100%);background:#0d0f12;border:1px solid rgba(var(--accent-rgb),.35);border-radius:18px;padding:22px;color:var(--ink);display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px #000c}
+.iaFullBox .k{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+.iaFullBox h1{margin:0;font-size:1.5rem}
+.iaFullBox p{margin:0;line-height:1.45;font-size:.95rem}
+.iaFullBox .nota{color:var(--muted);font-size:.85rem}
+.iaFullBox a{color:var(--accent);font-size:.85rem}
+.iaFullBox button{min-height:48px;border-radius:14px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink,#000);font:600 1rem system-ui,sans-serif}
+.iaFullBox button.ghost{background:transparent;color:var(--ink);border-color:rgba(255,255,255,.2)}
+</style>
+<script>
+/* 13/11/2026: permissão de IA dentro do Felyx Full (antes só existia na tela clássica, que por isso aparecia no lugar do Full) */
+window.felyxIA = (function(){
+  const dig = (x)=> String(x||'').replace(/\D/g,'');
+  function chave(){ let t=''; try{ const s = JSON.parse(localStorage.getItem('felyx.sessao')||'null'); t = s && s.telefone; }catch(e){} return 'felyx.ia.' + dig(t); }
+  function ok(){ try{ return JSON.parse(localStorage.getItem(chave())||'null') === true; }catch(e){ return false; } }
+  function gravar(v){ try{ localStorage.setItem(chave(), JSON.stringify(v)); }catch(e){} try{ window.webkit.messageHandlers.felyx.postMessage({ tipo:'ia', aceito: v === true }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo:'ia', aceito: v === true })); }catch(e){} }
+  const el = document.getElementById('iaFull');
+  function pedir(){ el.hidden = false; setTimeout(()=>{ try{ document.getElementById('iaFullSim').focus(); }catch(e){} }, 50); }
+  document.getElementById('iaFullSim').addEventListener('click', ()=>{ gravar(true); el.hidden = true; try{ primeAudio(); }catch(e){} try{ if(!conv) start(); }catch(e){} });
+  document.getElementById('iaFullNao').addEventListener('click', ()=>{ gravar(false); el.hidden = true; });
+  return { ok, pedir };
+})();
+</script>
+<script>
+/* 13/11/2026: painel de clima do Dashboard (mesma fonte do briefing, sem criar card) */
+(function(){
+  async function painelClima(){
+    try{
+      const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+      const c = j.current, d = j.daily, n = (v)=> Math.round(Number(v));
+      document.getElementById('climaT').textContent = n(c.temperature_2m) + '°';
+      document.getElementById('climaD').textContent = (typeof WMO !== 'undefined' && WMO[c.weather_code]) || '';
+      document.getElementById('climaX').textContent = 'sensação ' + n(c.apparent_temperature) + '° · mín ' + n(d.temperature_2m_min[0]) + '° · máx ' + n(d.temperature_2m_max[0]) + '° · chuva ' + d.precipitation_probability_max[0] + '%';
+      document.getElementById('climaWhen').textContent = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){ const w = document.getElementById('climaWhen'); if(w) w.textContent = 'sem conexão'; }
+  }
+  if(document.readyState === 'loading') addEventListener('DOMContentLoaded', painelClima); else painelClima();
+  setInterval(()=>{ if(document.visibilityState === 'visible') painelClima(); }, 30*60e3);
+})();
 </script>
 </body>
 </html>

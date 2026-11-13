@@ -565,6 +565,11 @@ html[data-leda="gem"] body #hud[data-tab="home"]{padding-bottom:0!important}
 @media (orientation:portrait){html body #hud[data-tab="home"] .face .ledaBusto{--bw:min(100vw,calc((100dvh - var(--tabsH,64px) - 60px - env(safe-area-inset-top,0px)) / 1.2487));width:var(--bw)!important;left:50%!important;translate:-50% 0;top:max(env(safe-area-inset-top,0px),calc(100dvh - var(--tabsH,64px) - 132px - var(--bw) * 1.2487))!important}}
 
 </style>
+<style id="telaGrandeEmPe">/* 12/11/2026: tela grande em pé (iPad, tablet, dobrável aberto; mesmo limite da telaGrandeDeitada: lado menor > 560): a Leda termina 132px acima das abas, como no celular em pé, e o microfone com o "Fale com a Leda" fica no fundo liso, sem cobrir o peito */
+@media (orientation:portrait) and (min-width:561px){
+ html body #hud[data-tab="home"] .face .ledaBusto{--bw:min(100vw,calc((100dvh - var(--tabsH,64px) - 132px - env(safe-area-inset-top,0px)) / 1.2487))}
+}
+</style>
 <script>
 // Leda (12/11/2026, revisão 2): frases de vó e de mãe, cumprimento "jovem", aba Receitas e boas práticas do lar.
 // Gerado por gerar_html.py; não editar a página, editar este arquivo.
@@ -758,6 +763,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 </script>
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Leda"><meta name="theme-color" content="#291b16"><link rel="apple-touch-icon" href="icone-180.png">
+<style id="micCentro1311">/* 13/11/2026: "Fale com a Leda" sempre centralizada logo abaixo do microfone (deitado também); o microfone se afasta da borda para a frase caber, sem encostar na barra */
+@media (orientation:landscape){
+ html body #hud[data-tab="home"]>.mic[data-on="0"]::after{left:50%!important;right:auto!important;transform:translateX(-50%)!important;text-align:center!important}
+ html body #hud>.mic{right:max(56px,calc(env(safe-area-inset-right) + 30px))!important}
+ #hud:not([data-tab="home"]){padding-right:calc(max(56px,env(safe-area-inset-right) + 30px) + 70px)}
+}
+@media (orientation:landscape) and (min-height:561px){
+ html body #hud>.mic{right:max(76px,calc(env(safe-area-inset-right) + 38px))!important}
+ #hud:not([data-tab="home"]){padding-right:calc(max(76px,env(safe-area-inset-right) + 38px) + 92px)}
+}
+</style>
 </head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para falar com a Leda">
