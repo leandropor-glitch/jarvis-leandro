@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 (function(){
   try{ const s = JSON.parse(localStorage.getItem('felyx.sessao') || 'null'); if(s && s.token) localStorage.setItem('felyx_sessao', s.token); }catch(e){}
   const aviso = (tipo) => { try{ window.webkit.messageHandlers.felyx.postMessage({ tipo }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo })); }catch(e){} };
-  window.felyxVoltarAoLogin = function(){ try{ localStorage.removeItem('felyx.sessao'); localStorage.removeItem('felyx_sessao'); }catch(e){} aviso('logout'); location.replace('./' + location.search); };
+  window.felyxVoltarAoLogin = function(){ try{ localStorage.removeItem('felyx.sessao'); localStorage.removeItem('felyx_sessao'); }catch(e){} aviso('logout'); try{ if(typeof mostrarLogin === 'function'){ mostrarLogin(''); return; } }catch(e){} location.replace('./' + location.search); };
   addEventListener('DOMContentLoaded', () => aviso('pronto'));
 })();
 </script>
@@ -1161,7 +1161,7 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
     aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); primeAudio(); if(!conv) start(); } }));
   document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
 })();
-function mostrarLogin(msg){ if(window.felyxVoltarAoLogin) return window.felyxVoltarAoLogin(); const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
+function mostrarLogin(msg){ /* 13/11: na Leda o login fica nesta página (index.html só redireciona para cá); voltar para './' recarregava sem fim e o login nunca aparecia */ const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
 function esconderLogin(){ const el = document.getElementById('felyxLogin'); if(el) el.dataset.on = '0'; }
 
 /* ===================== mercado (em real) ===================== */
