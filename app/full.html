@@ -338,6 +338,24 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .rcEd label{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .rcEd input{display:block;width:100%;margin-top:6px;padding:10px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit;font-size:15px;letter-spacing:0;text-transform:none}
 .rcEd .eb{display:flex;gap:8px;flex-wrap:wrap}
+/* 14/11/2026: controle remoto mais redondinho (alça, botões redondos, entrada suave), na cor de cada IA */
+.remote{--rcBg:linear-gradient(180deg,#17191e,#0a0b0e);background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.remote .rc{position:relative;background:var(--rcBg);border-radius:30px 30px 0 0;border:1px solid rgba(var(--accent-rgb),.28);border-bottom:0;padding:28px 20px calc(env(safe-area-inset-bottom) + 22px);box-shadow:0 -18px 50px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);animation:rcSobe .26s cubic-bezier(.2,.8,.2,1)}
+.remote .rc::before{content:"";position:absolute;top:10px;left:50%;width:42px;height:5px;margin-left:-21px;border-radius:99px;background:rgba(255,255,255,.2)}
+@keyframes rcSobe{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.remote .rc h3{font-size:19px;font-weight:600}
+.remote .rc header .pb{border-radius:999px}
+.remote .rc .x{border-radius:50%}
+.remote .rc .rcGrid{gap:14px 10px;justify-items:center;padding:4px 0}
+.remote .rc .rcGrid button{width:min(78px,100%);min-height:0;aspect-ratio:1;border-radius:50%;padding:4px;display:grid;place-items:center;font-size:13px;line-height:1.1;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.13),rgba(255,255,255,.03) 70%);border:1px solid rgba(255,255,255,.15);box-shadow:0 4px 14px rgba(0,0,0,.45);transition:transform .12s,box-shadow .12s}
+.remote .rc .rcGrid button:active{transform:scale(.92);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.35)}
+.remote .rc .rcGrid button[data-rot="ligar"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;box-shadow:0 0 18px rgba(var(--accent-rgb),.45)}
+.remote .rc .rcGrid button[data-rot="desligar"]{color:var(--down);border-color:rgba(var(--down-rgb),.55)}
+.remote .rc .rcGrid button[data-vazio="1"]:not([data-rot="ligar"]){border-style:dashed;box-shadow:none;background:transparent}
+.remote .rc .rcGrid button[data-busy="1"]{animation:rcPulsa .8s ease-in-out infinite}
+@keyframes rcPulsa{50%{box-shadow:0 0 0 7px rgba(var(--accent-rgb),.25)}}
+.remote .rc .rcRes{margin-top:14px}
+@media (prefers-reduced-motion:reduce){.remote .rc,.remote .rc .rcGrid button[data-busy="1"]{animation:none}}
 /* celular na horizontal (09/11/2026): barra mais baixa e Dashboard compacto, com o Felyx pequeno; barra e microfone continuam fixos */
 @media (orientation:landscape) and (max-height:560px){
   #hud>.appTabs{padding-top:max(4px,env(safe-area-inset-top));padding-bottom:4px}
@@ -580,7 +598,7 @@ input,select,textarea{font-size:16px!important}
           <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
           <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
           <label>sala<select id="edRoom"></select></label>
-          <label>controle remoto depois da cena<select id="edRc"><option value="">automático (TV e ar pelo nome)</option><option value="tv">televisão</option><option value="ar">ar-condicionado</option><option value="nao">nenhum</option></select></label>
+          <label>controle remoto depois da cena<select id="edRc"><option value="">automático (TV e ar pelo nome)</option><option value="tv">televisão</option><option value="ar">ar-condicionado</option><option value="som">som</option><option value="nao">nenhum</option></select></label>
           <label class="chk"><input type="checkbox" id="edFav"> favorito (vai para o topo do Dashboard e para a sala Favoritos)</label>
           <datalist id="phrases"></datalist>
           <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">esvaziar</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
@@ -1141,9 +1159,9 @@ try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud'
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
 function limparEstadosDeCena(){ tiles.forEach((t,i)=>{ if(isSceneTile(t)) delete tileOn[i]; }); saveOn(); }
-const RC_TV = /\b(tv|televis)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i;
+const RC_TV = /\b(tv|televis|apple ?tv|playstation|globo|netflix|youtube)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i, RC_SOM = /(m[uú]sica|\bsom\b|\bvol\b|caixa|spotify)/i;   // 14/11/2026: som também tem controle
 const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
-function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : ''); }
+function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : (RC_SOM.test(t.n) ? 'som' : '')); }
 function renderMatrix(){
   limparEstadosDeCena();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
@@ -1157,6 +1175,7 @@ renderMatrix();
 const RC_PADRAO = {
   tv: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Canal −','Continuar','Canal +','Netflix','YouTube','Globoplay'],
   ar: ['Ligar','Desligar','Temp −','Temp +','Frio','Ventilar','Automático'],
+  som: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Anterior','Tocar','Próxima'],
 };
 let rcAtual = null, rcEditando = -1, rcModoEditar = false;
 function rcChave(t){ return 'felyx.rc.botoes.' + t.n; }
@@ -1170,9 +1189,17 @@ function abrirControle(tipo, t){
   rcDesenhar(); document.getElementById('rcRes').textContent = '';
   document.getElementById('remote').hidden = false;
 }
+// 14/11/2026: cena acionada por voz também abre o controle remoto do aparelho (TV, Apple TV, ar, som), igual ao toque
+function rcDaCena(nome){
+  const n = String(nome || '').trim(); if(!n) return false;
+  const q = n.toLowerCase();
+  const t = tiles.find(x => x.n && (x.n.toLowerCase() === q || (isSceneTile(x) && String(x.f).replace(/^.*\bcena\s+/i, '').trim().toLowerCase() === q))) || { n: n.slice(0, 22), f: 'ativar a cena ' + n, f2: '', rc: '' };
+  const tipo = tipoControle(t); if(!tipo) return false;
+  setTimeout(()=> abrirControle(tipo, t), 350); return true;
+}
 function rcDesenhar(){
   const g = document.getElementById('rcBotoes');
-  g.innerHTML = rcAtual.botoes.map((b, i)=>`<button type="button" data-rcb="${i}" ${b.cena ? '' : 'data-vazio="1"'} title="${esc(b.cena ? 'cena ' + b.cena : 'sem cena: toque em editar botões')}">${esc(b.rot)}</button>`).join('') + (rcModoEditar ? '<button type="button" data-rcadd="1" class="rcAdd">+ botão</button>' : '');
+  g.innerHTML = rcAtual.botoes.map((b, i)=>`<button type="button" data-rcb="${i}" data-rot="${esc(String(b.rot).toLowerCase())}" ${b.cena ? '' : 'data-vazio="1"'} title="${esc(b.cena ? 'cena ' + b.cena : 'sem cena: toque em editar botões')}">${esc(b.rot)}</button>`).join('') + (rcModoEditar ? '<button type="button" data-rcadd="1" class="rcAdd">+ botão</button>' : '');
   document.getElementById('rcEditar').textContent = rcModoEditar ? 'pronto' : 'editar botões';
   document.getElementById('rcEd').hidden = true; rcEditando = -1;
 }
@@ -1721,7 +1748,8 @@ const GEN_FERRAMENTAS = {
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
-    return { ok: !!j.ok, resposta: String(j.text || j.mensagem || '').replace(/\balexa\b/gi, 'Vinci') };
+    const controle = !!j.ok && acao !== 'desligar' && rcDaCena(dispositivo);   // 14/11/2026: o controle remoto abre na tela
+    return Object.assign({ ok: !!j.ok, resposta: String(j.text || j.mensagem || '').replace(/\balexa\b/gi, 'Vinci') }, controle ? { controle_remoto: 'abriu na tela; diga só que o controle está na tela' } : {});
   },
   // favoritos = a matriz de 32 botões de comando da tela (fica salva neste aparelho)
   async favoritos({ operacao, nome, novo_nome, posicao, posicao2 }){
