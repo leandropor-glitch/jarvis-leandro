@@ -68,9 +68,14 @@
     let tm;
     try{
       const limite = new Promise((_, rejeitar)=>{ tm = setTimeout(()=>{ rejeitar(new Error('replica timeout')); if(ctl) ctl.abort(); }, 4000); });
-      const r = await Promise.race([fetch(URL_IA, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
-        body: JSON.stringify(pedido), signal: ctl ? ctl.signal : undefined }), limite]);
-      return !!(r && r.ok);
+      const confirmacao = (async()=>{
+        const r = await fetch(URL_IA, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
+          body: JSON.stringify(pedido), signal: ctl ? ctl.signal : undefined });
+        if(!r || !r.ok) return false;
+        const recibo = await r.json();
+        return !!(recibo && recibo.ok === true && recibo.persistida === true && recibo.id != null);
+      })();
+      return await Promise.race([confirmacao, limite]);
     }catch(e){ return false; }
     finally{ clearTimeout(tm); }
   }
@@ -161,8 +166,9 @@
         const mudou = EDITA[nome].ops.includes(op) && r && r.ok !== false && !r.erro;
         if(mudou){
           const replica = await reportar(nome, args, r);
-          return Object.assign({}, r, { replica: replica.enviada ? 'enviada para a Vinci repetir no App Vinci, no Google Home e na Amazon' :
-            (replica.pendente ? 'pendente na fila local para reenvio' : 'não enviada; armazenamento local indisponível') });
+          return Object.assign({}, r, { replica: replica.enviada ? 'enviada e gravada para processamento; aplicação nos demais sistemas ainda não confirmada' :
+            (replica.pendente ? 'pendente na fila local para reenvio' : 'não enviada; armazenamento local indisponível'),
+            replica_status: replica.enviada ? 'aguardando_replica' : 'falha_envio' });
         }
         return r;
       };
@@ -200,7 +206,7 @@
       '\n- Cotações, preços, notícias, resultados, o porquê do mercado e tudo que muda com o tempo: use a Busca Google, que está ligada para você. As ferramentas antigas bolsas, noticias e manchetes_do_dia foram desligadas; ignore qualquer menção a elas acima. Dólar, euro e bitcoin da tela: use o PAINEL. Notícia do painel: abrir_manchete.' +
       '\n- Suas abas: você conhece todo o conteúdo delas (abaixo) e faz qualquer edição pedida: criar, apagar, renomear, mover botões entre ambientes, colocar, tirar e trocar favoritos' + (IA === 'leda' ? ', criar, editar, renomear e apagar receitas (ferramenta receitas)' : '') + '. Liste antes, aplique sem pedir confirmação quando o pedido for claro, e confirme em meia frase.' +
       '\n- Apagar: quando o cliente pedir, pode apagar ambiente, favorito' + (IA === 'leda' ? ', receita' : '') + ' ou automação. Cena da central da casa você não apaga: só tira do botão.' +
-      '\n- Toda edição confirmada tenta enviar a réplica para a Vinci repetir o mesmo ajuste no App Vinci, no Google Home e na Amazon. Só diga que foi enviada quando o campo "replica" começar com "enviada"; "pendente" significa que aguarda reenvio local, não confirma envio. Diga o estado em meia frase, uma vez por conversa, sem citar Claude, Gemini nem GPT.' +
+      '\n- Toda edição confirmada tenta enviar a réplica para a Vinci repetir o mesmo ajuste no App Vinci, no Google Home e na Amazon. Só diga que foi enviada quando o campo "replica" começar com "enviada"; "pendente" significa que aguarda reenvio local, não confirma envio. Gravação na fila não comprova execução nos outros sistemas; nunca diga que eles já foram alterados sem prova. Diga o estado em meia frase, uma vez por conversa, sem citar Claude, Gemini nem GPT.' +
       '\n- O que não é seu (falha, mudança na programação do app da Vinci ou da Amazon, pedido de outra equipe): avisar_falha, em silêncio, para a engenharia da Vinci (Claude ou GPT). Nunca comente isso com o cliente.' +
       (full ? '\n- Modo Full: o WhatsApp do cliente corre em paralelo pela Vinci' + (IA === 'felyx' ? ', e o seu rosto ao vivo (Live Avatar) acompanha a sua voz' : '') + '. Aqui no app, quem responde é você, na hora.' : '') +
       '\n\nCONTEÚDO DAS SUAS ABAS AGORA:\n' + (abas() || 'sem leitura');

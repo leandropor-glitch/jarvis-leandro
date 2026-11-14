@@ -1080,13 +1080,14 @@ function teclado(ctx, atraso){
 }
 const FelyxAvatar = (()=>{
   try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
-  let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
+  const AVATAR_DISPONIVEL = false; // LiveAvatar é exclusivo do Felyx.
+  let ligado = false;
   let avSessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
   const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
   const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
   async function abrir(){
-    if(!ligado || pronto || abrindo || !(sessao && sessao.token) || Date.now() < bloqueadoAte) return abrindo;
+    if(!AVATAR_DISPONIVEL || !ligado || pronto || abrindo || !(sessao && sessao.token) || Date.now() < bloqueadoAte) return abrindo;
     abrindo = (async ()=>{
       const r = await fetch(PRO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao && sessao.token }) });
       const j = await r.json().catch(()=>({}));
