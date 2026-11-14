@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Assine o Felyx — Vinci Automação</title>
+<meta name="description" content="Felyx, a inteligência da sua casa. Assine o Felyx Lite ou o Felyx Pro e acesse pelo app no iPhone, Android, Mac e na web.">
+<meta name="theme-color" content="#050607">
+<link rel="icon" href="icone.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#050607;--card:#0E1215;--card2:#141A1F;--line:#22303A;--ink:#F2F5F7;--soft:#C1CFD9;--mute:#7E8B94;--acc:#D6FF1A;--acc-ink:#0B0F12;--ok:#4ADE80;--warn:#F5B942}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.marca{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.14em;font-size:14px}
+.marca img{width:32px;height:32px;border-radius:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:14px 22px;font:600 15px Montserrat,sans-serif;cursor:pointer;text-decoration:none}
+.btn.p{background:var(--acc);color:var(--acc-ink)}
+.btn.s{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:40px 0 60px}
+.hero h1{font-size:clamp(34px,5.4vw,58px);line-height:1.05;margin:0 0 18px;font-weight:800;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--acc)}
+.hero p{color:var(--soft);font-size:18px;line-height:1.55;margin:0 0 26px;max-width:46ch}
+.foto{position:relative;border-radius:28px;overflow:hidden;border:1px solid var(--line);background:#000;aspect-ratio:4/5}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(5,6,7,.9))}
+.foto span{position:absolute;left:20px;bottom:18px;z-index:1;font-weight:700;font-size:13px;letter-spacing:.12em;color:var(--acc)}
+section{padding:56px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(24px,3.4vw,34px);margin:0 0 10px;font-weight:800}
+.sub{color:var(--mute);margin:0 0 30px;font-size:16px;max-width:60ch;line-height:1.5}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.card h3{margin:0 0 8px;font-size:17px}
+.card p{margin:0;color:var(--soft);font-size:15px;line-height:1.5}
+.planos{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.plano{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:28px;display:flex;flex-direction:column;gap:14px}
+.plano.dest{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.plano .tag{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--acc)}
+.plano h3{margin:0;font-size:26px}
+.preco{font-size:30px;font-weight:800}
+.preco small{font-size:14px;color:var(--mute);font-weight:500}
+.plano ul{margin:0;padding:0 0 0 18px;color:var(--soft);line-height:1.7;font-size:15px}
+.plano .btn{margin-top:auto}
+form{display:grid;gap:14px;max-width:560px}
+label{display:grid;gap:6px;font-size:13px;color:var(--mute);font-weight:600;letter-spacing:.04em}
+input,select{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--ink);font:500 16px Montserrat,sans-serif;width:100%}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:1px}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:500;color:var(--soft);letter-spacing:0}
+.check input{width:auto;margin-top:3px}
+.msg{min-height:22px;font-size:14px}
+.msg.err{color:#FF8A8A}.msg.ok{color:var(--ok)}
+.pag{display:none;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;max-width:560px;margin-top:22px}
+.pag.on{display:block}
+.pag h3{margin:0 0 6px}
+.aviso{border:1px dashed var(--warn);color:var(--warn);border-radius:14px;padding:14px;font-size:14px;line-height:1.5}
+.qr{background:#fff;border-radius:16px;padding:14px;width:220px;margin:12px 0}
+.qr img{width:100%;display:block}
+.copia{display:flex;gap:8px}
+.copia input{font-size:12px}
+.passos{counter-reset:p;display:grid;gap:12px;padding:0;margin:0;list-style:none}
+.passos li{counter-increment:p;display:flex;gap:14px;align-items:flex-start;color:var(--soft);line-height:1.5}
+.passos li:before{content:counter(p);flex:none;width:28px;height:28px;border-radius:14px;background:var(--acc);color:var(--acc-ink);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+footer{padding:30px 0 50px;color:var(--mute);font-size:13px;border-top:1px solid var(--line)}
+footer a{color:var(--soft)}
+@media (max-width:820px){.hero{grid-template-columns:1fr}.foto{max-width:420px}.grid3{grid-template-columns:1fr}.planos{grid-template-columns:1fr}}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="marca"><img src="icone.png" alt="">FELYX</div>
+    <a class="btn s" href="#assinar">Assinar</a>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>A inteligência da <em>sua casa</em>, por voz.</h1>
+      <p>O Felyx conversa com você, aciona as cenas e os aparelhos da casa e ainda traz as notícias e o mercado do dia. Um produto da Vinci Automação.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="btn p" href="#planos">Ver os planos</a>
+        <a class="btn s" href="#como">Como funciona</a>
+      </div>
+    </div>
+    <div class="foto"><img src="felyx.jpg" alt="Retrato do Felyx"><span>FELYX AI VINCI</span></div>
+  </div>
+</div>
+
+<section id="como"><div class="wrap">
+  <h2>O que o Felyx faz</h2>
+  <p class="sub">Fale com naturalidade. Ele entende, executa e responde em segundos.</p>
+  <div class="grid3">
+    <div class="card"><h3>Casa por voz e toque</h3><p>Cenas, luzes, ar-condicionado e TV. "Ativa a cena Boa Noite", "liga a sanca".</p></div>
+    <div class="card"><h3>Responde a tudo</h3><p>Qualquer pergunta, de receita a dever de casa, com a mesma inteligência do Claude.</p></div>
+    <div class="card"><h3>Bom dia completo</h3><p>Clima, mercado e a notícia que importa, num resumo falado.</p></div>
+    <div class="card"><h3>Programa a casa</h3><p>"Todo dia às 22h desliga a sala." Ele cria, muda e pausa as automações.</p></div>
+    <div class="card"><h3>WhatsApp do Felyx</h3><p>Comandos e perguntas também pelo WhatsApp, só para números autorizados.</p></div>
+    <div class="card"><h3>Em todas as telas</h3><p>iPhone, iPad, Android, Mac, Apple TV, Vision Pro e navegador.</p></div>
+  </div>
+</div></section>
+
+<section id="planos"><div class="wrap">
+  <h2>Planos</h2>
+  <p class="sub">Escolha o plano. A assinatura fica ligada ao seu número de WhatsApp, que é o seu login no app.</p>
+  <div class="planos">
+    <div class="plano">
+      <span class="tag">LITE</span>
+      <h3>Felyx Lite</h3>
+      <div class="preco" data-preco="lite">—</div>
+      <ul>
+        <li>Conversa por voz com o Felyx</li>
+        <li>Casa: cenas e aparelhos</li>
+        <li>Notícias e mercado</li>
+        <li>App em todas as plataformas</li>
+      </ul>
+      <button class="btn s" data-plano="lite">Quero o Lite</button>
+    </div>
+    <div class="plano dest">
+      <span class="tag">PRO</span>
+      <h3>Felyx Pro</h3>
+      <div class="preco" data-preco="pro">—</div>
+      <ul>
+        <li>Tudo do Lite</li>
+        <li>Rosto do Felyx ao vivo, com a boca sincronizada à voz</li>
+        <li>WhatsApp do Felyx</li>
+        <li>Automações programadas por voz</li>
+      </ul>
+      <button class="btn p" data-plano="pro">Quero o Pro</button>
+    </div>
+  </div>
+</div></section>
+
+<section id="assinar"><div class="wrap">
+  <h2>Assinar</h2>
+  <p class="sub">Preencha os dados. Depois do pagamento confirmado, o seu número é liberado no app e você cria a sua senha pelo código que chega no WhatsApp.</p>
+  <form id="f" novalidate>
+    <label>Plano
+      <select id="plano" required><option value="pro">Felyx Pro</option><option value="lite">Felyx Lite</option></select>
+    </label>
+    <label>Nome completo<input id="nome" autocomplete="name" required></label>
+    <label>WhatsApp com DDD<input id="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 90000-0000" required></label>
+    <label>E-mail<input id="email" type="email" autocomplete="email" required></label>
+    <label class="check"><input type="checkbox" id="aceite" required> <span>Li e concordo com a <a href="../app/privacidade.html" target="_blank" rel="noopener">política de privacidade</a>.</span></label>
+    <button class="btn p" id="enviar" type="submit">Continuar para o pagamento</button>
+    <div class="msg" id="msg" role="status"></div>
+  </form>
+
+  <div class="pag" id="pag">
+    <h3>Pagamento</h3>
+    <p class="sub" id="pagResumo" style="margin-bottom:14px"></p>
+    <div id="pagConteudo"></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Como fica liberado</h2>
+  <ol class="passos">
+    <li>Você assina aqui e paga por PIX ou cartão.</li>
+    <li>Com o pagamento confirmado, o seu número de WhatsApp é liberado no Felyx.</li>
+    <li>Você abre o app, digita o número e recebe um código no WhatsApp.</li>
+    <li>Cria a sua senha e pronto: o Felyx é seu.</li>
+  </ol>
+</div></section>
+
+<footer><div class="wrap">
+  Felyx AI Vinci é um produto da Vinci Automação · Rio de Janeiro ·
+  <a href="../app/privacidade.html">Privacidade</a> · <a href="../app/suporte.html">Suporte</a> · <a href="mailto:leandro@vinciautomacao.com">leandro@vinciautomacao.com</a>
+</div></footer>
+
+<script>
+(() => {
+  const API = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/assinatura';
+  const P = window.FELYX_PAGAMENTO || { precos: {} };
+  const $ = (s) => document.querySelector(s);
+  const brl = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  document.querySelectorAll('[data-preco]').forEach((el) => {
+    const v = (P.precos || {})[el.dataset.preco];
+    el.innerHTML = '';
+    if (v == null) { el.textContent = 'Valor a confirmar'; el.style.fontSize = '20px'; }
+    else { el.textContent = brl(v); const s = document.createElement('small'); s.textContent = ' /mês'; el.appendChild(s); }
+  });
+  document.querySelectorAll('[data-plano]').forEach((b) => b.addEventListener('click', () => {
+    $('#plano').value = b.dataset.plano; $('#assinar').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#nome').focus(), 400);
+  }));
+
+  const msg = (t, tipo) => { const m = $('#msg'); m.textContent = t; m.className = 'msg ' + (tipo || ''); };
+
+  function mostrarPagamento(r, plano) {
+    const nomePlano = plano === 'pro' ? 'Felyx Pro' : 'Felyx Lite';
+    const preco = (P.precos || {})[plano];
+    $('#pagResumo').textContent = nomePlano + (preco != null ? ' · ' + brl(preco) + ' por mês' : '') + ' · pedido ' + (r.pedido || '');
+    const c = $('#pagConteudo'); c.replaceChildren();
+    const temPix = !!(P.pix_qr || P.pix_copia_cola), temCartao = !!P.checkout_url;
+    if (!temPix && !temCartao) {
+      const a = document.createElement('div'); a.className = 'aviso';
+      a.textContent = 'Sua assinatura ficou reservada. O pagamento online está sendo configurado e nenhuma cobrança foi feita. A Vinci entra em contato pelo WhatsApp informado para concluir.';
+      c.appendChild(a);
+    }
+    if (temPix) {
+      const h = document.createElement('h3'); h.textContent = 'PIX'; h.style.marginTop = '8px'; c.appendChild(h);
+      if (P.pix_qr) { const q = document.createElement('div'); q.className = 'qr'; const i = document.createElement('img'); i.src = P.pix_qr; i.alt = 'QR Code PIX'; q.appendChild(i); c.appendChild(q); }
+      if (P.pix_copia_cola) {
+        const d = document.createElement('div'); d.className = 'copia';
+        const i = document.createElement('input'); i.readOnly = true; i.value = P.pix_copia_cola;
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn s'; b.textContent = 'Copiar';
+        b.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(i.value); b.textContent = 'Copiado'; };
+        d.append(i, b); c.appendChild(d);
+      }
+    }
+    if (temCartao) {
+      const a = document.createElement('a'); a.className = 'btn p'; a.style.marginTop = '14px'; a.target = '_blank'; a.rel = 'noopener';
+      const u = new URL(P.checkout_url); u.searchParams.set('ref', r.pedido || ''); a.href = u.toString(); a.textContent = 'Pagar com cartão';
+      c.appendChild(a);
+    }
+    $('#pag').classList.add('on'); $('#pag').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  $('#f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const dados = { acao: 'reservar', plano: $('#plano').value, nome: $('#nome').value.trim(), telefone: $('#tel').value.replace(/\D/g, ''), email: $('#email').value.trim() };
+    if (dados.nome.length < 3) return msg('Digite o seu nome.', 'err');
+    if (dados.telefone.length < 10) return msg('Digite o WhatsApp com DDD.', 'err');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(dados.email)) return msg('Digite um e-mail válido.', 'err');
+    if (!$('#aceite').checked) return msg('É preciso concordar com a política de privacidade.', 'err');
+    $('#enviar').disabled = true; msg('Reservando a sua assinatura…');
+    try {
+      const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(dados) }).then((x) => x.json());
+      if (!r.ok) throw new Error(r.mensagem || 'Não deu certo agora.');
+      msg('Assinatura reservada.', 'ok');
+      mostrarPagamento(r, dados.plano);
+    } catch (err) {
+      msg((err && err.message) || 'Sem conexão agora. Tente de novo em instantes.', 'err');
+    } finally { $('#enviar').disabled = false; }
+  });
+})();
+</script>
+</body>
+</html>
