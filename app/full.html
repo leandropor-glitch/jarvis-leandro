@@ -1003,9 +1003,11 @@ async function fetchMercadoDireto(){
   try{ const c = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
   return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, usdtbrl, clusdt, petroleo:null };
 }
+function paineisNoFull(){ try{ return !!(window.VinciIA && typeof window.VinciIA.modo === 'function' && window.VinciIA.modo() === 'full'); }catch(e){ return false; } }
 let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
 // uma busca por vez: quem chega enquanto outra está em andamento recebe a mesma resposta (evita chamadas duplicadas ao n8n)
 function loadMercado(force){
+  if(!paineisNoFull()) return Promise.resolve(null);
   if(mercadoVoo) return mercadoVoo;
   if(!force && Date.now() - mercadoAt < 14*60000) return Promise.resolve(mercadoData);
   if(force && mercadoData && Date.now() - mercadoAt < 20000) return Promise.resolve(mercadoData);
@@ -1013,6 +1015,7 @@ function loadMercado(force){
   return mercadoVoo;
 }
 async function buscarMercado(){
+  if(!paineisNoFull()) return null;
   mercadoAt = Date.now();
   try{
     const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
@@ -1069,6 +1072,7 @@ const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
 const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
 function loadNoticias(force){
+  if(!paineisNoFull()) return Promise.resolve(null);
   if(noticiasVoo) return noticiasVoo;
   if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
   if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
@@ -1076,6 +1080,7 @@ function loadNoticias(force){
   return noticiasVoo;
 }
 async function buscarNoticias(){
+  if(!paineisNoFull()) return Promise.resolve(null);
   noticiasAt = Date.now();
   try{
     const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
@@ -1158,7 +1163,7 @@ function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roo
 function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
 function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
 function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
-function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
+function excluirSala(){const c=salaEditando,sem=roomConfig.semComodo||'Outros';if(!c||c===sem)return;tiles.forEach(t=>{if(roomForTile(t)===c)t.s=sem;});if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);salas.ocultas=salas.ocultas.filter(x=>x!==sem);saveSalas();saveTiles();fecharSala();renderMatrix();}
 try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
@@ -1588,7 +1593,7 @@ function carregarFraseEspera(ctx){
 const FelyxAvatar = (()=>{
   try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
   let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
-  const soNoFull = ()=> !window.VinciIA || VinciIA.modo() === 'full';   // 14/11/2026: Live Avatar só no Felyx Full (ordem do Leandro)
+  const soNoFull = ()=> { try{ return !!(window.VinciIA && typeof window.VinciIA.modo === 'function' && window.VinciIA.modo() === 'full'); }catch(e){ return false; } };   // 14/11/2026: Live Avatar só no Felyx Full (ordem do Leandro)
   let ultimosEventos = [], aceitouEm = 0;   // diagnóstico (10/11): o que o LiveAvatar mandou por último
   let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
@@ -1612,7 +1617,9 @@ const FelyxAvatar = (()=>{
       const j = await r.json().catch(()=>({}));
       if(!j.ok || !j.livekit_url || !j.ws_url) throw new Error('avatar indisponível');
       sessao = { id: j.session_id, token: j.session_token };
+      if(!soNoFull()) return fechar();
       const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
+      if(!soNoFull()) return fechar();
       room = new LK.Room({ adaptiveStream: true });
       room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
         if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto && !escondido) video.classList.add('on'); }; }
@@ -1622,6 +1629,7 @@ const FelyxAvatar = (()=>{
       room.on(LK.RoomEvent.ActiveSpeakersChanged, (lista)=>{ if((lista || []).some((p)=> p && !p.isLocal)) falouEm = Date.now(); });
       room.on(LK.RoomEvent.Disconnected, ()=> fechar());
       await room.connect(j.livekit_url, j.livekit_client_token);
+      if(!soNoFull()) return fechar();
       await new Promise((ok, falha)=>{
         ws = new WebSocket(j.ws_url);
         const limite = setTimeout(()=>falha(new Error('avatar demorou')), 20000);
@@ -1640,13 +1648,14 @@ const FelyxAvatar = (()=>{
         };
         ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
       });
+      if(!soNoFull()) return fechar();
       pronto = true; ultimo = Date.now();
       setTimeout(capturarParado, 2500);   // guarda o quadro do rosto calado para ser a foto parada (09/11)
       if(!escondido){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); }   // na abertura, só depois da íris
       clearInterval(timer);
       timer = setInterval(()=>{
         if(!pronto) return;
-        if(Date.now() - ultimo > AVATAR_OCIOSO_MIN * 60000) return fechar();
+        if(!soNoFull() || Date.now() - ultimo > AVATAR_OCIOSO_MIN * 60000) return fechar();
         enviar('session.keep_alive');
       }, 10000);
     })().catch((e)=>{ console.warn('Felyx avatar:', e.message); fechar(); }).finally(()=>{ abrindo = null; });
@@ -1840,8 +1849,9 @@ const GEN_FERRAMENTAS = {
     if(op === 'excluir'){
       const c = listaSalas().find(x => norm(x) === norm(nome || ambiente));
       if(!c || c === semAmb) return Object.assign({ ok:false, erro:'ambiente não encontrado' }, estado());
+      tiles.forEach(t => { if(roomForTile(t) === c) t.s = semAmb; });
       if(salas.extras.includes(c)) salas.extras = salas.extras.filter(x => x !== c); else salas.ocultas.push(c);
-      tiles.forEach(t => { if(t.s === c) t.s = ''; });
+      salas.ocultas = salas.ocultas.filter(x => x !== semAmb);
       return gravar('Ambiente ' + c + ' excluído; os botões dele foram para "' + semAmb + '" ou para o ambiente automático.');
     }
     if(op === 'mover'){

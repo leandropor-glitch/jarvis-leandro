@@ -1267,9 +1267,11 @@ async function fetchMercadoDireto(){
   try{ const c = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
   return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, usdtbrl, clusdt, petroleo:null };
 }
+function paineisNoFull(){ try{ return !!(window.VinciIA && typeof window.VinciIA.modo === 'function' && window.VinciIA.modo() === 'full'); }catch(e){ return false; } }
 let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
 // uma busca por vez: quem chega enquanto outra está em andamento recebe a mesma resposta (evita chamadas duplicadas ao n8n)
 function loadMercado(force){
+  if(!paineisNoFull()) return Promise.resolve(null);
   if(mercadoVoo) return mercadoVoo;
   if(!force && Date.now() - mercadoAt < 14*60000) return Promise.resolve(mercadoData);
   if(force && mercadoData && Date.now() - mercadoAt < 20000) return Promise.resolve(mercadoData);
@@ -1277,17 +1279,7 @@ function loadMercado(force){
   return mercadoVoo;
 }
 async function buscarMercado(){ return null; }
-async function _mercadoDoFelyx(){
-  mercadoAt = Date.now();
-  try{
-    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
-    if(!m || !m.ok) throw new Error('ponte sem dados');
-    mercadoData = m; renderMercado(m); return m;
-  }catch(e){
-    try{ const m = await fetchMercadoDireto(); mercadoData = m; renderMercado(m); return m; }
-    catch(e2){ marketWhen.textContent = 'sem conexão'; return null; }
-  }
-}
+async function _mercadoDoFelyx(){ return null; }
 
 /* ===================== notícias (cards animados) ===================== */
 const SRC_SHORT = { 'agência brasil':'agência brasil', 'olhar digital':'olhar digital', 'canaltech':'canaltech' };
@@ -1334,6 +1326,7 @@ const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
 const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
 function loadNoticias(force){
+  if(!paineisNoFull()) return Promise.resolve(null);
   if(noticiasVoo) return noticiasVoo;
   if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
   if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
@@ -1341,6 +1334,7 @@ function loadNoticias(force){
   return noticiasVoo;
 }
 async function buscarNoticias(){
+  if(!paineisNoFull()) return Promise.resolve(null);
   noticiasAt = Date.now();
   try{
     const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
@@ -1423,7 +1417,7 @@ function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roo
 function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
 function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
 function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
-function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
+function excluirSala(){const c=salaEditando,sem=roomConfig.semComodo||'Outros';if(!c||c===sem)return;tiles.forEach(t=>{if(roomForTile(t)===c)t.s=sem;});if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);salas.ocultas=salas.ocultas.filter(x=>x!==sem);saveSalas();saveTiles();fecharSala();renderMatrix();}
 try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
@@ -2121,8 +2115,9 @@ const GEN_FERRAMENTAS = {
     if(op === 'excluir'){
       const c = listaSalas().find(x => norm(x) === norm(nome || ambiente));
       if(!c || c === semAmb) return Object.assign({ ok:false, erro:'ambiente não encontrado' }, estado());
+      tiles.forEach(t => { if(roomForTile(t) === c) t.s = semAmb; });
       if(salas.extras.includes(c)) salas.extras = salas.extras.filter(x => x !== c); else salas.ocultas.push(c);
-      tiles.forEach(t => { if(t.s === c) t.s = ''; });
+      salas.ocultas = salas.ocultas.filter(x => x !== semAmb);
       return gravar('Ambiente ' + c + ' excluído; os botões dele foram para "' + semAmb + '" ou para o ambiente automático.');
     }
     if(op === 'mover'){
