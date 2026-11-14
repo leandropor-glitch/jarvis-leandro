@@ -792,6 +792,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
  #hud:not([data-tab="home"]){padding-right:calc(max(76px,env(safe-area-inset-right) + 38px) + 92px)}
 }
 </style>
+<style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
 </head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para falar com a Leda">
@@ -1824,7 +1825,7 @@ CORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase
 CÂMERAS E ALARME DO BEBÊ: câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante; você nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê" ou "se ele chorar me avisa", diga com carinho que é um recurso que a Vinci instala no projeto da casa (a câmera reconhece o choro, toca o alarme e mostra a imagem no celular da mãe ou do pai pelo app oficial), pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha.
 CENAS: numa cena qualquer verbo (liga, desliga, acende, apaga) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho, acione SEMPRE a cena. Responda curto, ex.: "Prontinho, cena Cozinha acionada."
 Antes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso para você.") e responda assim que o resultado chegar.
-Chamado pelo nome: você só atende quando a fala chama "Leda" (por exemplo "Leda, liga a luz da sala"). Barulho, TV, música ou conversa entre outras pessoas que não chamem "Leda" não são com você: fique em silêncio, não diga nada e não chame nenhuma função.
+Conversa ao vivo: você está numa conversa contínua com a pessoa e responde a toda fala dela, sem precisar ouvir o seu nome. Só fique em silêncio quando a fala claramente não for com você (TV, música ou outras pessoas conversando entre si). Quando a pessoa quiser silêncio, ela mesma muta o microfone no botão.
 Mensagens que começam com "Mensagem automática do sistema" são instruções da própria página: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Oi! Como é que eu posso te ajudar aqui na sua casa?" e nada mais. Não chame nenhuma função agora.';
 
@@ -2309,11 +2310,7 @@ class GeminiLive {
     });
   }
   // a fala deste turno chamou o Félix? (mensagens da página sempre valem; sem transcrição, vale tudo)
-  aceitar(){
-    if(this.liberado || !this.temTranscricao) return true;
-    if(CHAMA_FELIX.test(this.ouvido)) return true;
-    return Date.now() < this.janelaAte;
-  }
+  aceitar(){ return true; }   // 14/11/2026: modo live, sem exigir o nome na frase (ordem do Leandro: "Diga Felyx: proibido")
   // áudio da resposta: toca se o turno chamou o Félix; senão descarta. Na dúvida, segura um instante esperando a transcrição.
   receber(b64){
     if(this.decisao === 'sim') return this.playChunk(b64);
@@ -2630,8 +2627,8 @@ async function start(){
     g.soltar();                    // ...e o cumprimento sai na hora, sincronizado com a boca
     await fimDoCumprimento(g);     // o microfone segue ignorado até a fala acabar (com o rosto, até ele parar de falar)
     if(conv !== g) return;
-    g.micOpen = true; statusText.textContent = 'diga “Leda” e fale';
-    setTimeout(()=>{ if(statusText.textContent === 'diga “Leda” e fale') statusText.textContent = ''; }, 4000);
+    g.micOpen = !g.mutado; statusText.textContent = 'pode falar';
+    setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 4000);
   }catch(e){
     FelyxAvatar.esconder(false);
     iniciando = false;
@@ -2644,7 +2641,14 @@ async function start(){
   }
 }
 function stop(){ if(conv){ conv.end(); } }
-talkBtn.addEventListener('click', ()=>{ if(conv){ stop(); return; } if(iniciando) return; primeAudio(); start(); });
+// 14/11/2026 (modo live): durante a conversa, tocar no microfone MUTA e DESMUTA (a conversa continua aberta);
+// segurar o botão por 1 segundo encerra a conversa. Fora da conversa, tocar começa.
+let seguraTalk = null, encerrouSegurando = false;
+function mutarConversa(sim){ if(!conv) return; conv.mutado = !!sim; conv.micOpen = !sim; talkBtn.dataset.mudo = sim ? '1' : '0';
+  talkBtn.title = sim ? 'Microfone mudo (toque para falar, segure para encerrar)' : 'Toque para mutar, segure para encerrar'; statusText.textContent = sim ? 'microfone mudo' : 'pode falar'; }
+talkBtn.addEventListener('pointerdown', ()=>{ encerrouSegurando = false; clearTimeout(seguraTalk); if(conv) seguraTalk = setTimeout(()=>{ encerrouSegurando = true; talkBtn.dataset.mudo = '0'; stop(); }, 1000); });
+['pointerup','pointercancel'].forEach(ev => talkBtn.addEventListener(ev, ()=> clearTimeout(seguraTalk)));
+talkBtn.addEventListener('click', ()=>{ if(encerrouSegurando){ encerrouSegurando = false; return; } if(conv){ mutarConversa(!conv.mutado); return; } if(iniciando) return; talkBtn.dataset.mudo = '0'; primeAudio(); start(); });
 
 /* ---------- abertura automática ---------- */
 // Ao abrir a página o Felyx já tenta começar sozinho. Se o navegador exigir um toque para liberar som e microfone,

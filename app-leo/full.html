@@ -552,6 +552,7 @@ input,select,textarea{font-size:16px!important}
 #hud[data-tab="news"] .news{width:auto;align-self:stretch}
 #hud[data-tab="dashboard"] #matrix::-webkit-scrollbar{display:none}
 </style>
+<style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
 </head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para continuar">
@@ -1565,7 +1566,7 @@ Quem você é: quando perguntarem quem você é, diga que é o Léo, o assistent
 Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (função noticias com a busca em poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
 Cumprimentos: quando a pessoa disser bom dia, boa tarde ou boa noite, chame dados_do_cumprimento. Se vier completo=false, responda só com um cumprimento curto e cordial (o completo já foi dado há menos de 4 horas). Se vier completo=true, faça o briefing em até cinco frases: cumprimento; o clima no Rio numa frase; o mercado numa frase seca, só com o dólar, a não ser que haja movimento forte (2,5% ou mais, disparada, derrocada ou recorde), aí explique o porquê; a notícia mais importante em duas frases, dizendo o que muda; e pergunte o que a pessoa precisa. Assuntos trágicos nunca recebem piada. Sem dado, não cite números e siga com o resto, sem dizer que está indisponível.
 NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se não souber, diga o que sabe e o que pode fazer; se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase (ex.: \"A central não me passou esse estado agora, mas posso ligar ou desligar para você.\"). Nunca responda com silêncio.\nO que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.\nFAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos (ex.: \"põe a Varanda nos favoritos\", \"tira o PlayStation\", \"troca a Cama com o Closet\"). Confirme em meia frase.\nPROGRAMAR A CASA: você cria, edita, pausa e apaga automações por horário do cliente com a ferramenta automacoes (ex.: \"todo dia às 22h desliga a sala\", \"muda o ar das 18h para as 22h\": liste, ache a automação e salve com o mesmo nome e a hora nova). Confirme em uma frase o que ficou programado. As automações rodam com até 5 minutos de atraso.\nCORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase, faça do jeito certo e grave a correção na memoria (category regra) para não repetir. Se algo falhar e você não conseguir resolver, ou se o pedido exigir mudar a programação dentro do app da Vinci ou da Amazon (ex.: a temperatura em que o ar liga), chame avisar_falha explicando exatamente o que precisa ser feito: isso vai em silêncio para o Claude, o engenheiro do Léo, que corrige. NUNCA diga ao cliente que falhou, que houve erro, que avisou alguém, nem cite o Claude: para o cliente você é rápido e sabe tudo. Enquanto resolve, ganhe tempo com naturalidade (\"Deixa eu dar uma olhadinha aqui.\", \"Um instante, já vejo isso.\") e responda com o que conseguiu; se não der agora, diga só que vai deixar pronto em seguida, sem falar em falha.\nCÂMERAS E ALARME DO BEBÊ (projeto da Vinci, em preparação): câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante (UniFi Protect, Ring, Nest); o Léo nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê", "se ele chorar me avisa" ou "mostra a câmera na TV": diga que é um recurso que a Vinci instala no projeto da casa e explique em duas frases como funciona: a câmera UniFi reconhece o choro e toca o alarme e mostra a imagem no celular da mãe ou do pai, pelo app oficial; numa TV, só numa tela que o cliente escolher, por um aparelho dedicado da própria UniFi (ViewPort), nunca a TV da sala com visitas. Pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha: não chame avisar_falha para pedidos de câmera.\nCENAS: as cenas alternam a cada acionamento, então numa cena qualquer verbo (liga, desliga, acende, apaga, ativa, desativa) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho (ex.: Cozinha, Closet, Mesa, Porta, Luz Baixa, Luminárias, AC Sala, AC Suíte), acione SEMPRE a cena: é mais seguro. Responda curto, ex.: \"Pronto, cena Cozinha acionada.\"\nAntes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso.") e responda assim que o resultado chegar.
-Chamado pelo nome: você só atende quando a fala chama "Léo" (por exemplo "Léo, liga a luz da sala"). Barulho, TV, música ou conversa entre outras pessoas que não chamem "Léo" não são com você: fique em silêncio, não diga nada e não chame nenhuma função. Se a pessoa disser só "Léo", responda apenas "Pois não?" e espere.
+Conversa ao vivo: você está numa conversa contínua com a pessoa e responde a toda fala dela, sem precisar ouvir o seu nome. Só fique em silêncio quando a fala claramente não for com você (TV, música ou outras pessoas conversando entre si). Quando a pessoa quiser silêncio, ela mesma muta o microfone no botão.
 Mensagens que começam com "Mensagem automática do sistema" são instruções da própria página: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Léo na linha." e nada mais. Não chame nenhuma função agora.';
 
@@ -2051,11 +2052,7 @@ class GeminiLive {
     });
   }
   // a fala deste turno chamou o Félix? (mensagens da página sempre valem; sem transcrição, vale tudo)
-  aceitar(){
-    if(this.liberado || !this.temTranscricao) return true;
-    if(CHAMA_FELIX.test(this.ouvido)) return true;
-    return Date.now() < this.janelaAte;
-  }
+  aceitar(){ return true; }   // 14/11/2026: modo live, sem exigir o nome na frase (ordem do Leandro: "Diga Felyx: proibido")
   // áudio da resposta: toca se o turno chamou o Félix; senão descarta. Na dúvida, segura um instante esperando a transcrição.
   receber(b64){
     if(this.decisao === 'sim') return this.playChunk(b64);
@@ -2372,8 +2369,8 @@ async function start(){
     g.soltar();                    // ...e o cumprimento sai na hora, sincronizado com a boca
     await fimDoCumprimento(g);     // o microfone segue ignorado até a fala acabar (com o rosto, até ele parar de falar)
     if(conv !== g) return;
-    g.micOpen = true; statusText.textContent = 'diga “Leo” e fale';
-    setTimeout(()=>{ if(statusText.textContent === 'diga “Leo” e fale') statusText.textContent = ''; }, 4000);
+    g.micOpen = !g.mutado; statusText.textContent = 'pode falar';
+    setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 4000);
   }catch(e){
     FelyxAvatar.esconder(false);
     iniciando = false;
@@ -2386,7 +2383,14 @@ async function start(){
   }
 }
 function stop(){ if(conv){ conv.end(); } }
-talkBtn.addEventListener('click', ()=>{ if(conv){ stop(); return; } if(iniciando) return; primeAudio(); start(); });
+// 14/11/2026 (modo live): durante a conversa, tocar no microfone MUTA e DESMUTA (a conversa continua aberta);
+// segurar o botão por 1 segundo encerra a conversa. Fora da conversa, tocar começa.
+let seguraTalk = null, encerrouSegurando = false;
+function mutarConversa(sim){ if(!conv) return; conv.mutado = !!sim; conv.micOpen = !sim; talkBtn.dataset.mudo = sim ? '1' : '0';
+  talkBtn.title = sim ? 'Microfone mudo (toque para falar, segure para encerrar)' : 'Toque para mutar, segure para encerrar'; statusText.textContent = sim ? 'microfone mudo' : 'pode falar'; }
+talkBtn.addEventListener('pointerdown', ()=>{ encerrouSegurando = false; clearTimeout(seguraTalk); if(conv) seguraTalk = setTimeout(()=>{ encerrouSegurando = true; talkBtn.dataset.mudo = '0'; stop(); }, 1000); });
+['pointerup','pointercancel'].forEach(ev => talkBtn.addEventListener(ev, ()=> clearTimeout(seguraTalk)));
+talkBtn.addEventListener('click', ()=>{ if(encerrouSegurando){ encerrouSegurando = false; return; } if(conv){ mutarConversa(!conv.mutado); return; } if(iniciando) return; talkBtn.dataset.mudo = '0'; primeAudio(); start(); });
 
 /* ---------- abertura automática ---------- */
 // Ao abrir a página o Felyx já tenta começar sozinho. Se o navegador exigir um toque para liberar som e microfone,
