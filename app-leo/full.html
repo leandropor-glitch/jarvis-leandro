@@ -485,7 +485,7 @@ input,select,textarea{font-size:16px!important}
 <style id="leoLogo">/* Leo iA Vinci (13/11/2026): sem rosto; no lugar, o logo do Léo (nuvem de partículas + LEO) */
 .face .retrato,.face #cv,#avatarVideo,.face .scan{display:none!important}
 .face .leoMarca{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin;pointer-events:none}
-.face .leoMarca canvas{width:min(78vw,520px);height:min(32vw,210px)}
+.face .leoMarca canvas{width:min(76vw,44dvh,440px);height:auto;aspect-ratio:1}
 .face .leoMarca b{font:300 clamp(22px,4.6vmin,40px)/1 inherit;letter-spacing:.55em;margin-right:-.55em;color:var(--accent);text-shadow:0 0 18px rgba(var(--accent-rgb),.35)}
 </style>
 <style id="leoLayout">
@@ -594,7 +594,7 @@ input,select,textarea{font-size:16px!important}
         <canvas id="rings" aria-hidden="true"></canvas>
         <div class="face">
           <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
-          <div class="leoMarca" aria-hidden="true"><canvas id="leoCv" width="1040" height="420"></canvas><b>LEO</b></div>
+          <div class="leoMarca" aria-hidden="true"><canvas id="leoCv" width="600" height="600"></canvas><b>LEO</b></div>
           <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
           <audio id="avatarAudio" autoplay></audio>
           <div class="scan" id="scan" data-on="0" aria-hidden="true"><div class="line"></div><div class="ret l"></div><div class="ret r"></div></div>
@@ -2452,70 +2452,64 @@ window.FERRAMENTAS_MATERIA = {
 })();
 
 </script>
+<script src="leo-formas.js"></script>
 <script>
-/* Logo vivo do Léo (14/11/2026, Leandro: "bem mais agitadinhas, de acordo com o que a gente pede").
-   As partículas seguem o estado e a voz: paradas respiram; ouvindo, pulam com o volume do microfone; pensando, giram em hélice;
-   falando, cada trecho da onda vira uma faixa de frequência da voz do Léo; executando um comando, explodem e se recompõem; erro, tremem em vermelho. */
+/* Léo da Vinci em bolinhas (14/11/2026, Leandro: "o vitruviano de bolinhas, girando e ganhando forma de Mona Lisa; brinque com os símbolos de Leonardo").
+   Parado: o Homem Vitruviano gira e vira a Mona Lisa, e volta. Ouvindo: o Vitruviano de frente, pulsando com a sua voz.
+   Pensando: o parafuso aéreo gira. Falando: a Mona Lisa fala, cada bolinha vibra com a voz do Léo.
+   Executando comando: explode e vira a máquina voadora batendo as asas. Erro: treme e escorre em vermelho. */
 (function(){
-  const cv=document.getElementById('leoCv'); if(!cv) return; const c=cv.getContext('2d'); const W=cv.width,H=cv.height,CY=H/2;
+  const cv=document.getElementById('leoCv'); if(!cv||!window.LeoFormas) return; const c=cv.getContext('2d'); const W=cv.width,H=cv.height,CX=W/2,CY=H/2,ESC=W*.46;
   const css=getComputedStyle(document.documentElement);
   const COR=(css.getPropertyValue('--accent-rgb')||'214,255,26').trim().split(',').map(Number), ERRO=[255,106,98];
-  const N=1400, NB=32;
-  const P=[...Array(N)].map(()=>{ const u=Math.random(); return {u, v:(Math.random()+Math.random()+Math.random())/1.5-1, f:Math.random()*6.283, r:1.6+Math.random()*2.6,
-    x:u*W, y:CY, vx:0, vy:0, s:Math.random()<.5?1:-1}; });
+  const N=1100, NB=24, F=LeoFormas.gerar(N);
+  const P=F.vitruviano.map((q,i)=>({x:CX+q.x*ESC,y:CY+q.y*ESC,vx:0,vy:0,f:Math.random()*6.283,r:2+Math.random()*2.2,b:i%NB}));
   const hud=document.getElementById('hud');
-  let t=0, nivel=0, voz=0, ultimo=performance.now(), exec=0, mix={idle:1,listening:0,thinking:0,speaking:0,error:0}, estAnt='';
+  let t=0, voz=0, ultimo=performance.now(), exec=0, voo=0, ciclo=0, est='idle', mix={idle:1,listening:0,thinking:0,speaking:0,error:0};
   let bandas=new Array(NB).fill(0);
-  // comando executando: toda ferramenta chamada pelo Léo e todo toque em cena dispara a explosão
-  function disparar(){ exec=1; for(const p of P){ const a=Math.random()*6.283, k=20+Math.random()*45; p.vx+=Math.cos(a)*k*1.6; p.vy+=Math.sin(a)*k; } }
+  function disparar(){ exec=1; voo=2.6; for(const p of P){ const a=Math.random()*6.283, k=30+Math.random()*50; p.vx+=Math.cos(a)*k; p.vy+=Math.sin(a)*k; } }
   window.leoAgita=disparar;
   try{ const G=typeof GeminiLive!=='undefined'&&GeminiLive.prototype; if(G&&G.handleToolCall){ const o=G.handleToolCall; G.handleToolCall=function(){ disparar(); return o.apply(this,arguments); }; } }catch(e){}
   try{ if(typeof feedbackCena==='function'){ const o=feedbackCena; window.feedbackCena=function(){ disparar(); return o.apply(this,arguments); }; } }catch(e){}
   function lerVoz(st){
-    const g=(typeof conv!=='undefined')?conv:null;
-    let alvo=0, bs=null;
+    const g=(typeof conv!=='undefined')?conv:null; let alvo=0, bs=null;
     try{ if(g){ if(st==='speaking'){ alvo=Math.min(1,g.getOutputVolume()*5); bs=g.getBands&&g.getBands(NB); } else alvo=Math.min(1,(g.getInputLevel()||0)*4); } }catch(e){}
-    if(!g && st==='speaking'){ // demonstração (tecla d) sem áudio: voz sintética
-      alvo=.35+.35*Math.abs(Math.sin(t*9))*Math.abs(Math.sin(t*2.3)); bs=bandas.map((_,i)=>Math.max(0,.6*Math.sin(t*7+i*.7)*Math.sin(t*3.1-i*.3)+.3*Math.random()));
-    }
+    if(!g && st==='speaking'){ alvo=.35+.35*Math.abs(Math.sin(t*9))*Math.abs(Math.sin(t*2.3)); bs=bandas.map((_,i)=>Math.max(0,.6*Math.sin(t*7+i*.7)*Math.sin(t*3.1-i*.3)+.3*Math.random())); }
     voz+=(alvo-voz)*(alvo>voz?.45:.12);
     for(let i=0;i<NB;i++){ const b=bs?bs[i]||0:0; bandas[i]+=(b-bandas[i])*(b>bandas[i]?.5:.15); }
   }
+  // projeção 3D: gira em Y (th) e inclina em X (ph)
+  function proj(q,th,ph,esc){ const ct=Math.cos(th),st=Math.sin(th); let x=q.x*ct+q.z*st, z=-q.x*st+q.z*ct; const cp=Math.cos(ph),sp=Math.sin(ph); const y=q.y*cp-z*sp; z=q.y*sp+z*cp; const s=1/(1+z*.35); return [CX+x*esc*s, CY+y*esc*s, z]; }
   (function quadro(agora){
     agora=agora||performance.now(); const dt=Math.min(.05,(agora-ultimo)/1000); ultimo=agora;
-    let st=(hud&&hud.dataset.state)||'idle'; if(!(st in mix)) st=st==='boot'?'thinking':'idle';
-    if(st==='error'&&estAnt!=='error') for(const p of P){ p.vx+=(Math.random()-.5)*30; p.vy+=(Math.random()-.5)*30; }
-    estAnt=st;
-    for(const k in mix) mix[k]+=((k===st?1:0)-mix[k])*Math.min(1,dt*5);
-    lerVoz(st);
-    const vel=.8+mix.listening*(.6+voz*3)+mix.thinking*2.6+mix.speaking*(1.2+voz*4)+exec*3;
-    t+=dt*vel; exec=Math.max(0,exec-dt*.7);
+    let st=(hud&&hud.dataset.state)||'idle'; if(st==='boot') st='thinking'; if(!(st in mix)) st='idle';
+    if(st==='error'&&est!=='error') for(const p of P){ p.vx+=(Math.random()-.5)*40; p.vy+=(Math.random()-.5)*40; }
+    if(st==='idle'&&est!=='idle') ciclo=0; est=st;
+    for(const k in mix) mix[k]+=((k===st?1:0)-mix[k])*Math.min(1,dt*4);
+    lerVoz(st); t+=dt; ciclo+=dt; exec=Math.max(0,exec-dt*.9); voo=Math.max(0,voo-dt);
+    // qual forma e como ela se mexe
+    let forma, th=0, ph=0, esc=ESC, extra=null;
+    if(st==='error'){ forma=F.vitruviano; th=Math.sin(t*9)*.12; }
+    else if(voo>0){ forma=F.asas; const bate=Math.sin(t*14)*(.35+.25*voz); extra=(q)=>({x:q.x, y:q.y-Math.abs(q.x)*bate-.08*Math.sin(t*3), z:q.z+Math.abs(q.x)*bate*.6}); ph=-.25; }
+    else if(st==='thinking'){ forma=F.parafuso; th=t*2.6; ph=.38; esc=ESC*.95; }
+    else if(st==='listening'){ forma=F.vitruviano; th=Math.sin(t*.8)*.25; esc=ESC*(1+.12*voz); }
+    else if(st==='speaking'){ forma=F.monalisa; th=Math.sin(t*.6)*.12; esc=ESC*(1+.04*voz); }
+    else { const T=ciclo%15; forma=T<8.5?F.vitruviano:F.monalisa; th=T<8.5?T*(Math.PI*2/8.5):Math.sin((T-8.5)*.9)*.15; }
     c.clearRect(0,0,W,H); c.globalCompositeOperation='lighter';
     const cor=COR.map((v,i)=>Math.round(v+(ERRO[i]-v)*mix.error));
-    for(const p of P){
-      const u=p.u, env=Math.sin(u*Math.PI); // mais gordo no meio, fino nas pontas
-      // repouso: onda lenta que respira
-      let y0=Math.sin(u*6.5+t*.9)*H*.12+Math.sin(u*13-t*1.3)*H*.04, sp0=H*(.09+.07*env)*(1+.15*Math.sin(t*1.7));
-      // ouvindo: a onda acompanha o volume do microfone, partículas pulam com a voz
-      const yL=Math.sin(u*9+t*2.2)*H*(.06+.3*voz)*env, spL=H*(.05+.06*env+.22*voz*env);
-      // pensando: hélice dupla girando, um pulso varre de ponta a ponta
-      const fase=u*14-t*3.2, pulso=Math.exp(-Math.pow(((u-((t*.35)%1.4-.2))*7),2));
-      const yT=p.s*Math.sin(fase)*H*(.16+.1*pulso)*env, spT=H*(.015+.05*pulso);
-      // falando: cada trecho é uma faixa de frequência (graves no meio, agudos nas pontas)
-      const bi=Math.min(NB-1,Math.floor(Math.abs(u-.5)*2*NB)), b=bandas[bi];
-      const yS=Math.sin(u*11+t*4)*H*.05*(1+voz*2), spS=H*(.03+.42*b*env+.12*voz*env);
-      // erro: faixa baixa e tremida
-      const yE=H*.08+Math.sin(u*40+t*20)*H*.02, spE=H*.05;
-      const m=mix, ty=CY+y0*m.idle+yL*m.listening+yT*m.thinking+yS*m.speaking+yE*m.error;
-      const sp=sp0*m.idle+spL*m.listening+spT*m.thinking+spS*m.speaking+spE*m.error;
-      const jit=(m.listening*voz*6+m.speaking*b*10+m.error*7+exec*4)*(Math.random()-.5);
-      const ex=exec*exec, tx=u*W+Math.sin(t*1.5+p.f)*(6+14*m.thinking)+jit*3+Math.cos(p.f*5)*90*ex;
-      const tyF=ty+p.v*sp+Math.sin(t*3+p.f)*(2+6*voz)+jit*4+(p.v*.45+Math.sin(p.f*7)*.35)*H*ex;
-      const k=10+30*m.speaking+20*m.listening, amort=Math.exp(-dt*(5+4*m.thinking));
-      p.vx=(p.vx+(tx-p.x)*k*dt)*amort; p.vy=(p.vy+(tyF-p.y)*k*dt)*amort; p.x+=p.vx*dt*60*.25; p.y+=p.vy*dt*60*.25;
-      const brilho=.25+.45*Math.abs(Math.sin(p.f+t*1.3))+.5*(m.speaking*b+m.listening*voz)+.4*exec+.25*m.thinking*pulso;
-      const s=p.r*(1+.6*(m.speaking*b+exec*.8));
-      c.fillStyle='rgba('+cor[0]+','+cor[1]+','+cor[2]+','+Math.min(1,brilho*(1-.3*m.error))+')'; c.fillRect(p.x-s/2,p.y-s/2,s,s);
+    const k=14+16*mix.speaking+10*mix.listening, amort=Math.exp(-dt*6);
+    for(let i=0;i<N;i++){
+      const p=P[i]; let q=forma[i]; if(extra) q=extra(q);
+      let [tx,ty,z]=proj(q,th,ph,esc);
+      const b=bandas[p.b];
+      const tremor=mix.listening*voz*5+mix.speaking*b*14+mix.error*8+exec*6+1.2;
+      tx+=Math.sin(t*3+p.f)*tremor*.6+(Math.random()-.5)*tremor; ty+=Math.cos(t*2.6+p.f)*tremor*.6+(Math.random()-.5)*tremor;
+      if(mix.error>.05) ty+=mix.error*(18+12*Math.sin(p.f*3))*(.5+.5*Math.sin(t*2+p.f));
+      p.vx=(p.vx+(tx-p.x)*k*dt)*amort; p.vy=(p.vy+(ty-p.y)*k*dt)*amort; p.x+=p.vx*dt*16; p.y+=p.vy*dt*16;
+      const fundo=Math.max(.25,1-z*.9);
+      const brilho=(.35+.35*Math.abs(Math.sin(p.f+t*1.6))+.5*(mix.speaking*b+mix.listening*voz)+.4*exec)*fundo;
+      const s=p.r*(1+.5*(mix.speaking*b+exec))*Math.min(1.3,fundo);
+      c.fillStyle='rgba('+cor[0]+','+cor[1]+','+cor[2]+','+Math.min(1,brilho)+')'; c.fillRect(p.x-s/2,p.y-s/2,s,s);
     }
     c.globalCompositeOperation='source-over';
     requestAnimationFrame(quadro);
