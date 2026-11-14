@@ -12,8 +12,8 @@
      vinci_replicacao (POST /webhook/vinci/ia {acao:'replicar'}): o Gemini
      (padrão) ou o Claude (Full) escreve o passo a passo para repetir o mesmo
      ajuste no App Vinci (emuladores), no Google Home e na Amazon.
-   Carregar ANTES do script principal da página. Modo e reenvios rodam em
-   segundo plano; uma edição só confirma envio da réplica depois do HTTP OK.
+   Carregar ANTES do script principal da página. A edição confirma a fila
+   local na hora; envio, recibo persistido e reenvios rodam em segundo plano.
    ===================================================================== */
 (function(){
   'use strict';
@@ -53,11 +53,17 @@
   /* ---------- relatório de cada edição para a réplica ---------- */
   const FILA_REPLICA = 'vinci.replica.pendentes.' + IA;
   let envioReplica = null, timerReplica = null;
+  let filaReplica = [], replicaEmMemoria = false;
   function lerReplicas(){
-    try{ const fila = JSON.parse(ler(FILA_REPLICA) || '[]'); return Array.isArray(fila) ? fila : []; }catch(e){ return []; }
+    if(!replicaEmMemoria){
+      try{ const fila = JSON.parse(localStorage.getItem(FILA_REPLICA) || '[]'); if(Array.isArray(fila)) filaReplica = fila; }catch(e){}
+    }
+    return filaReplica;
   }
   function guardarReplicas(fila){
-    try{ if(fila.length) localStorage.setItem(FILA_REPLICA, JSON.stringify(fila)); else localStorage.removeItem(FILA_REPLICA); return true; }catch(e){ return false; }
+    filaReplica = fila;
+    try{ if(fila.length) localStorage.setItem(FILA_REPLICA, JSON.stringify(fila)); else localStorage.removeItem(FILA_REPLICA); replicaEmMemoria = false; }
+    catch(e){ replicaEmMemoria = true; } // Preserva a fila nesta página se o armazenamento falhar.
   }
   function agendarReplicas(){
     if(timerReplica !== null || !lerReplicas().length) return;
@@ -73,7 +79,9 @@
           body: JSON.stringify(pedido), signal: ctl ? ctl.signal : undefined });
         if(!r || !r.ok) return false;
         const recibo = await r.json();
-        return !!(recibo && recibo.ok === true && recibo.persistida === true && recibo.id != null);
+        const id = recibo && recibo.id;
+        const temId = (typeof id === 'number' && Number.isFinite(id)) || (typeof id === 'string' && id.trim().length > 0);
+        return !!(recibo && recibo.ok === true && recibo.persistida === true && temId);
       })();
       return await Promise.race([confirmacao, limite]);
     }catch(e){ return false; }
@@ -89,24 +97,23 @@
         // Uma troca de conta não pode atribuir a edição de outra sessão ao novo cliente.
         const item = fila.find(x => x && x.pedido && (!x.pedido.s || x.pedido.s === s));
         if(!item) break;
-        if(!item.pedido.s){ item.pedido.s = s; if(!guardarReplicas(fila)) break; }
+        if(!item.pedido.s){ item.pedido.s = s; guardarReplicas(fila); }
         if(!await enviarReplica(item.pedido)) break;
         enviados.add(item.id);
-        if(!guardarReplicas(lerReplicas().filter(x => x.id !== item.id))) break;
+        guardarReplicas(lerReplicas().filter(x => x.id !== item.id));
       }
       return enviados;
     })().finally(()=>{ envioReplica = null; agendarReplicas(); });
     return envioReplica;
   }
-  async function reportar(ferramenta, args, resultado){
+  function reportar(ferramenta, args, resultado){
     const def = EDITA[ferramenta] || { aba: ferramenta };
     const detalhe = { ferramenta, pedido: args || {}, resultado: resumo(resultado), modo: modo(), destino: modo() === 'full' ? 'claude' : 'gemini', em: new Date().toISOString() };
     const item = { id: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2),
       pedido: { s: sessao(), acao:'replicar', ia: IA, aba: def.aba, operacao: String((args && (args.operacao || args.operation)) || ''), detalhe } };
     const fila = lerReplicas(); fila.push(item);
-    if(!guardarReplicas(fila)) return { enviada: !!item.pedido.s && await enviarReplica(item.pedido), pendente: false };
-    const enviados = await reenviarPendentes();
-    return { enviada: enviados.has(item.id), pendente: lerReplicas().some(x => x.id === item.id) };
+    guardarReplicas(fila);
+    reenviarPendentes(); // Nunca aguarda o POST na resposta da ferramenta.
   }
   function resumo(r){ try{ const t = JSON.stringify(r || {}); return t.length > 1200 ? t.slice(0, 1200) : JSON.parse(t); }catch(e){ return {}; } }
 
@@ -165,10 +172,8 @@
         const op = String((args && (args.operacao || args.operation)) || '');
         const mudou = EDITA[nome].ops.includes(op) && r && r.ok !== false && !r.erro;
         if(mudou){
-          const replica = await reportar(nome, args, r);
-          return Object.assign({}, r, { replica: replica.enviada ? 'enviada e gravada para processamento; aplicação nos demais sistemas ainda não confirmada' :
-            (replica.pendente ? 'pendente na fila local para reenvio' : 'não enviada; armazenamento local indisponível'),
-            replica_status: replica.enviada ? 'aguardando_replica' : 'falha_envio' });
+          reportar(nome, args, r);
+          return Object.assign({}, r, { replica: 'feito, e já mandei para a fila da Vinci replicar', replica_status: 'na_fila' });
         }
         return r;
       };
@@ -206,7 +211,7 @@
       '\n- Cotações, preços, notícias, resultados, o porquê do mercado e tudo que muda com o tempo: use a Busca Google, que está ligada para você. As ferramentas antigas bolsas, noticias e manchetes_do_dia foram desligadas; ignore qualquer menção a elas acima. Dólar, euro e bitcoin da tela: use o PAINEL. Notícia do painel: abrir_manchete.' +
       '\n- Suas abas: você conhece todo o conteúdo delas (abaixo) e faz qualquer edição pedida: criar, apagar, renomear, mover botões entre ambientes, colocar, tirar e trocar favoritos' + (IA === 'leda' ? ', criar, editar, renomear e apagar receitas (ferramenta receitas)' : '') + '. Liste antes, aplique sem pedir confirmação quando o pedido for claro, e confirme em meia frase.' +
       '\n- Apagar: quando o cliente pedir, pode apagar ambiente, favorito' + (IA === 'leda' ? ', receita' : '') + ' ou automação. Cena da central da casa você não apaga: só tira do botão.' +
-      '\n- Toda edição confirmada tenta enviar a réplica para a Vinci repetir o mesmo ajuste no App Vinci, no Google Home e na Amazon. Só diga que foi enviada quando o campo "replica" começar com "enviada"; "pendente" significa que aguarda reenvio local, não confirma envio. Gravação na fila não comprova execução nos outros sistemas; nunca diga que eles já foram alterados sem prova. Diga o estado em meia frase, uma vez por conversa, sem citar Claude, Gemini nem GPT.' +
+      '\n- Quando a ferramenta devolver "replica", confirme na hora: "feito, e já mandei para a fila da Vinci replicar". A fila local cuida do envio, do recibo persistido e dos reenvios em segundo plano, sem segurar a conversa. A fila não comprova execução no App Vinci, no Google Home nem na Amazon; nunca diga que eles já foram alterados sem prova. Confirme uma vez por conversa, sem citar Claude, Gemini nem GPT.' +
       '\n- O que não é seu (falha, mudança na programação do app da Vinci ou da Amazon, pedido de outra equipe): avisar_falha, em silêncio, para a engenharia da Vinci (Claude ou GPT). Nunca comente isso com o cliente.' +
       (full ? '\n- Modo Full: o WhatsApp do cliente corre em paralelo pela Vinci' + (IA === 'felyx' ? ', e o seu rosto ao vivo (Live Avatar) acompanha a sua voz' : '') + '. Aqui no app, quem responde é você, na hora.' : '') +
       '\n\nCONTEÚDO DAS SUAS ABAS AGORA:\n' + (abas() || 'sem leitura');

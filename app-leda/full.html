@@ -828,9 +828,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   <main class="stage">
     <aside class="col left">
       <section class="panel market" id="market" aria-label="Cotações">
-        <div class="ph"><span class="k"><i></i>mercado · binance</span><span class="pr" id="marketWhen">carregando</span></div>
+        <div class="ph"><span class="k"><i></i>mercado · Google</span><span class="pr" id="marketWhen">carregando</span></div>
         <div class="rows" id="marketRows"></div>
-        <div class="pf" id="marketFoot">pares binance · spot e futuros</div>
+        <div class="pf" id="marketFoot">cotações · Busca Google</div>
       </section>
       <section class="panel news" id="newsPol" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
@@ -902,7 +902,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
 <script src="../vinci/onboarding.js?v=20261114q"></script>
-<script src="../vinci/ia-padrao.js?v=20261114b" data-ia="leda"></script>
+<script src="../vinci/ia-padrao.js?v=20261114c" data-ia="leda"></script>
+<script src="../vinci/paineis-google.js?v=20261114a"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -910,7 +911,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
    notícias de política; à direita a matriz de 32 comandos e as notícias de
    tecnologia. Felyx GEN: voz e cérebro no Gemini Live, sem o Claude; o n8n só
    entrega dados (felix/gemini-apoio, felix/app). Mercado e notícias vêm
-   do n8n (ponte): /felix/mercado e /felix/noticias.
+   do Gemini com Busca Google; para os cartões, o n8n só emite o token.
    ===================================================================== */
 const hud = document.getElementById('hud');
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -1162,8 +1163,6 @@ const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const TOKEN_URL = N8N + '/leda/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/leda/gemini-apoio';
-const MERCADO_URL = N8N + '/felix/mercado';
-const NOTICIAS_URL = N8N + '/felix/noticias';
 const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
 /* ===================== acesso (login) ===================== */
@@ -1214,8 +1213,8 @@ function esconderLogin(){ const el = document.getElementById('felyxLogin'); if(e
 /* ===================== mercado (em real) ===================== */
 const OIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c-3.2 4.3-6 7.6-6 11.3A6 6 0 0 0 18 13.8c0-3.7-2.8-7-6-11.3zm0 16.3a3 3 0 0 1-3-3c0-.5.4-.8.8-.8s.8.3.8.8a1.4 1.4 0 0 0 1.4 1.4c.5 0 .8.4.8.8s-.3.8-.8.8z"/></svg>';
 const ASSETS = [
-  { id:'usd', nome:'USD/BRL', glyph:'$', dec:4, pick:(m)=> m.usdtbrl ? { brl:m.usdtbrl.preco, chg:m.usdtbrl.chg, sub:'dólar em real' } : ((m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, chg:null, sub:'dólar em real' } : null) },
-  { id:'eur', nome:'EUR/BRL', glyph:'€', dec:4, pick:(m)=> (m.cambio && m.cambio.eurbrl) ? { brl:m.cambio.eurbrl, chg:null, sub:'euro em real' } : null },   // só Dólar, Euro e Bitcoin (Leandro, 06/11)
+  { id:'usd', nome:'USD/BRL', glyph:'$', dec:4, pick:(m)=> m.usdtbrl ? { brl:m.usdtbrl.preco, chg:m.usdtbrl.chg, sub:'dólar em real' } : ((m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, chg:m.cambio.usdbrlChg, sub:'dólar em real' } : null) },
+  { id:'eur', nome:'EUR/BRL', glyph:'€', dec:4, pick:(m)=> (m.cambio && m.cambio.eurbrl) ? { brl:m.cambio.eurbrl, chg:m.cambio.eurbrlChg, sub:'euro em real' } : null },   // só Dólar, Euro e Bitcoin (Leandro, 06/11)
   { id:'btc', nome:'BTC/USD', glyph:'₿', dec:0, usdt:true, pick:(m)=> m.cripto && m.cripto.bitcoin },
 ];
 const marketRows = document.getElementById('marketRows'), marketWhen = document.getElementById('marketWhen');
@@ -1252,34 +1251,30 @@ function renderMercado(m){
     else { chg.textContent = (m.cambio && m.cambio.data) ? 'ref. ' + m.cambio.data.split('-').reverse().slice(0,2).join('/') : ''; chg.className = 'chg'; }
     row.dataset.flash = '1'; setTimeout(()=>{ row.dataset.flash = '0'; }, 1200);
   }
-  if(any) marketWhen.textContent = hhmm(new Date());
+  if(any){
+    const atualizado = new Date(m.atualizadoEm);
+    marketWhen.textContent = hhmm(atualizado);
+    marketWhen.title = 'Atualizado em ' + atualizado.toLocaleString('pt-BR');
+  }
   return any;
 }
-async function fetchMercadoDireto(){
-  // reserva: busca direto no navegador se a ponte não responder
-  const [fx, cg] = await Promise.all([
-    fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then(r=>r.json()),
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,zcash&vs_currencies=brl,usd&include_24hr_change=true').then(r=>r.json())
-  ]);
-  const cripto = {}; for(const k of ['bitcoin','ethereum','solana','zcash']){ const c = cg[k]; if(c) cripto[k] = { brl:c.brl, usd:c.usd, usdt:c.usd, chg:c.brl_24h_change, chgUsdt:c.usd_24h_change }; }
-  let usdtbrl = null, clusdt = null;
-  try{ const b = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then(r=>r.json()); if(b && b.lastPrice) usdtbrl = { preco:+b.lastPrice, chg:+b.priceChangePercent }; }catch(e){}
-  try{ const c = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
-  return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, usdtbrl, clusdt, petroleo:null };
-}
-function paineisNoFull(){ try{ return !!(window.VinciIA && typeof window.VinciIA.modo === 'function' && window.VinciIA.modo() === 'full'); }catch(e){ return false; } }
+const paineisGoogle = VinciPaineis.criar({ ia:'leda', tokenUrl:()=>comS(TOKEN_URL), sessao:()=>SESSAO, model:()=>MODEL });
 let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
-// uma busca por vez: quem chega enquanto outra está em andamento recebe a mesma resposta (evita chamadas duplicadas ao n8n)
+function exibirMercado(paineis){
+  if(paineis && paineis.mercado && mercadoData !== paineis.mercado){
+    mercadoData = paineis.mercado; mercadoAt = Date.parse(paineis.atualizadoEm);
+    renderMercado(mercadoData);
+  }
+  return mercadoData;
+}
 function loadMercado(force){
-  if(!paineisNoFull()) return Promise.resolve(null);
+  // O último valor aparece antes da rede; falha nunca apaga o cartão.
+  exibirMercado(paineisGoogle.cache());
   if(mercadoVoo) return mercadoVoo;
-  if(!force && Date.now() - mercadoAt < 14*60000) return Promise.resolve(mercadoData);
-  if(force && mercadoData && Date.now() - mercadoAt < 20000) return Promise.resolve(mercadoData);
-  mercadoVoo = buscarMercado().finally(()=>{ mercadoVoo = null; });
+  mercadoVoo = buscarMercado(force).finally(()=>{ mercadoVoo = null; });
   return mercadoVoo;
 }
-async function buscarMercado(){ return null; }
-async function _mercadoDoFelyx(){ return null; }
+async function buscarMercado(force){ return exibirMercado(await paineisGoogle.carregar(force)); }
 
 /* ===================== notícias (cards animados) ===================== */
 const SRC_SHORT = { 'agência brasil':'agência brasil', 'olhar digital':'olhar digital', 'canaltech':'canaltech' };
@@ -1325,26 +1320,22 @@ class NewsPanel {
 const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
 const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
+function exibirNoticias(paineis){
+  if(paineis && paineis.noticias && ultimasNoticias !== paineis.noticias){
+    ultimasNoticias = paineis.noticias; noticiasAt = Date.parse(paineis.atualizadoEm);
+    newsPol.set(ultimasNoticias.politica); newsTec.set(ultimasNoticias.tecnologia);
+    const horario = 'Atualizado em ' + new Date(noticiasAt).toLocaleString('pt-BR');
+    newsPol.el.title = horario; newsTec.el.title = horario;
+  }
+  return ultimasNoticias;
+}
 function loadNoticias(force){
-  if(!paineisNoFull()) return Promise.resolve(null);
+  exibirNoticias(paineisGoogle.cache());
   if(noticiasVoo) return noticiasVoo;
-  if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
-  if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
-  noticiasVoo = buscarNoticias().finally(()=>{ noticiasVoo = null; });
+  noticiasVoo = buscarNoticias(force).finally(()=>{ noticiasVoo = null; });
   return noticiasVoo;
 }
-async function buscarNoticias(){
-  if(!paineisNoFull()) return Promise.resolve(null);
-  noticiasAt = Date.now();
-  try{
-    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
-    if(!j || !j.ok) throw new Error('ponte sem notícias');
-    ultimasNoticias = j; newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
-  }catch(e){
-    if(!newsPol.items.length) newsPol.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
-    if(!newsTec.items.length) newsTec.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
-  }
-}
+async function buscarNoticias(force){ return exibirNoticias(await paineisGoogle.carregar(force)); }
 
 /* ===================== matriz de comandos (4×8) ===================== */
 const MATRIX_KEY = 'felyx.matrix.v2', MATRIX_ON_KEY = 'felyx.matrix.on.v2';
@@ -1679,12 +1670,10 @@ async function _bootComIris(avisos){
 }
 
 /* ---------- cumprimento da abertura (regra do Leandro, 07/11) ----------
-   Uma fala só, assim que o rosto aparece: saudação, a temperatura agora, o dólar oficial do pacote do Google e
+   Uma fala só, assim que o rosto aparece: saudação, a temperatura agora, o dólar do painel via Busca Google e
    "Posso ajudar em alguma coisa?". Da íris até o fim dessa fala o microfone é ignorado. */
-const MOTOR_GOOGLE = 'https://script.google.com/macros/s/AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen/exec';
 const pausa = (ms)=> new Promise((ok)=> setTimeout(ok, ms));
 async function dolarDoGoogle(){
-  try{ const p = await fetch(MOTOR_GOOGLE, { cache:'no-store' }).then((r)=> r.json()); const v = p && p.cotacoes && p.cotacoes.usd_brl && Number(p.cotacoes.usd_brl.valor); if(v > 0) return v; }catch(e){}
   try{ const m = mercadoData || await loadMercado(true); const v = m && m.cambio && Number(m.cambio.usdbrl); if(v > 0) return v; }catch(e){}
   return null;   // sem o dólar oficial ele não fala de dólar (nunca a cotação do USDT)
 }
@@ -1724,7 +1713,7 @@ async function climaAgora(){
     return { temperatura: c.temperature_2m, sensacao: c.apparent_temperature, descricao: WMO[c.weather_code] || '', max: dd.temperature_2m_max[0], min: dd.temperature_2m_min[0], chuva: dd.precipitation_probability_max[0] };
   }catch(e){ return null; }
 }
-// Regra de 15/10/2026: nas boas-vindas o mercado é SÓ o dólar; as bolsas internacionais vêm do resumo da manhã (n8n).
+// Regra de 15/10/2026: nas boas-vindas o mercado é SÓ o dólar; as demais cotações e notícias usam a Busca Google nativa.
 // As outras moedas/cripto ficam só nos cards da tela, nunca na fala.
 function dolarResumo(m){
   if(!m) return null;
@@ -1818,7 +1807,7 @@ Cérebro: você responde a TUDO com o seu próprio conhecimento, como uma grande
 Pedido impossível ou absurdo: nunca dê bronca nem ironize. Acolha com leveza ("Nossa, que aventura! Vamos com calma que a gente organiza.") e ajude com perguntas gentis.
 Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a tela da Leda (o seu rosto), o Dashboard, as Receitas (receitas e boas práticas do lar) ou os Ambientes, chame abrir_tela e responda só "Prontinho." (mesmo se já estiver na tela pedida).
 Ambientes: quando pedirem para dividir a casa, criar, renomear, excluir ambiente ou mudar um botão de ambiente, use a ferramenta ambientes (listar primeiro). Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
-Ferramentas: para fatos que mudam com o tempo (resultados, acontecimentos recentes) use noticias com busca; para resumir uma notícia da tela use noticias com o url dela. Quando pedirem para abrir ou ler uma manchete da tela, use abrir_manchete (a matéria abre por cima da tela e você lê em português, resumindo com delicadeza); para rolar use rolar_materia. Clima: clima, sempre pensando na casa e na família (guarda-chuva, roupa no varal, ligar o ar). Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
+Ferramentas: para fatos que mudam com o tempo (resultados, acontecimentos recentes) use noticias com busca; para resumir uma notícia da tela use noticias com o url dela. Quando pedirem para abrir ou ler uma manchete da tela, use abrir_manchete (a manchete abre por cima da tela; para aprofundar pesquise com a Busca Google e responda em português, resumindo com delicadeza); para rolar use rolar_materia. Clima: clima, sempre pensando na casa e na família (guarda-chuva, roupa no varal, ligar o ar). Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem a criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com um cuidado. Um pesquisador apaixonado por Leonardo da Vinci passou anos estudando a mente do maior gênio da humanidade e descobriu uma coisa que quase ninguém comenta: por trás de cada invenção havia atenção às pessoas. Leonardo desenhava máquinas para voar, mas também anotava o jeito de uma criança sorrir e o caminho da luz dentro de uma casa. Dessa parte mais gentil da mente dele nasceu a Leda: curiosa, paciente e sempre por perto. Eu não vim para mandar em nada, vim para cuidar. Eu sou a Leda, da Vinci, a companhia inteligente do seu lar."
 Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "não tenho acesso" ou "não consigo". Assunto difícil pede tempo, não desculpa: diga algo como "Deixa eu ver isso direitinho para você." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
@@ -2145,18 +2134,6 @@ const GEN_FERRAMENTAS = {
     return { disponivel:true, lido_em:j.em, total_ligados: ligados.length, ligados: ligados.map(fmt), sem_resposta: lista.filter(e=> e.ligado === null).map(e=>e.nome) };
   },
   async clima(){ return (await climaAgora()) || { erro:'indisponível agora' }; },
-  async bolsas(){ return apoioGen('mercado', { pedido:'como estão as bolsas' }); },
-  // 13/11/2026: notícias do dia de verdade (manchetes de hoje do Google Notícias, atualizadas a cada 15 min), para as três IAs
-  async manchetes_do_dia({ secao }){
-    const r = await apoioGen('mercado', { pedido:'manchetes do dia' });
-    if(!r || r.erro || r.ok === false) return { erro:'indisponível agora' };
-    const corta = (l)=> (Array.isArray(l) ? l : []).slice(0, 6).map(n => ({ titulo: n.titulo, fonte: n.fonte || '', url: n.link || '' }));
-    const todas = { destaques: corta(r.destaques), politica: corta(r.politica), tecnologia: corta(r.tecnologia), economia: corta(r.manchetes) };
-    const s = String(secao || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const so = /tec/.test(s) ? 'tecnologia' : (/pol/.test(s) ? 'politica' : (/econ|dinheiro|mercado/.test(s) ? 'economia' : ''));
-    return Object.assign({ atualizado: r.atualizado || null, instrucao: 'Diga as 3 mais importantes, curtas, em português do Brasil (traduza se preciso), citando a fonte. Para ler uma inteira, chame noticias com o url dela.' }, so ? { [so]: todas[so] } : todas);
-  },
-  async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
   async abrir_manchete({ secao, posicao }){
     const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
@@ -2165,10 +2142,10 @@ const GEN_FERRAMENTAS = {
     document.getElementById('matFonte').textContent = (n.source||'') + (n.cat ? ' · ' + n.cat : '');
     document.getElementById('matTitulo').textContent = n.title; document.getElementById('matTexto').textContent = 'abrindo a matéria…';
     m.scrollTop = 0; m.dataset.on = '1';
-    const r = await apoioGen('noticia', { busca:'', url: n.link || '' });
-    const texto = (r && (r.texto || r.text || r.conteudo)) || '';
-    document.getElementById('matTexto').textContent = texto || 'Não consegui abrir o texto completo; fico com o resumo da manchete.';
-    return { titulo: n.title, fonte: n.source || '', url: n.link || '', texto: String(texto).slice(0, 7000), instrucao: 'A matéria está aberta na tela. Leia em português do Brasil (traduza se vier em outra língua), resuma e aprofunde no ponto mais interessante; converse e debata. Para rolar a tela use rolar_materia; para fechar, fechar_materia.' };
+    const texto = n.title;
+    document.getElementById('matTexto').textContent = texto;
+    return { titulo:n.title, fonte:n.source || '', url:n.link || '', texto,
+      instrucao:'A manchete do painel está aberta na tela. Para aprofundar ou buscar detalhes da matéria, use a Busca Google nativa, citando as fontes. Para rolar use rolar_materia; para fechar, fechar_materia.' };
   },
   async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
   async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
@@ -2190,11 +2167,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'estado_casa', description:'Diz se aparelhos da casa estão ligados ou desligados agora. dispositivo: nome do aparelho (vazio = todos).', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
   { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'bolsas', description:'Moedas e mercado agora: dólar, euro e Bitcoin, Ibovespa, S&P 500 e Nasdaq com a variação do dia, e as manchetes de economia. Use quando perguntarem de dólar, euro, Bitcoin, bolsa, cotação ou economia.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'manchetes_do_dia', description:'Notícias de HOJE: manchetes do Google Notícias atualizadas a cada 15 minutos, com fonte e url. secao: destaques, politica, tecnologia ou economia (vazio = todas). Use sempre que pedirem as notícias do dia, as manchetes, o que está acontecendo ou notícias de tecnologia. Para um assunto específico use noticias com busca.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' } } } },
-  { name:'noticias', description:'Com busca (assunto em poucas palavras): manchetes recentes com fonte e url. Com url: o texto completo da matéria.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, url:{ type:'STRING' } } } },
-  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a matéria de uma manchete do painel e traz o texto completo para você ler. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
+  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a manchete do painel, com fonte e link. Para aprofundar o conteúdo, use a Busca Google nativa. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
   { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
   { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'memoria', description:'Memória de longo prazo da Leda: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',
@@ -2213,7 +2186,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
     parameters:{ type:'OBJECT', properties:{ pedido:{ type:'STRING' }, erro:{ type:'STRING' } }, required:['pedido','erro'] } },
   { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz o clima de agora.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{} } }
-] }];
+] }, { googleSearch:{} }];
 
 /* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
    (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
