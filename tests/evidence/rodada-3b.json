@@ -1,0 +1,299 @@
+{
+  "base": "3ee3c6fb1756d30494e31b9b9dd8172bdf88f1c5",
+  "moduleSha256": "42b35390ab664c51fec2c152e935cd73d33ba14256644696c07c05cc61ae410a",
+  "registradoEm": "2026-11-14T22:51:35.141406+00:00",
+  "publicacao": "Autorizada expressamente pelo usuário após informar que 7/7 continua pendente.",
+  "criterioDeBusca": "groundingMetadata.webSearchQueries com ao menos uma string não vazia; groundingChunks não obrigatório.",
+  "links": "Busca Google do título, gerada pelo app; URLs recebidas são ignoradas.",
+  "testesAutomatizados": {
+    "aprovados": 86,
+    "falhas": 0
+  },
+  "serieAnterior": {
+    "moduleSha256": "620b2eecd27cc03d6f356bc23448dbd076a5b73a1f90c87c41564d6451b2f307",
+    "aprovados": 6,
+    "total": 7,
+    "falha": "Felyx 3: politica=[] e tecnologia=[]; rejeitado integralmente.",
+    "cargas": [
+      {
+        "ordem": 1,
+        "arquivo": "felyx-1794696020533-1.json",
+        "ia": "felyx",
+        "passou": true,
+        "tempoMs": 11801,
+        "consultas": 15,
+        "valoresRetornados": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:40:32.332Z",
+          "cambio": {
+            "usdbrl": 5.669,
+            "eurbrl": 6.248,
+            "usdbrlChg": null,
+            "eurbrlChg": null,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 65655.8,
+              "usdt": 65655.8,
+              "brl": 371110,
+              "chgUsdt": null
+            }
+          },
+          "ibovespa": {
+            "pontos": 172457,
+            "chg": 0.66
+          }
+        },
+        "valoresAceitos": true,
+        "noticiasPolitica": 2,
+        "noticiasTecnologia": 3,
+        "motivo": null
+      },
+      {
+        "ordem": 2,
+        "arquivo": "felyx-1794696051090-2.json",
+        "ia": "felyx",
+        "passou": true,
+        "tempoMs": 7314,
+        "consultas": 12,
+        "valoresRetornados": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:40:58.404Z",
+          "cambio": {
+            "usdbrl": 5.66,
+            "eurbrl": 6.22,
+            "usdbrlChg": -0.04,
+            "eurbrlChg": 0.31,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 65798,
+              "usdt": 65798,
+              "brl": 371110,
+              "chgUsdt": 0
+            }
+          },
+          "ibovespa": {
+            "pontos": 171187,
+            "chg": -0.51
+          }
+        },
+        "valoresAceitos": true,
+        "noticiasPolitica": 2,
+        "noticiasTecnologia": 1,
+        "motivo": null
+      },
+      {
+        "ordem": 3,
+        "arquivo": "felyx-1794696081178-3.json",
+        "ia": "felyx",
+        "passou": false,
+        "tempoMs": 13850,
+        "consultas": 10,
+        "valoresRetornados": {
+          "cripto": {
+            "bitcoin": {
+              "brl": 371110,
+              "usd": 73451.18
+            }
+          },
+          "ibovespa": {
+            "pontos": 172326.37,
+            "chg": 0.77
+          },
+          "cambio": {
+            "eurbrl": 6.25,
+            "data": "2026-11-14",
+            "eurbrlChg": 0.13,
+            "usdbrl": 5.67,
+            "usdbrlChg": null
+          }
+        },
+        "valoresAceitos": false,
+        "noticiasPolitica": 0,
+        "noticiasTecnologia": 0,
+        "motivo": "manchetes incompletas: politica e tecnologia retornaram arrays vazios"
+      },
+      {
+        "ordem": 4,
+        "arquivo": "felyx-1794696114308-4.json",
+        "ia": "felyx",
+        "passou": true,
+        "tempoMs": 9627,
+        "consultas": 20,
+        "valoresRetornados": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:42:03.934Z",
+          "cambio": {
+            "usdbrl": 5.6616,
+            "eurbrl": 6.2448,
+            "usdbrlChg": null,
+            "eurbrlChg": null,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 64731.49,
+              "usdt": 64731.49,
+              "brl": 367027.54,
+              "chgUsdt": -5.92
+            }
+          },
+          "ibovespa": {
+            "pontos": 171187,
+            "chg": -0.51
+          }
+        },
+        "valoresAceitos": true,
+        "noticiasPolitica": 3,
+        "noticiasTecnologia": 3,
+        "motivo": null
+      },
+      {
+        "ordem": 5,
+        "arquivo": "felyx-1794696139457-5.json",
+        "ia": "felyx",
+        "passou": true,
+        "tempoMs": 9382,
+        "consultas": 6,
+        "valoresRetornados": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:42:28.839Z",
+          "cambio": {
+            "usdbrl": 5.66,
+            "eurbrl": 6.22,
+            "usdbrlChg": null,
+            "eurbrlChg": null,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 65735,
+              "usdt": 65735,
+              "brl": 366027.22,
+              "chgUsdt": 0
+            }
+          },
+          "ibovespa": {
+            "pontos": 172642,
+            "chg": null
+          }
+        },
+        "valoresAceitos": true,
+        "noticiasPolitica": 2,
+        "noticiasTecnologia": 3,
+        "motivo": null
+      },
+      {
+        "ordem": 6,
+        "arquivo": "leda-1794696160842-6.json",
+        "ia": "leda",
+        "passou": true,
+        "tempoMs": 12566,
+        "consultas": 10,
+        "valoresRetornados": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:42:53.408Z",
+          "cambio": {
+            "usdbrl": 5.65,
+            "eurbrl": 6.25,
+            "usdbrlChg": 1.58,
+            "eurbrlChg": null,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 68319,
+              "usdt": 68319,
+              "brl": 383116.79,
+              "chgUsdt": null
+            }
+          },
+          "ibovespa": {
+            "pontos": 172458,
+            "chg": 0.66
+          }
+        },
+        "valoresAceitos": true,
+        "noticiasPolitica": 2,
+        "noticiasTecnologia": 3,
+        "motivo": null
+      },
+      {
+        "ordem": 7,
+        "arquivo": "leo-1794696183445-7.json",
+        "ia": "leo",
+        "passou": true,
+        "tempoMs": 9948,
+        "consultas": 9,
+        "valoresRetornados": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:43:13.393Z",
+          "cambio": {
+            "usdbrl": 5.6616,
+            "eurbrl": 6.24804,
+            "usdbrlChg": null,
+            "eurbrlChg": 0.126,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 65798,
+              "usdt": 65798,
+              "brl": 371110,
+              "chgUsdt": null
+            }
+          },
+          "ibovespa": {
+            "pontos": 172326,
+            "chg": 0.58
+          }
+        },
+        "valoresAceitos": true,
+        "noticiasPolitica": 2,
+        "noticiasTecnologia": 2,
+        "motivo": null
+      }
+    ]
+  },
+  "ajustePosterior": "Schema minItems:1 e pesquisa explícita de manchetes de política e tecnologia; validação de conteúdo incompleto preservada.",
+  "versaoPublicada": {
+    "seteCargasConsecutivasComprovadas": false,
+    "cargasReais": [
+      {
+        "id": "felyx-1794696365961-1",
+        "ia": "felyx",
+        "passou": true,
+        "tempoMs": 8221,
+        "consultas": 10,
+        "mercado": {
+          "ok": true,
+          "atualizadoEm": "2026-11-14T22:46:14.181Z",
+          "cambio": {
+            "usdbrl": 5.6616,
+            "eurbrl": 6.24804,
+            "usdbrlChg": 0.148,
+            "eurbrlChg": 0.126,
+            "data": "2026-11-14"
+          },
+          "cripto": {
+            "bitcoin": {
+              "usd": 65371,
+              "usdt": 65371,
+              "brl": 383116.79,
+              "chgUsdt": -4.22
+            }
+          },
+          "ibovespa": {
+            "pontos": 171187,
+            "chg": -0.51
+          }
+        },
+        "noticiasPolitica": 1,
+        "noticiasTecnologia": 1
+      }
+    ]
+  }
+}

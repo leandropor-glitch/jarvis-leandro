@@ -1,16 +1,18 @@
 /* Cartões: Gemini Live + Busca Google, no padrão e no Full (14/11/2026).
    O n8n só emite o token efêmero. Sessão própria, sem microfone/reprodução.
    gemini-3.8-live exige AUDIO: o JSON vem de uma função local, não da fala.
-   Só publica depois de receber grounding e concluir o turno. */
+   Pesquisa em um turno falado (sem reprodução), entrega no turno seguinte.
+   Prova de busca no Live: webSearchQueries não vazio (ordem de 14/11/2026).
+   Links de manchetes são buscas Google geradas localmente pelo título. */
 (function(){
   'use strict';
   const GOOGLE_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
   const TTL = 14 * 60000, INTERVALO = 20000, LIMITE = 45000;
   const numero = { type:'NUMBER' };
-  const manchete = { type:'OBJECT', properties:{ title:{type:'STRING'}, source:{type:'STRING'}, link:{type:'STRING'}, date:{type:'STRING'} }, required:['title','source','link','date'] };
+  const manchete = { type:'OBJECT', properties:{ title:{type:'STRING'}, source:{type:'STRING'}, date:{type:'STRING'} }, required:['title','source','date'] };
   const entrega = {
     name:'entregar_paineis',
-    description:'Entrega local dos cartões após pesquisar no Google. Não faz requisições externas. Use valores numéricos sem separador de milhar, datas ISO e links das fontes encontradas.',
+    description:'Use SOMENTE no segundo turno, quando o usuário pedir ENTREGAR_PAINEIS. No primeiro turno pesquise no Google e responda em fala, sem chamar esta função. Entrega local dos cartões com os resultados da pesquisa anterior, sem requisições externas. Use valores numéricos sem separador de milhar e datas ISO. Para manchetes entregue título, fonte e data pesquisados; não entregue URLs.',
     parameters:{ type:'OBJECT', properties:{
       mercado:{ type:'OBJECT', properties:{
         cambio:{ type:'OBJECT', properties:{usdbrl:numero,eurbrl:numero,
@@ -20,14 +22,13 @@
         cripto:{ type:'OBJECT', properties:{bitcoin:{type:'OBJECT',properties:{usd:numero,brl:numero,chgUsdt:numero},required:['usd','brl']}},required:['bitcoin'] },
         ibovespa:{ type:'OBJECT', properties:{pontos:numero,chg:numero},required:['pontos'] }
       },required:['cambio','cripto','ibovespa'] },
-      noticias:{ type:'OBJECT', properties:{politica:{type:'ARRAY',items:manchete},tecnologia:{type:'ARRAY',items:manchete}},required:['politica','tecnologia'] }
+      noticias:{ type:'OBJECT', properties:{politica:{type:'ARRAY',minItems:1,items:manchete},tecnologia:{type:'ARRAY',minItems:1,items:manchete}},required:['politica','tecnologia'] }
     },required:['mercado','noticias'] }
   };
   function texto(v, max){ return typeof v === 'string' ? v.trim().slice(0,max) : ''; }
-  function link(v){ try{ const u = new URL(v); return u.protocol === 'https:' && !u.username && !u.password ? u.href : ''; }catch(e){ return ''; } }
   function positivo(v){ return typeof v === 'number' && Number.isFinite(v) && v > 0; }
   function percentual(v){ return typeof v === 'number' && Number.isFinite(v) ? v : null; }
-  function temBusca(g){ return !!(g && Array.isArray(g.webSearchQueries) && g.webSearchQueries.some(q=>texto(q,500)) && Array.isArray(g.groundingChunks) && g.groundingChunks.some(c=>c.web && link(c.web.uri))); }
+  function temBusca(g){ return !!(g && Array.isArray(g.webSearchQueries) && g.webSearchQueries.some(q=>texto(q,500))); }
   function normalizar(dados, atualizadoEm, groundingMetadata){
     if(!temBusca(groundingMetadata) || !Number.isFinite(Date.parse(atualizadoEm))) throw new Error('cartões sem busca confirmada');
     const m = dados && dados.mercado, n = dados && dados.noticias;
@@ -35,9 +36,9 @@
     if(!cambio || !positivo(cambio.usdbrl) || !positivo(cambio.eurbrl) || !btc || !positivo(btc.usd) || !positivo(btc.brl) || !ibov || !positivo(ibov.pontos)) throw new Error('cotação incompleta');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(cambio.data) || !Number.isFinite(Date.parse(cambio.data))) throw new Error('data de cotação inválida');
     const lista = items => (Array.isArray(items) ? items : []).slice(0,6).map(v=>({
-      title:texto(v && v.title,240), source:texto(v && v.source,100), link:link(v && v.link),
+      title:texto(v && v.title,240), source:texto(v && v.source,100),
       date:v && Number.isFinite(Date.parse(v.date)) ? new Date(v.date).toISOString() : ''
-    })).filter(v=>v.title && v.source && v.link && v.date);
+    })).filter(v=>v.title && v.source && v.date).map(v=>({...v,link:'https://www.google.com/search?q=' + encodeURIComponent(v.title)}));
     const politica = lista(n && n.politica), tecnologia = lista(n && n.tecnologia);
     if(!politica.length || !tecnologia.length) throw new Error('manchetes incompletas');
     return { fonte:'googleSearch', atualizadoEm, groundingMetadata,
@@ -47,17 +48,20 @@
       noticias:{ok:true,atualizadoEm,politica,tecnologia}
     };
   }
-  function criar({ia, tokenUrl, sessao, model}){
+  function criar({ia, tokenUrl, sessao, model, onEstado}){
     const chave = 'vinci.paineis.google.v1.' + ia;
     let ultimo = null, voo = null, tentativa = 0;
     try{
       const salvo = JSON.parse(localStorage.getItem(chave) || 'null');
       if(salvo && salvo.fonte === 'googleSearch') ultimo = normalizar(salvo,salvo.atualizadoEm,salvo.groundingMetadata);
     }catch(e){}
+    function avisar(estado){
+      try{ if(typeof onEstado === 'function') onEstado({estado,comCache:!!ultimo}); }catch(e){}
+    }
     function buscar(){
       return new Promise((resolve,reject)=>{
         const ctl = new AbortController();
-        let ws = null, encerrado = false, pronto = false, dados = null;
+        let ws = null, encerrado = false, pronto = false, dados = null, fase = 'pesquisa';
         const grounding = {webSearchQueries:[],groundingChunks:[]};
         function terminar(erro, resultado){
           if(encerrado) return;
@@ -79,7 +83,7 @@
               model:'models/' + model().replace(/^models\//,''),
               generationConfig:{responseModalities:['AUDIO']},
               outputAudioTranscription:{},
-              systemInstruction:{parts:[{text:'Você atualiza cartões de mercado e notícias. Obrigatoriamente faça pesquisas atuais com googleSearch antes de entregar dados. Use só os resultados dessas pesquisas, nunca sua memória. Encontre dólar comercial USD/BRL (não USDT), EUR/BRL, bitcoin em USD e BRL e Ibovespa em pontos; use o último fechamento disponível quando o mercado estiver fechado. Encontre até três manchetes recentes de política brasileira e três de tecnologia, com fonte, URL e data de publicação. Não invente valores nem manchetes se a busca falhar. Entregue os dados uma única vez pela função entregar_paineis; depois encerre o turno. Não leia os cartões em voz alta.'}]},
+              systemInstruction:{parts:[{text:'Você atualiza cartões de mercado e notícias em DUAS ETAPAS na mesma sessão. PRIMEIRO TURNO: obrigatoriamente pesquise agora com googleSearch, use só os resultados dessas pesquisas, nunca sua memória. Encontre dólar comercial USD/BRL (não USDT), EUR/BRL e suas variações percentuais do dia, bitcoin em USD e BRL e Ibovespa em pontos; use o último fechamento disponível quando o mercado estiver fechado. Pesquise separadamente política brasileira e tecnologia. Encontre de uma a três manchetes concretas de cada categoria, com título da matéria, fonte e data de publicação. Páginas iniciais, diretórios e nomes de seções não são manchetes. Não encerre a pesquisa após achar apenas cotações; pesquise também as duas categorias de notícias. Se a busca não fornecer um item obrigatório, não invente para completar a entrega. Não invente valores nem manchetes. Não forneça URLs; os links de busca serão montados pelo app. Finalize o primeiro turno com uma breve resposta falada sobre a pesquisa. NÃO chame entregar_paineis nesse primeiro turno. SEGUNDO TURNO: somente quando receber ENTREGAR_PAINEIS, organize os resultados já pesquisados na função entregar_paineis, uma única vez, e encerre o turno. Se não encontrou um dado obrigatório, não invente.'}]},
               tools:[{googleSearch:{}},{functionDeclarations:[entrega]}]
             }})); }catch(e){ terminar(e); }
           };
@@ -93,7 +97,7 @@
               if(msg.error) throw new Error('busca recusada');
               if(msg.setupComplete && !pronto){
                 pronto = true;
-                ws.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:'Pesquise no Google e atualize os cartões agora. Data e hora de referência: ' + new Date().toISOString() + '. Retorne números JSON e datas ISO na função entregar_paineis.'}]}],turnComplete:true}}));
+                ws.send(JSON.stringify({realtimeInput:{text:'PESQUISAR: faça buscas Google para todos os cartões: USD/BRL, EUR/BRL, bitcoin em USD e BRL, Ibovespa e notícias. Pesquise explicitamente política brasileira e tecnologia; guarde ao menos uma manchete concreta com título, fonte e data em CADA categoria. Não deixe de pesquisar notícias após achar as cotações. Data e hora de referência: ' + new Date().toISOString() + '. Guarde todos os valores, títulos, datas e fontes encontrados. Ao terminar, fale somente "Pesquisa concluída". Guarde os dados pesquisados para a entrega. Não chame entregar_paineis ainda; aguardarei sua resposta antes de pedir a entrega.'}}));
               }
               const sc = msg.serverContent || {};
               if(sc.groundingMetadata){
@@ -106,7 +110,7 @@
               if(msg.toolCall){
                 const responses = [];
                 for(const call of msg.toolCall.functionCalls || []){
-                  if(call.name !== entrega.name || dados) throw new Error('entrega inesperada');
+                  if(fase !== 'entrega' || !temBusca(grounding) || call.name !== entrega.name || dados) throw new Error('entrega inesperada');
                   dados = call.args;
                   responses.push({id:call.id,name:call.name,response:{ok:true}});
                 }
@@ -114,7 +118,13 @@
               }
               if(sc.interrupted || msg.toolCallCancellation || msg.goAway) throw new Error('busca interrompida');
               // inlineData (áudio) e transcrição não entram na UI nem no cache.
-              if(sc.turnComplete) terminar(null,normalizar(dados,new Date().toISOString(),grounding));
+              if(sc.turnComplete){
+                if(fase === 'pesquisa'){
+                  if(!temBusca(grounding)) throw new Error('pesquisa sem comprovação do Google');
+                  fase = 'entrega';
+                  ws.send(JSON.stringify({realtimeInput:{text:'ENTREGAR_PAINEIS: agora entregue pela função entregar_paineis somente os dados e as notícias que você pesquisou no turno anterior. Inclua as cotações e ao menos uma das manchetes pesquisadas em politica e em tecnologia, com título, fonte e data. Preserve números, títulos, fontes e datas, sem preencher lacunas de memória. Não use lista vazia para omitir notícias que foram encontradas; se não foram encontradas, não invente. Variações percentuais não encontradas devem ser null. Não forneça URLs: o app gera a Busca Google pelo título de cada notícia. Depois da função, encerre com uma confirmação curta.'}}));
+                }else terminar(null,normalizar(dados,new Date().toISOString(),grounding));
+              }
             }).catch(terminar);
           };
           ws.onerror = ()=>terminar(new Error('busca desconectada'));
@@ -127,11 +137,13 @@
       const agora = Date.now();
       if(!sessao() || (tentativa && agora - tentativa < INTERVALO) || (!force && ultimo && agora - Date.parse(ultimo.atualizadoEm) < TTL)) return Promise.resolve(ultimo);
       tentativa = agora;
+      avisar('carregando');
       voo = buscar().then(resultado=>{
         ultimo = resultado;
         try{ localStorage.setItem(chave,JSON.stringify(ultimo)); }catch(e){}
+        avisar('pronto');
         return ultimo;
-      }).catch(()=>ultimo).finally(()=>{ voo = null; });
+      }).catch(()=>{ avisar('erro'); return ultimo; }).finally(()=>{ voo = null; });
       return voo;
     }
     return {cache:()=>ultimo,carregar};

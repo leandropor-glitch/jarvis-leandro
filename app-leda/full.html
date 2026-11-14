@@ -827,15 +827,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   <main class="stage">
     <aside class="col left">
-      <section class="panel market" id="market" aria-label="Cotações">
-        <div class="ph"><span class="k"><i></i>mercado · Google</span><span class="pr" id="marketWhen">carregando</span></div>
+      <section class="panel market" id="market" aria-busy="false" aria-label="Cotações">
+        <div class="ph"><span class="k"><i></i>mercado · Google</span><span class="pr" id="marketWhen" role="status" aria-live="polite">aguardando</span></div>
         <div class="rows" id="marketRows"></div>
         <div class="pf" id="marketFoot">cotações · Busca Google</div>
       </section>
-      <section class="panel news" id="newsPol" aria-label="Notícias de política">
+      <section class="panel news" id="newsPol" aria-busy="false" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
-        <div class="slides"><div class="empty">carregando manchetes</div></div>
-        <div class="pf"><span class="src">agência brasil</span><span class="dots"></span></div>
+        <div class="slides"><div class="empty" role="status" aria-live="polite">Aguardando manchetes</div></div>
+        <div class="pf"><span class="src">Busca Google</span><span class="dots"></span></div>
       </section>
     </aside>
 
@@ -869,10 +869,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
           <div class="hint">a frase é mandada à central da Vinci. fica salvo neste aparelho.</div>
         </div>
       </section>
-      <section class="panel news" id="newsTec" aria-label="Notícias de tecnologia">
+      <section class="panel news" id="newsTec" aria-busy="false" aria-label="Notícias de tecnologia">
         <div class="ph"><span class="k"><i></i>tecnologia</span><span class="pr">automação · ia</span></div>
-        <div class="slides"><div class="empty">carregando manchetes</div></div>
-        <div class="pf"><span class="src">olhar digital · canaltech</span><span class="dots"></span></div>
+        <div class="slides"><div class="empty" role="status" aria-live="polite">Aguardando manchetes</div></div>
+        <div class="pf"><span class="src">Busca Google</span><span class="dots"></span></div>
       </section>
     </aside>
   </main>
@@ -903,7 +903,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="esqueci-senha.js"></script>
 <script src="../vinci/onboarding.js?v=20261114q"></script>
 <script src="../vinci/ia-padrao.js?v=20261114c" data-ia="leda"></script>
-<script src="../vinci/paineis-google.js?v=20261114a"></script>
+<script src="../vinci/paineis-google.js?v=20261114b"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1258,7 +1258,22 @@ function renderMercado(m){
   }
   return any;
 }
-const paineisGoogle = VinciPaineis.criar({ ia:'leda', tokenUrl:()=>comS(TOKEN_URL), sessao:()=>SESSAO, model:()=>MODEL });
+function exibirEstadoPaineis({estado,comCache}){
+  const carregando = estado === 'carregando';
+  ['market','newsPol','newsTec'].forEach(id=>{
+    const painel = document.getElementById(id);
+    if(painel) painel.setAttribute('aria-busy',String(carregando));
+  });
+  // Uma atualização nunca troca os dados já confirmados por placeholders.
+  if(comCache || estado === 'pronto') return;
+  marketWhen.textContent = carregando ? 'buscando…' : 'aguardando';
+  marketWhen.title = carregando ? 'Buscando cotações no Google' : 'Aguardando atualização';
+  ['newsPol','newsTec'].forEach(id=>{
+    const vazio = document.getElementById(id).querySelector('.slides .empty');
+    if(vazio) vazio.textContent = carregando ? 'Buscando no Google…' : 'Aguardando atualização';
+  });
+}
+const paineisGoogle = VinciPaineis.criar({ ia:'leda', tokenUrl:()=>comS(TOKEN_URL), sessao:()=>SESSAO, model:()=>MODEL, onEstado:exibirEstadoPaineis });
 let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
 function exibirMercado(paineis){
   if(paineis && paineis.mercado && mercadoData !== paineis.mercado){
