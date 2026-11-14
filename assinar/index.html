@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Assine o Felyx — Vinci Automação</title>
-<meta name="description" content="Felyx, a inteligência da sua casa. Assine o Felyx Lite ou o Felyx Pro e acesse pelo app no iPhone, Android, Mac e na web.">
+<meta name="description" content="Felyx, a inteligência da sua casa. Assine o Felyx Lite ou o Felyx Full e acesse pelo app no iPhone, Android, Mac e na web.">
 <meta name="theme-color" content="#050607">
 <link rel="icon" href="icone.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -122,8 +122,8 @@ footer a{color:var(--soft)}
       <button class="btn s" data-plano="lite">Quero o Lite</button>
     </div>
     <div class="plano dest">
-      <span class="tag">PRO</span>
-      <h3>Felyx Pro</h3>
+      <span class="tag">FULL</span>
+      <h3>Felyx Full</h3>
       <div class="preco" data-preco="pro">—</div>
       <ul>
         <li>Tudo do Lite</li>
@@ -131,7 +131,7 @@ footer a{color:var(--soft)}
         <li>WhatsApp do Felyx</li>
         <li>Automações programadas por voz</li>
       </ul>
-      <button class="btn p" data-plano="pro">Quero o Pro</button>
+      <button class="btn p" data-plano="pro">Quero o Full</button>
     </div>
   </div>
 </div></section>
@@ -141,7 +141,7 @@ footer a{color:var(--soft)}
   <p class="sub">Preencha os dados. Depois do pagamento confirmado, o seu número é liberado no app e você cria a sua senha pelo código que chega no WhatsApp.</p>
   <form id="f" novalidate>
     <label>Plano
-      <select id="plano" required><option value="pro">Felyx Pro</option><option value="lite">Felyx Lite</option></select>
+      <select id="plano" required><option value="pro">Felyx Full</option><option value="lite">Felyx Lite</option></select>
     </label>
     <label>Nome completo<input id="nome" autocomplete="name" required></label>
     <label>WhatsApp com DDD<input id="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 90000-0000" required></label>
@@ -193,7 +193,7 @@ footer a{color:var(--soft)}
   const msg = (t, tipo) => { const m = $('#msg'); m.textContent = t; m.className = 'msg ' + (tipo || ''); };
 
   function mostrarPagamento(r, plano) {
-    const nomePlano = plano === 'pro' ? 'Felyx Pro' : 'Felyx Lite';
+    const nomePlano = plano === 'pro' ? 'Felyx Full' : 'Felyx Lite';
     const preco = (P.precos || {})[plano];
     $('#pagResumo').textContent = nomePlano + (preco != null ? ' · ' + brl(preco) + ' por mês' : '') + ' · pedido ' + (r.pedido || '');
     const c = $('#pagConteudo'); c.replaceChildren();
