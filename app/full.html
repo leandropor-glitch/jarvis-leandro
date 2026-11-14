@@ -637,6 +637,7 @@ input,select,textarea{font-size:16px!important}
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
+<script src="../vinci/onboarding.js?v=20261114o"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -906,6 +907,7 @@ let SESSAO = '';
 try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
 function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
+try{ VinciOnboarding.iniciar({ ia:'felyx', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
 (function montarLogin(){
   const st = document.createElement('style');
@@ -931,14 +933,14 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
         r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
         j = {}; try{ j = await r.json(); }catch(e){}
       }
-      if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); primeAudio(); if(!conv) start(); }
+      if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); }
       else { erro.textContent = 'Telefone ou senha não conferem, ou você não está autorizado.'; }
     }catch(e){ erro.textContent = 'Não consegui conectar. Tente de novo.'; }
     entrar.disabled = false;
   }
   entrar.addEventListener('click', tentar);
   document.getElementById('flEsqueci').addEventListener('click', ()=> felyxEsqueciSenha({ telefone: document.getElementById('flTel').value, aparelho: 'Felyx GEN',
-    aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); primeAudio(); if(!conv) start(); } }));
+    aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); } }));
   document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
 })();
 function mostrarLogin(msg){ if(window.felyxVoltarAoLogin) return window.felyxVoltarAoLogin(); const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
@@ -2009,7 +2011,7 @@ class GeminiLive {
         this.ws.send(JSON.stringify({ setup: {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto }] },
+          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
           tools: GEN_TOOLS,
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
           inputAudioTranscription: {},
@@ -2387,6 +2389,7 @@ unlockEl.addEventListener('pointerdown', liberarEComecar);
 unlockEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' ') liberarEComecar(); });
 (function autoAbrir(){ /* semIrisAuto */ try{ unlockEl.hidden = true; }catch(e){}
   if(!SESSAO){ mostrarLogin(''); return; }
+  try{ VinciOnboarding.talvezAbrir(); }catch(e){}   // onboarding Vinci: uma vez por IA, no primeiro acesso
   try{ talkBtn.title = 'Fale com o Felyx'; talkBtn.setAttribute('aria-label', 'Fale com o Felyx'); }catch(e){}
   return;
 
