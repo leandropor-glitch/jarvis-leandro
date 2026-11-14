@@ -976,7 +976,7 @@ function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; 
 function irParaGen(){
   if (!sessao || !sessao.token || sessao.demo || !iaAceita() || params.get('cerebro') === 'claude') return false;
   try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
-  const q = new URLSearchParams(location.search); q.set('v', '20261114b'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
+  const q = new URLSearchParams(location.search); q.set('v', '20261114c'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
 }
 let iaPedido = null;
 function permissaoIA(){
