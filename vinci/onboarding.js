@@ -52,10 +52,12 @@
   const esc = (s)=> String(s == null ? '' : s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
 
-  async function chamar(corpo){
+  // 14/11/2026 (ordem do Leandro): a conversa padrão não depende do n8n. Ler o perfil espera no máximo 2,5 s;
+  // salvar roda em segundo plano e, se falhar, fica neste aparelho e vai na próxima abertura.
+  async function chamar(corpo, limite){
     const s = opt.sessao(); if(!s) return null;
     const ctl = window.AbortController ? new AbortController() : null;
-    const tm = setTimeout(()=>{ try{ ctl && ctl.abort(); }catch(e){} }, 8000);
+    const tm = setTimeout(()=>{ try{ ctl && ctl.abort(); }catch(e){} }, limite || 8000);
     try{
       const r = await fetch(CONFIG.url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({ s }, corpo)), signal: ctl ? ctl.signal : undefined });
       let j = null; try{ j = await r.json(); }catch(e){}
@@ -69,7 +71,7 @@
   async function carregar(){
     perfil = normalizar(lerLocal());
     if(perfil && perfil.concluido) return true;
-    const j = await chamar({ acao:'ler' });
+    const j = await chamar({ acao:'ler' }, 2500);
     if(!(j && j.ok)) return false;
     const p = normalizar(j.perfis && j.perfis[opt.ia] && j.perfis[opt.ia].perfil);
     if(p && p.concluido){ perfil = p; gravarLocal(p); }
@@ -98,7 +100,7 @@
     const regras = '\n\nREGRAS VINCI (onboarding, 14/11/2026):' +
       '\n- Resposta direta: entrada, execução, resposta. Comando simples da casa vai direto, sem cadeia longa.' +
       '\n- Se um aparelho não suporta a ação pedida, diga o limite com clareza. Nunca finja que executou.' +
-      '\n- Nunca apague cena nem ambiente. Pedido para apagar = mover para "itens não usados", que dá para recuperar.' +
+      '\n- Cena da central da casa você nunca apaga. Ambiente, favorito, receita e automação: apague quando o cliente pedir (os botões de um ambiente apagado voltam para Outros).' +
       '\n- Você (' + nome + ') tem contexto e escopo próprios. O cliente pode usar outra IA da Vinci em outro ambiente.';
     if(!p || !p.concluido) return regras + '\n- O cliente ainda não concluiu o cadastro inicial no app. Se fizer sentido, lembre com gentileza que ele pode concluir em Ajustes.';
     const ponte = (CONFIG.pontes.find(x=>x.id === p.casa) || {}).rotulo || 'a definir';
@@ -303,11 +305,8 @@
       aceiteEm: new Date().toISOString(), termos: 'responsabilidades-2026-11-14'
     };
     perfil = normalizar(p); gravarLocal(p);
-    const j = await chamar({ acao:'salvar', ia: opt.ia, versao: CONFIG.versao, perfil: p });
-    if(!(j && j.ok)){
-      // fica salvo neste aparelho e tenta de novo na próxima abertura
-      try{ localStorage.setItem(chave() + '.pendente', '1'); }catch(e){}
-    } else { try{ localStorage.removeItem(chave() + '.pendente'); }catch(e){} }
+    try{ localStorage.setItem(chave() + '.pendente', '1'); }catch(e){}
+    chamar({ acao:'salvar', ia: opt.ia, versao: CONFIG.versao, perfil: p }).then((j)=>{ if(j && j.ok) try{ localStorage.removeItem(chave() + '.pendente'); }catch(e){} });
     passo = PASSOS.length - 1; desenhar();
   }
 
@@ -335,7 +334,7 @@
     // Ao abrir o app com sessão: mostra o onboarding uma vez se ainda não foi feito.
     async talvezAbrir(cb){
       if(!opt.sessao()) return false;
-      await reenviarPendente();
+      reenviarPendente();
       const decidiu = await carregar();
       // servidor fora do ar, já concluído ou adiado: nunca bloqueia quem já usa o app
       if(!decidiu || concluido() || adiado()){ if(cb) cb(false); return false; }
@@ -343,6 +342,7 @@
     },
     // Depois do login: onboarding primeiro; a conversa começa no toque final.
     async depoisDoLogin(seguir){
+      reenviarPendente();
       const decidiu = await carregar();
       if(!decidiu || concluido() || adiado()){ seguir(); return; }
       abrir(()=> seguir());

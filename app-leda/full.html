@@ -710,7 +710,7 @@ function textoDoCumprimentoLeda(d){
 }
 
 /* ---------- aba Receitas e boas práticas do lar ---------- */
-const RECEITAS_LEDA = [
+const RECEITAS_PADRAO = [
   { tipo:'doce', nome:'Brigadeiro de panela', resumo:'Leite condensado, 1 colher de manteiga e 3 de chocolate em pó. Mexe sem parar até desgrudar do fundo.', pedido:'me ensina a fazer brigadeiro, passo a passo' },
   { tipo:'doce', nome:'Bolo de caneca', resumo:'Um ovo, uma colher de açúcar, farinha, leite e chocolate. Três minutinhos no micro-ondas.', pedido:'me ensina um bolo de caneca com um ovo e uma colher de açúcar' },
   { tipo:'doce', nome:'Bolo de cenoura com cobertura', resumo:'Liquidificador faz quase tudo; o segredo é a cobertura brilhante.', pedido:'me ensina o bolo de cenoura com cobertura de chocolate' },
@@ -730,6 +730,14 @@ const RECEITAS_LEDA = [
   { tipo:'força', nome:'Mulher que voa', resumo:'Mulheres pilotam aviões, comandam países e fazem ciência. E fazem bolo também, se quiserem.', pedido:'me conta a história de uma mulher pioneira que inspire a gente' },
   { tipo:'força', nome:'Um conselho para hoje', resumo:'Um conselho de vó para começar o dia com coragem.', pedido:'me dá um conselho de vó para hoje' }
 ];
+// 14/11/2026: a Leda edita as Receitas por voz (criar, editar, renomear, apagar); a lista fica salva neste aparelho
+let RECEITAS_LEDA = (()=>{ try{ const x = JSON.parse(localStorage.getItem('leda_receitas') || 'null'); if(Array.isArray(x) && x.every(r=> r && r.nome)) return x; }catch(e){} return RECEITAS_PADRAO.map(r=>({ ...r })); })();
+const _escR = (t)=> String(t == null ? '' : t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+window.ledaReceitas = {
+  lista: ()=> RECEITAS_LEDA.map(r=>({ ...r })),
+  salvar(l){ RECEITAS_LEDA = l.map(r=>({ ...r })); try{ localStorage.setItem('leda_receitas', JSON.stringify(RECEITAS_LEDA)); }catch(e){} if(window.redesenharReceitas) window.redesenharReceitas(); },
+  padrao(){ RECEITAS_LEDA = RECEITAS_PADRAO.map(r=>({ ...r })); try{ localStorage.removeItem('leda_receitas'); }catch(e){} if(window.redesenharReceitas) window.redesenharReceitas(); }
+};
 const TIPOS_RECEITA = [['todas','Tudo'],['doce','Doces'],['salgado','Salgados'],['lar','Boas práticas do lar'],['força','Força e conselhos']];
 function _pedirParaLeda(texto){
   const msg = 'Leda, ' + texto + '. Responda como uma vó que sabe tudo de cozinha e de casa: carinhosa, clara e direto ao ponto, em passos curtos.';
@@ -750,9 +758,10 @@ function montarReceitas(){
     + '<div class="rcLista"></div>';
   const lista = sec.querySelector('.rcLista');
   const desenhar = (k)=>{
-    lista.innerHTML = RECEITAS_LEDA.filter((r)=> k === 'todas' || r.tipo === k).map((r)=> '<article class="rcCard"><small>' + ({doce:'doce',salgado:'salgado',lar:'boas práticas',força:'força'}[r.tipo]) + '</small><h3>' + r.nome + '</h3><p>' + r.resumo + '</p><button type="button" data-p="' + r.pedido.replace(/"/g,'&quot;') + '">Ensina, Leda</button></article>').join('');
+    lista.innerHTML = RECEITAS_LEDA.filter((r)=> k === 'todas' || r.tipo === k).map((r)=> '<article class="rcCard"><small>' + ({doce:'doce',salgado:'salgado',lar:'boas práticas',força:'força'}[r.tipo] || 'receita') + '</small><h3>' + _escR(r.nome) + '</h3><p>' + _escR(r.resumo) + '</p><button type="button" data-p="' + _escR(r.pedido || ('me ensina ' + r.nome)) + '">Ensina, Leda</button></article>').join('');
   };
   desenhar('todas');
+  window.redesenharReceitas = ()=>{ const f = sec.querySelector('.rcFiltro button[aria-pressed="true"]'); desenhar(f ? f.dataset.k : 'todas'); };
   sec.addEventListener('click', (e)=>{
     const f = e.target.closest('.rcFiltro button');
     if(f){ sec.querySelectorAll('.rcFiltro button').forEach((b)=> b.setAttribute('aria-pressed', String(b === f))); desenhar(f.dataset.k); return; }
@@ -892,7 +901,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
-<script src="../vinci/onboarding.js?v=20261114p"></script>
+<script src="../vinci/onboarding.js?v=20261114q"></script>
+<script src="../vinci/ia-padrao.js?v=20261114a" data-ia="leda"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -2269,6 +2279,8 @@ class GeminiLive {
     // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
     this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
   async start(){
+    const contextoPronto = contextoGen().catch(()=> '');   // 14/11/2026: lê casa e memória junto com o microfone e o token, sem esperar depois
+    try{ if(window.VinciIA) VinciIA.atualizarModo(); }catch(e){}
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
     const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
     if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
@@ -2280,12 +2292,12 @@ class GeminiLive {
       this.ws = new WebSocket(url);
       let setupDone=false;
       this.ws.onopen = async ()=>{
-        const contexto = await contextoGen();
+        const contexto = await contextoPronto;
         this.ws.send(JSON.stringify({ setup: {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
-          tools: GEN_TOOLS,
+          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') + (window.VinciIA ? VinciIA.contexto() : '') }] },
+          tools: window.VinciIA ? VinciIA.tools(GEN_TOOLS) : GEN_TOOLS,
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
           inputAudioTranscription: {},
           outputAudioTranscription: {}

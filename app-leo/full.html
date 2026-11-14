@@ -652,7 +652,8 @@ input,select,textarea{font-size:16px!important}
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
-<script src="../vinci/onboarding.js?v=20261114p"></script>
+<script src="../vinci/onboarding.js?v=20261114q"></script>
+<script src="../vinci/ia-padrao.js?v=20261114a" data-ia="leo"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1914,7 +1915,7 @@ const GEN_FERRAMENTAS = {
     if(felyxCumprimento.recente()) return { completo:false };
     felyxCumprimento.marcar();
     const ok = (p)=> p.catch(()=>({ erro:'indisponível agora' }));
-    const [c, b] = await Promise.all([ ok(climaAgora()), ok(apoioGen('mercado', { pedido:'bom dia' })) ]);
+    const c = await ok(climaAgora()); const b = null;   // 14/11/2026: sem bolsas do n8n (redundância); o porquê do mercado vai pela Busca Google
     return { completo:true, clima:c, dolar: dolarResumo(mercadoData), bolsas:b,
       manchetes: { politica: (newsPol.items||[]).slice(0,3).map(n=>n.title), tecnologia: (newsTec.items||[]).slice(0,3).map(n=>n.title) } };
   }
@@ -2011,6 +2012,8 @@ class GeminiLive {
     // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
     this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
   async start(){
+    const contextoPronto = contextoGen().catch(()=> '');   // 14/11/2026: lê casa e memória junto com o microfone e o token, sem esperar depois
+    try{ if(window.VinciIA) VinciIA.atualizarModo(); }catch(e){}
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
     const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
     if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
@@ -2022,12 +2025,12 @@ class GeminiLive {
       this.ws = new WebSocket(url);
       let setupDone=false;
       this.ws.onopen = async ()=>{
-        const contexto = await contextoGen();
+        const contexto = await contextoPronto;
         this.ws.send(JSON.stringify({ setup: {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
-          tools: GEN_TOOLS,
+          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') + (window.VinciIA ? VinciIA.contexto() : '') }] },
+          tools: window.VinciIA ? VinciIA.tools(GEN_TOOLS) : GEN_TOOLS,
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
           inputAudioTranscription: {},
           outputAudioTranscription: {}
