@@ -1174,7 +1174,7 @@ try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud'
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
 function limparEstadosDeCena(){ tiles.forEach((t,i)=>{ if(isSceneTile(t)) delete tileOn[i]; }); saveOn(); }
-const RC_TV = /\b(tv|televis|apple ?tv|playstation|globo|netflix|youtube)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i, RC_SOM = /(m[uú]sica|\bsom\b|\bvol\b|caixa|spotify)/i;   // 14/11/2026: som também tem controle
+const RC_TV = /\b(tv|televis|apple ?tv|playstation|globo|netflix|youtube)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i, RC_SOM = /(m[uú]sica|\bsom\b|\bvol\b|caixa de som|spotify)/i;   // 14/11/2026: som também tem controle
 const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
 function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : (RC_SOM.test(t.n) ? 'som' : '')); }
 function renderMatrix(){
@@ -1208,7 +1208,7 @@ function abrirControle(tipo, t){
 function rcDaCena(nome){
   const n = String(nome || '').trim(); if(!n) return false;
   const q = n.toLowerCase();
-  const t = tiles.find(x => x.n && (x.n.toLowerCase() === q || (isSceneTile(x) && String(x.f).replace(/^.*\bcena\s+/i, '').trim().toLowerCase() === q))) || { n: n.slice(0, 22), f: 'ativar a cena ' + n, f2: '', rc: '' };
+  const t = tiles.find(x => x.n && (x.n.toLowerCase() === q || (isSceneTile(x) && String(x.f).replace(/^.*\bcena\s+/i, '').trim().toLowerCase() === q))) || { n: n, f: 'ativar a cena ' + n, f2: '', rc: '' };   // nome inteiro: os botões salvos não se misturam com outra cena de nome parecido
   const tipo = tipoControle(t); if(!tipo) return false;
   setTimeout(()=> abrirControle(tipo, t), 350); return true;
 }
@@ -1763,7 +1763,7 @@ const GEN_FERRAMENTAS = {
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
-    const controle = !!j.ok && acao !== 'desligar' && rcDaCena(dispositivo);   // 14/11/2026: o controle remoto abre na tela
+    const controle = !!j.ok && !/deslig|apag|off|fech|parar|para\b/i.test(String(acao||'')) && rcDaCena(dispositivo);   // 14/11/2026: o controle remoto abre na tela
     return Object.assign({ ok: !!j.ok, resposta: String(j.text || j.mensagem || '').replace(/\balexa\b/gi, 'Vinci') }, controle ? { controle_remoto: 'abriu na tela; diga só que o controle está na tela' } : {});
   },
   // favoritos = a matriz de 32 botões de comando da tela (fica salva neste aparelho)
