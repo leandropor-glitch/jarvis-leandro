@@ -639,7 +639,7 @@ input,select,textarea{font-size:16px!important}
 <script src="esqueci-senha.js"></script>
 <script src="../vinci/onboarding.js?v=20261114q"></script>
 <script src="../vinci/ia-padrao.js?v=20261114c" data-ia="felyx"></script>
-<script src="../vinci/paineis-google.js?v=20261114c"></script>
+<script src="../vinci/paineis-google.js?v=20261114d"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -2403,7 +2403,7 @@ document.addEventListener('keydown', (e)=>{
 
 /* ---------- carga inicial e atualização periódica ---------- */
 loadMercado(true); loadNoticias(true);
-setInterval(()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } }, 60000);
+setInterval(()=>{ loadMercado(); loadNoticias(); }, 60000);   // atualiza a cada 15 min (prazo no paineis-google.js), mesmo fora do Dashboard
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } });
 </script>
 <div class="materia" id="materia" aria-live="polite"><button class="mf" type="button" aria-label="Fechar matéria" onclick="FERRAMENTAS_MATERIA.fechar()">×</button><div class="mx"><div class="ms" id="matFonte"></div><h2 id="matTitulo"></h2><div class="mt" id="matTexto"></div></div></div>

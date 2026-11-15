@@ -208,7 +208,7 @@ test('Google delivery requests nullable daily percentage changes for both curren
     assert.equal(cambio.properties[field].type,'NUMBER');
     assert.equal(cambio.properties[field].nullable,true);
     assert.ok(cambio.required.includes(field));
-    assert.match(cambio.properties[field].description,/dia/i);
+    assert.match(cambio.properties[field].description,/dia|24h/i);
     assert.match(cambio.properties[field].description,/Google/);
     assert.match(cambio.properties[field].description,/null/i);
   }
@@ -248,13 +248,16 @@ test('cache survives reload and an offline refresh without changing values or th
   assert.doesNotMatch(second.c.newsPol.slides.innerHTML,/erro|indispon/i);
 });
 
-test('cache expires and a forced refresh is throttled, with a fresh single-use token each session', async () => {
+test('only refreshes every 15 min: forced loads and Dashboard visits use the cache; fresh single-use token each session', async () => {
   const h=load(); await h.c.loadMercado(true);
   await h.c.loadMercado(true); assert.equal(h.requests.length,2);
   await h.advance(21000); h.state.data.mercado.cambio.usdbrl=5.4;
-  assert.equal((await h.c.loadMercado(true)).cambio.usdbrl,5.4); assert.equal(h.requests.length,4);
-  await h.advance(15*60000); await Promise.all([h.c.loadMercado(),h.c.loadNoticias()]);
-  assert.equal(h.requests.length,6); assert.equal(h.sockets.length,3);
+  assert.equal((await h.c.loadMercado(true)).cambio.usdbrl,5.35,'force does not bypass the 15-minute window');
+  assert.equal(h.requests.length,2);
+  await h.advance(15*60000);
+  const [market]=await Promise.all([h.c.loadMercado(),h.c.loadNoticias()]);
+  assert.equal(market.cambio.usdbrl,5.4);
+  assert.equal(h.requests.length,4); assert.equal(h.sockets.length,2);
 });
 
 for(const failure of ['token','http','bad-token','token-json','socket','close','ungrounded','premature']) {

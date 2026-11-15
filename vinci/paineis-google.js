@@ -4,12 +4,14 @@
    Pesquisa em um turno falado (sem reprodução), entrega no turno seguinte.
    Prova de busca no Live: webSearchQueries não vazio (ordem de 14/11/2026).
    Links de manchetes são buscas Google geradas localmente pelo título.
-   Regra do Leandro (14/11/2026, 21h15): cotações da Binance e notícias principais
-   e mais comentadas na Reuters e no X, pedidas ao Google; a fonte exibida é sempre "Fonte: Google". */
+   Regra do Leandro (14/11/2026, 21h37): dados sempre atualizados; USDT/BRL e BTC/USDT na Binance,
+   Ibovespa no Google; notícias mais importantes em português brasileiro (política: GloboNews e
+   Jovem Pan News; tecnologia: Globo Tecnologia). Fonte exibida: sempre "Fonte: Google".
+   Atualiza só a cada 15 min; entre uma atualização e outra o app abre com o cache já carregado. */
 (function(){
   'use strict';
   const GOOGLE_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
-  const TTL = 14 * 60000, INTERVALO = 20000, LIMITE = 45000;
+  const TTL = 15 * 60000, INTERVALO = TTL, LIMITE = 45000;
   const numero = { type:'NUMBER' };
   const manchete = { type:'OBJECT', properties:{ title:{type:'STRING'}, source:{type:'STRING'}, date:{type:'STRING'} }, required:['title','source','date'] };
   const entrega = {
@@ -18,7 +20,7 @@
     parameters:{ type:'OBJECT', properties:{
       mercado:{ type:'OBJECT', properties:{
         cambio:{ type:'OBJECT', properties:{usdbrl:numero,eurbrl:numero,
-          usdbrlChg:{type:'NUMBER',nullable:true,description:'Variação percentual do dia do dólar comercial USD/BRL, pesquisada no Google (ex.: -0.5 significa -0.5%). Null se não encontrada.'},
+          usdbrlChg:{type:'NUMBER',nullable:true,description:'Variação percentual de 24h do USDT/BRL na Binance, pesquisada no Google (ex.: -0.5 significa -0.5%). Null se não encontrada.'},
           eurbrlChg:{type:'NUMBER',nullable:true,description:'Variação percentual do dia do euro EUR/BRL, pesquisada no Google (ex.: 0.5 significa 0.5%). Null se não encontrada.'},
           data:{type:'STRING'}}, required:['usdbrl','eurbrl','usdbrlChg','eurbrlChg','data'] },
         cripto:{ type:'OBJECT', properties:{bitcoin:{type:'OBJECT',properties:{usd:numero,brl:numero,chgUsdt:numero},required:['usd','brl']}},required:['bitcoin'] },
@@ -85,7 +87,7 @@
               model:'models/' + model().replace(/^models\//,''),
               generationConfig:{responseModalities:['AUDIO']},
               outputAudioTranscription:{},
-              systemInstruction:{parts:[{text:'Você atualiza cartões de mercado e notícias em DUAS ETAPAS na mesma sessão. PRIMEIRO TURNO: obrigatoriamente pesquise agora com googleSearch, use só os resultados dessas pesquisas, nunca sua memória. Cotações: pesquise no Google as cotações da Binance: dólar USD/BRL, euro EUR/BRL e suas variações percentuais do dia, bitcoin em USD e BRL. Ibovespa em pontos: pesquise no Google (não é negociado na Binance); use o último fechamento disponível quando o mercado estiver fechado. Notícias: pesquise no Google as notícias principais e mais comentadas na Reuters e no X, separadamente em política e em tecnologia. Encontre de uma a três manchetes concretas de cada categoria, com título da matéria, fonte (Reuters ou X) e data de publicação. Páginas iniciais, diretórios e nomes de seções não são manchetes. Não encerre a pesquisa após achar apenas cotações; pesquise também as duas categorias de notícias. Se a busca não fornecer um item obrigatório, não invente para completar a entrega. Não invente valores nem manchetes. Não forneça URLs; os links de busca serão montados pelo app. Finalize o primeiro turno com uma breve resposta falada sobre a pesquisa. NÃO chame entregar_paineis nesse primeiro turno. SEGUNDO TURNO: somente quando receber ENTREGAR_PAINEIS, organize os resultados já pesquisados na função entregar_paineis, uma única vez, e encerre o turno. Se não encontrou um dado obrigatório, não invente.'}]},
+              systemInstruction:{parts:[{text:'Você atualiza cartões de mercado e notícias em DUAS ETAPAS na mesma sessão. PRIMEIRO TURNO: obrigatoriamente pesquise agora com googleSearch, use só os resultados dessas pesquisas, nunca sua memória. Traga sempre os dados mais atualizados do momento da pesquisa. Cotações na Binance: USDT/BRL (no campo usdbrl) e BTC/USDT (no campo bitcoin usd), com as variações percentuais de 24h; também bitcoin em BRL e euro EUR/BRL. Ibovespa em pontos: pesquise no Google mesmo; use o último fechamento disponível quando o mercado estiver fechado. Notícias: pesquise as notícias mais importantes e mais recentes, em português brasileiro: política na GloboNews e na Jovem Pan News; tecnologia no Globo Tecnologia. Encontre de uma a três manchetes concretas de cada categoria, com título da matéria em português brasileiro, fonte e data de publicação. Páginas iniciais, diretórios e nomes de seções não são manchetes. Não encerre a pesquisa após achar apenas cotações; pesquise também as duas categorias de notícias. Se a busca não fornecer um item obrigatório, não invente para completar a entrega. Não invente valores nem manchetes. Não forneça URLs; os links de busca serão montados pelo app. Finalize o primeiro turno com uma breve resposta falada sobre a pesquisa. NÃO chame entregar_paineis nesse primeiro turno. SEGUNDO TURNO: somente quando receber ENTREGAR_PAINEIS, organize os resultados já pesquisados na função entregar_paineis, uma única vez, e encerre o turno. Se não encontrou um dado obrigatório, não invente.'}]},
               tools:[{googleSearch:{}},{functionDeclarations:[entrega]}]
             }})); }catch(e){ terminar(e); }
           };
@@ -99,7 +101,7 @@
               if(msg.error) throw new Error('busca recusada');
               if(msg.setupComplete && !pronto){
                 pronto = true;
-                ws.send(JSON.stringify({realtimeInput:{text:'PESQUISAR: faça buscas Google para todos os cartões: cotações da Binance (USD/BRL, EUR/BRL, bitcoin em USD e BRL), Ibovespa e as notícias principais e mais comentadas na Reuters e no X. Pesquise explicitamente política e tecnologia; guarde ao menos uma manchete concreta com título, fonte e data em CADA categoria. Não deixe de pesquisar notícias após achar as cotações. Data e hora de referência: ' + new Date().toISOString() + '. Guarde todos os valores, títulos, datas e fontes encontrados. Ao terminar, fale somente "Pesquisa concluída". Guarde os dados pesquisados para a entrega. Não chame entregar_paineis ainda; aguardarei sua resposta antes de pedir a entrega.'}}));
+                ws.send(JSON.stringify({realtimeInput:{text:'PESQUISAR: faça buscas Google para todos os cartões, sempre com os dados mais atualizados: na Binance, USDT/BRL e BTC/USDT (e também bitcoin em BRL e euro EUR/BRL); Ibovespa no Google mesmo; e as notícias mais importantes e mais recentes em português brasileiro: política na GloboNews e na Jovem Pan News, tecnologia no Globo Tecnologia. Pesquise explicitamente política e tecnologia; guarde ao menos uma manchete concreta com título, fonte e data em CADA categoria. Não deixe de pesquisar notícias após achar as cotações. Data e hora de referência: ' + new Date().toISOString() + '. Guarde todos os valores, títulos, datas e fontes encontrados. Ao terminar, fale somente "Pesquisa concluída". Guarde os dados pesquisados para a entrega. Não chame entregar_paineis ainda; aguardarei sua resposta antes de pedir a entrega.'}}));
               }
               const sc = msg.serverContent || {};
               if(sc.groundingMetadata){
@@ -137,7 +139,8 @@
     function carregar(force){
       if(voo) return voo;
       const agora = Date.now();
-      if(!sessao() || (tentativa && agora - tentativa < INTERVALO) || (!force && ultimo && agora - Date.parse(ultimo.atualizadoEm) < TTL)) return Promise.resolve(ultimo);
+      // Só a cada 15 min: abrir o app ou visitar o Dashboard mostra o cache; force não fura o prazo.
+      if(!sessao() || (tentativa && agora - tentativa < INTERVALO) || (ultimo && agora - Date.parse(ultimo.atualizadoEm) < TTL)) return Promise.resolve(ultimo);
       tentativa = agora;
       avisar('carregando');
       voo = buscar().then(resultado=>{
