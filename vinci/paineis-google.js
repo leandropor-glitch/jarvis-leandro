@@ -3,7 +3,9 @@
    gemini-3.8-live exige AUDIO: o JSON vem de uma função local, não da fala.
    Pesquisa em um turno falado (sem reprodução), entrega no turno seguinte.
    Prova de busca no Live: webSearchQueries não vazio (ordem de 14/11/2026).
-   Links de manchetes são buscas Google geradas localmente pelo título. */
+   Links de manchetes são buscas Google geradas localmente pelo título.
+   Regra do Leandro (14/11/2026, 21h15): cotações da Binance e notícias principais
+   e mais comentadas na Reuters e no X, pedidas ao Google; a fonte exibida é sempre "Fonte: Google". */
 (function(){
   'use strict';
   const GOOGLE_WS = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
@@ -38,7 +40,7 @@
     const lista = items => (Array.isArray(items) ? items : []).slice(0,6).map(v=>({
       title:texto(v && v.title,240), source:texto(v && v.source,100),
       date:v && Number.isFinite(Date.parse(v.date)) ? new Date(v.date).toISOString() : ''
-    })).filter(v=>v.title && v.source && v.date).map(v=>({...v,link:'https://www.google.com/search?q=' + encodeURIComponent(v.title)}));
+    })).filter(v=>v.title && v.source && v.date).map(v=>({...v,source:'Google',link:'https://www.google.com/search?q=' + encodeURIComponent(v.title)}));
     const politica = lista(n && n.politica), tecnologia = lista(n && n.tecnologia);
     if(!politica.length || !tecnologia.length) throw new Error('manchetes incompletas');
     return { fonte:'googleSearch', atualizadoEm, groundingMetadata,
@@ -83,7 +85,7 @@
               model:'models/' + model().replace(/^models\//,''),
               generationConfig:{responseModalities:['AUDIO']},
               outputAudioTranscription:{},
-              systemInstruction:{parts:[{text:'Você atualiza cartões de mercado e notícias em DUAS ETAPAS na mesma sessão. PRIMEIRO TURNO: obrigatoriamente pesquise agora com googleSearch, use só os resultados dessas pesquisas, nunca sua memória. Encontre dólar comercial USD/BRL (não USDT), EUR/BRL e suas variações percentuais do dia, bitcoin em USD e BRL e Ibovespa em pontos; use o último fechamento disponível quando o mercado estiver fechado. Pesquise separadamente política brasileira e tecnologia. Encontre de uma a três manchetes concretas de cada categoria, com título da matéria, fonte e data de publicação. Páginas iniciais, diretórios e nomes de seções não são manchetes. Não encerre a pesquisa após achar apenas cotações; pesquise também as duas categorias de notícias. Se a busca não fornecer um item obrigatório, não invente para completar a entrega. Não invente valores nem manchetes. Não forneça URLs; os links de busca serão montados pelo app. Finalize o primeiro turno com uma breve resposta falada sobre a pesquisa. NÃO chame entregar_paineis nesse primeiro turno. SEGUNDO TURNO: somente quando receber ENTREGAR_PAINEIS, organize os resultados já pesquisados na função entregar_paineis, uma única vez, e encerre o turno. Se não encontrou um dado obrigatório, não invente.'}]},
+              systemInstruction:{parts:[{text:'Você atualiza cartões de mercado e notícias em DUAS ETAPAS na mesma sessão. PRIMEIRO TURNO: obrigatoriamente pesquise agora com googleSearch, use só os resultados dessas pesquisas, nunca sua memória. Cotações: pesquise no Google as cotações da Binance: dólar USD/BRL, euro EUR/BRL e suas variações percentuais do dia, bitcoin em USD e BRL. Ibovespa em pontos: pesquise no Google (não é negociado na Binance); use o último fechamento disponível quando o mercado estiver fechado. Notícias: pesquise no Google as notícias principais e mais comentadas na Reuters e no X, separadamente em política e em tecnologia. Encontre de uma a três manchetes concretas de cada categoria, com título da matéria, fonte (Reuters ou X) e data de publicação. Páginas iniciais, diretórios e nomes de seções não são manchetes. Não encerre a pesquisa após achar apenas cotações; pesquise também as duas categorias de notícias. Se a busca não fornecer um item obrigatório, não invente para completar a entrega. Não invente valores nem manchetes. Não forneça URLs; os links de busca serão montados pelo app. Finalize o primeiro turno com uma breve resposta falada sobre a pesquisa. NÃO chame entregar_paineis nesse primeiro turno. SEGUNDO TURNO: somente quando receber ENTREGAR_PAINEIS, organize os resultados já pesquisados na função entregar_paineis, uma única vez, e encerre o turno. Se não encontrou um dado obrigatório, não invente.'}]},
               tools:[{googleSearch:{}},{functionDeclarations:[entrega]}]
             }})); }catch(e){ terminar(e); }
           };
@@ -97,7 +99,7 @@
               if(msg.error) throw new Error('busca recusada');
               if(msg.setupComplete && !pronto){
                 pronto = true;
-                ws.send(JSON.stringify({realtimeInput:{text:'PESQUISAR: faça buscas Google para todos os cartões: USD/BRL, EUR/BRL, bitcoin em USD e BRL, Ibovespa e notícias. Pesquise explicitamente política brasileira e tecnologia; guarde ao menos uma manchete concreta com título, fonte e data em CADA categoria. Não deixe de pesquisar notícias após achar as cotações. Data e hora de referência: ' + new Date().toISOString() + '. Guarde todos os valores, títulos, datas e fontes encontrados. Ao terminar, fale somente "Pesquisa concluída". Guarde os dados pesquisados para a entrega. Não chame entregar_paineis ainda; aguardarei sua resposta antes de pedir a entrega.'}}));
+                ws.send(JSON.stringify({realtimeInput:{text:'PESQUISAR: faça buscas Google para todos os cartões: cotações da Binance (USD/BRL, EUR/BRL, bitcoin em USD e BRL), Ibovespa e as notícias principais e mais comentadas na Reuters e no X. Pesquise explicitamente política e tecnologia; guarde ao menos uma manchete concreta com título, fonte e data em CADA categoria. Não deixe de pesquisar notícias após achar as cotações. Data e hora de referência: ' + new Date().toISOString() + '. Guarde todos os valores, títulos, datas e fontes encontrados. Ao terminar, fale somente "Pesquisa concluída". Guarde os dados pesquisados para a entrega. Não chame entregar_paineis ainda; aguardarei sua resposta antes de pedir a entrega.'}}));
               }
               const sc = msg.serverContent || {};
               if(sc.groundingMetadata){

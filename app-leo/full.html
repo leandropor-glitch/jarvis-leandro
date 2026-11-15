@@ -581,12 +581,12 @@ input,select,textarea{font-size:16px!important}
       <section class="panel market" id="market" aria-busy="false" aria-label="Cotações">
         <div class="ph"><span class="k"><i></i>mercado · Google</span><span class="pr" id="marketWhen" role="status" aria-live="polite">aguardando</span></div>
         <div class="rows" id="marketRows"></div>
-        <div class="pf" id="marketFoot">cotações · Busca Google</div>
+        <div class="pf" id="marketFoot">Fonte: Google</div>
       </section>
       <section class="panel news" id="newsPol" aria-busy="false" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
         <div class="slides"><div class="empty" role="status" aria-live="polite">Aguardando manchetes</div></div>
-        <div class="pf"><span class="src">Busca Google</span><span class="dots"></span></div>
+        <div class="pf"><span class="src">Fonte: Google</span><span class="dots"></span></div>
       </section>
     </aside>
 
@@ -624,7 +624,7 @@ input,select,textarea{font-size:16px!important}
       <section class="panel news" id="newsTec" aria-busy="false" aria-label="Notícias de tecnologia">
         <div class="ph"><span class="k"><i></i>tecnologia</span><span class="pr">automação · ia</span></div>
         <div class="slides"><div class="empty" role="status" aria-live="polite">Aguardando manchetes</div></div>
-        <div class="pf"><span class="src">Busca Google</span><span class="dots"></span></div>
+        <div class="pf"><span class="src">Fonte: Google</span><span class="dots"></span></div>
       </section>
     </aside>
   </main>
@@ -654,7 +654,7 @@ input,select,textarea{font-size:16px!important}
 <script src="esqueci-senha.js"></script>
 <script src="../vinci/onboarding.js?v=20261114q"></script>
 <script src="../vinci/ia-padrao.js?v=20261114c" data-ia="leo"></script>
-<script src="../vinci/paineis-google.js?v=20261114b"></script>
+<script src="../vinci/paineis-google.js?v=20261114c"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1063,7 +1063,7 @@ class NewsPanel {
       <a class="slide" data-k="${k}" href="${esc(urlSegura(n.link))}" target="_blank" rel="noopener noreferrer" data-on="0" tabindex="-1">
         ${urlSegura(n.image) !== '#' ? `<img alt="" src="${esc(urlSegura(n.image))}" referrerpolicy="no-referrer" loading="${k===0?'eager':'lazy'}" decoding="async" data-fonte="${esc((n.source||'').slice(0,2))}">` : `<div class="noimg">${esc((n.source||'nt').slice(0,2))}</div>`}
         <div class="shade"></div>
-        <div class="cap"><div class="src">${esc(n.source||'')}${n.cat ? ' · '+esc(n.cat) : ''}${n.date ? ' · '+esc(timeAgo(n.date)) : ''}</div><div class="tt">${esc(n.title)}</div></div>
+        <div class="cap"><div class="src">Fonte: ${esc(n.source||'Google')}${n.cat ? ' · '+esc(n.cat) : ''}${n.date ? ' · '+esc(timeAgo(n.date)) : ''}</div><div class="tt">${esc(n.title)}</div></div>
       </a>`).join('') + '<div class="bar"></div><div class="tag" data-tag></div>';
     this.slides.querySelectorAll('img[data-fonte]').forEach((img)=>img.addEventListener('error', ()=>{ const d = document.createElement('div'); d.className = 'noimg'; d.textContent = img.dataset.fonte; img.replaceWith(d); }, { once: true }));
     this.dots.innerHTML = list.map(()=>'<i></i>').join('');
@@ -1075,7 +1075,7 @@ class NewsPanel {
     this.i = (this.i + 1) % this.items.length;
     const all = this.slides.querySelectorAll('.slide'); all.forEach(s=>{ s.dataset.on = (Number(s.dataset.k) === this.i) ? '1' : '0'; });
     [...this.dots.children].forEach((d, k)=>{ d.dataset.on = k === this.i ? '1' : '0'; });
-    const n = this.items[this.i]; const tag = this.slides.querySelector('[data-tag]'); if(tag) tag.textContent = (n.cat || n.source || '').toString();
+    const n = this.items[this.i]; const tag = this.slides.querySelector('[data-tag]'); if(tag) tag.textContent = (n.cat || ('Fonte: ' + (n.source || 'Google'))).toString();
     // reinicia a barra de progresso
     this.el.dataset.run = '0'; void this.el.offsetWidth; this.el.dataset.run = '1';
     this.arm();
@@ -1888,7 +1888,7 @@ const GEN_FERRAMENTAS = {
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
     const k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
     const n = painel.items[k]; const m = document.getElementById('materia');
-    document.getElementById('matFonte').textContent = (n.source||'') + (n.cat ? ' · ' + n.cat : '');
+    document.getElementById('matFonte').textContent = 'Fonte: ' + (n.source||'Google') + (n.cat ? ' · ' + n.cat : '');
     document.getElementById('matTitulo').textContent = n.title; document.getElementById('matTexto').textContent = 'abrindo a matéria…';
     m.scrollTop = 0; m.dataset.on = '1';
     const texto = n.title;
