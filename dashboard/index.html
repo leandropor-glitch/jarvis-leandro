@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Painel Vinci — uso e renovações</title>
+<meta name="theme-color" content="#0E1519">
+<link rel="icon" href="icone.png">
+<link rel="apple-touch-icon" href="icone.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#0E1519;--card:#17212A;--card2:#1D2830;--line:#26323B;--ink:#F2F5F7;--soft:#C1CFD9;--mute:#79868F;--acc:#E1FE06;--warn:#F5B942;--bad:#FF6B6B;--ok:#7BE07B}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px}
+header{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+header img{height:34px}
+header h1{font-size:16px;letter-spacing:.14em;margin:0;font-weight:700}
+header .at{margin-left:auto;font-size:12px;color:var(--mute);text-align:right}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;min-width:0}
+.card h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;font-weight:700}
+.ring{display:flex;align-items:center;gap:14px}
+.ring svg{flex:none}
+.ring .num{font-size:30px;font-weight:800}
+.ring .sub{font-size:12px;color:var(--soft);line-height:1.45}
+.renova{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;background:rgba(225,254,6,.12);color:var(--acc);font-size:12px;font-weight:700}
+.alerta{border-color:var(--bad)} .alerta .renova{background:rgba(255,107,107,.15);color:var(--bad)}
+.full{grid-column:1/-1}
+.bars{display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:16px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.bar i{display:block;width:100%;border-radius:6px 6px 2px 2px;background:var(--acc)}
+.bar b{font-size:11px;color:var(--soft);font-weight:600}
+.bar span{font-size:10px;color:var(--mute)}
+.linha{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.linha:last-child{border:0}
+.linha .d{color:var(--acc);font-weight:700;white-space:nowrap}
+.linha.prox .d{color:var(--warn)}
+.linha .v{color:var(--mute);white-space:nowrap}
+.pill{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--card2);color:var(--soft)}
+.sinal{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 0}
+.sinal i{width:9px;height:9px;border-radius:5px;flex:none}
+.prod{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0}
+.prod .t{flex:1;height:8px;border-radius:4px;background:var(--card2);overflow:hidden}
+.prod .t i{display:block;height:100%;background:var(--acc)}
+.prod span{width:92px;color:var(--soft)} .prod b{width:38px;text-align:right}
+.api{padding:10px 0;border-bottom:1px solid var(--line)} .api:last-child{border:0}
+.api b{display:block;font-size:13px} .api small{color:var(--soft);font-size:12px;line-height:1.5}
+footer{margin-top:18px;font-size:11px;color:var(--mute);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="logo.png" alt="Vinci"><h1>PAINEL</h1><div class="at" id="at">—</div></header>
+
+  <div class="grid">
+    <div class="card" id="cSessao"><h2>Claude · sessão</h2><div class="ring" id="rSessao"></div></div>
+    <div class="card" id="cSemana"><h2>Claude · semana</h2><div class="ring" id="rSemana"></div></div>
+    <div class="card"><h2>n8n · mês</h2><div class="ring" id="rN8n"></div></div>
+    <div class="card"><h2>Rosto do Félix · ao vivo</h2><div class="ring" id="rAvatar"></div></div>
+
+    <div class="card full"><h2>n8n · execuções por hora (hoje)</h2><div class="bars" id="bars"></div>
+      <div class="sub" id="barsNota" style="font-size:12px;color:var(--mute);margin-top:8px"></div></div>
+
+    <div class="card"><h2>Claude · uso da semana por produto</h2><div id="prod"></div></div>
+    <div class="card"><h2>APIs · últimos 30 dias</h2><div id="apis"></div></div>
+    <div class="card"><h2>Félix · sinais vitais (ao vivo)</h2><div id="sinais">carregando…</div></div>
+
+    <div class="card full"><h2>Próximas renovações</h2><div id="renov"></div></div>
+  </div>
+  <footer>Dados de assinatura e consumo: leitura feita pelo Claude nos painéis de cada serviço (horário no topo). Sinais vitais e créditos do rosto: ao vivo pelo n8n, a cada abertura. Tokens por hora das APIs não existem nos painéis (só por dia).</footer>
+</div>
+<script>
+(async () => {
+  const $ = (s) => document.querySelector(s);
+  const fmtData = (iso) => new Date(iso.length === 10 ? iso + 'T12:00:00-03:00' : iso).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: iso.length === 10 ? undefined : '2-digit', minute: iso.length === 10 ? undefined : '2-digit', timeZone: 'America/Sao_Paulo' });
+  const diaSP = (dt) => new Date(dt.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }) + 'T00:00:00Z');
+  const dias = (iso) => Math.round((diaSP(new Date(iso.length === 10 ? iso + 'T12:00:00-03:00' : iso)) - diaSP(new Date())) / 864e5);
+  const quando = (iso) => { const d = dias(iso); return d <= 0 ? 'hoje' : d === 1 ? 'amanhã' : 'em ' + d + ' dias'; };
+  function anel(el, pct, num, sub, renova) {
+    const p = Math.max(0, Math.min(100, pct)), R = 34, C = 2 * Math.PI * R;
+    const cor = p >= 90 ? 'var(--bad)' : p >= 70 ? 'var(--warn)' : 'var(--acc)';
+    el.innerHTML = `<svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="${p}%"><circle cx="42" cy="42" r="${R}" fill="none" stroke="#26323B" stroke-width="9"/><circle cx="42" cy="42" r="${R}" fill="none" stroke="${cor}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C * p / 100} ${C}" transform="rotate(-90 42 42)"/></svg><div><div class="num"></div><div class="sub"></div>${renova ? '<span class="renova"></span>' : ''}</div>`;
+    el.querySelector('.num').textContent = num; el.querySelector('.sub').textContent = sub;
+    if (renova) el.querySelector('.renova').textContent = renova;
+    if (p >= 90) el.closest('.card').classList.add('alerta');
+  }
+  let d;
+  try { d = await (await fetch('dados.json', { cache: 'no-store' })).json(); } catch (e) { $('#at').textContent = 'sem dados'; return; }
+  $('#at').textContent = 'leitura ' + new Date(d.atualizado).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+
+  const c = d.claude;
+  anel($('#rSessao'), c.sessao_pct, c.sessao_pct + '%', 'da sessão de 5 horas', 'renova ' + fmtData(c.renova_sessao));
+  anel($('#rSemana'), c.semana_pct, c.semana_pct + '%', 'do limite semanal (plano ' + c.plano + ')', 'renova ' + fmtData(c.renova_semana) + ' · ' + quando(c.renova_semana));
+  const n = d.n8n, pn = Math.round(100 * n.execucoes_mes / n.limite_mes), proj = n.base_por_hora * 24 * 30;
+  anel($('#rN8n'), pn, pn + '%', n.execucoes_mes.toLocaleString('pt-BR') + ' de ' + n.limite_mes.toLocaleString('pt-BR') + ' execuções', 'renova ' + fmtData(n.renova) + ' · ' + quando(n.renova));
+
+  const mx = Math.max(...n.por_hora.map((h) => h[1]));
+  $('#bars').innerHTML = n.por_hora.map(([h, v]) => `<div class="bar"><b>${v}</b><i style="height:${Math.max(4, 110 * v / mx)}px"></i><span>${h}</span></div>`).join('');
+  $('#barsNota').textContent = `Só as tarefas fixas somam ${n.base_por_hora} por hora: no ritmo atual, cerca de ${proj.toLocaleString('pt-BR')} no mês (limite ${n.limite_mes.toLocaleString('pt-BR')}).`;
+
+  $('#prod').innerHTML = Object.entries(c.por_produto).map(([k, v]) => `<div class="prod"><span>${k}</span><div class="t"><i style="width:${v}%"></i></div><b>${v}%</b></div>`).join('');
+  $('#apis').innerHTML = d.apis_30d.map((a) => `<div class="api"><b></b><small></small></div>`).join('');
+  [...document.querySelectorAll('#apis .api')].forEach((el, i) => { const a = d.apis_30d[i]; el.querySelector('b').textContent = a.nome; el.querySelector('small').textContent = a.uso + ' · ' + a.custo + ' · saldo ' + a.saldo; });
+
+  const ren = d.renovacoes.slice().sort((a, b) => a.data.localeCompare(b.data)).filter((r) => dias(r.data) >= 0);
+  $('#renov').innerHTML = ren.map(() => '<div class="linha"><span class="s"></span><span class="d"></span><span class="v"></span></div>').join('');
+  [...document.querySelectorAll('#renov .linha')].forEach((el, i) => { const r = ren[i]; el.querySelector('.s').textContent = r.servico; el.querySelector('.d').textContent = fmtData(r.data) + ' · ' + quando(r.data); el.querySelector('.v').textContent = r.valor; if (dias(r.data) <= 7) el.classList.add('prox'); });
+
+  try {
+    const s = await (await fetch('https://vinciautomacao.app.n8n.cloud/webhook/felix/sinais', { cache: 'no-store' })).json();
+    const cor = { verde: 'var(--ok)', amarelo: 'var(--warn)', vermelho: 'var(--bad)' };
+    $('#sinais').innerHTML = s.sinais.map(() => '<div class="sinal"><i></i><span></span></div>').join('');
+    [...document.querySelectorAll('#sinais .sinal')].forEach((el, i) => { const x = s.sinais[i]; el.querySelector('i').style.background = cor[x.cor] || 'var(--mute)'; el.querySelector('span').textContent = x.nome + ' — ' + x.detalhe; });
+    const av = s.sinais.find((x) => /LiveAvatar/i.test(x.nome)); const cr = av ? parseFloat(String(av.detalhe).replace(/\D+/g, '')) : NaN;
+    if (!isNaN(cr)) anel($('#rAvatar'), Math.round(100 * cr / 1000), String(cr), 'créditos restantes (1 por minuto)', 'renova ' + fmtData('2026-11-06') + ' · ' + quando('2026-11-06'));
+  } catch (e) { $('#sinais').textContent = 'Sinais indisponíveis agora.'; $('#rAvatar').textContent = 'indisponível'; }
+})();
+</script>
+</body>
+</html>
