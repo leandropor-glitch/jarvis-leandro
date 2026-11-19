@@ -52,12 +52,39 @@
       noticias:{ok:true,atualizadoEm,politica,tecnologia}
     };
   }
+  // 19/11/2026 (Claude): ordem do Leandro — cartões vêm de um lugar central atualizado a cada 15 min, zero API e zero n8n.
+  // O "Motor de Cotações e Notícias" (Apps Script do Google) já faz isso; a página só lê. A busca Gemini fica de reserva.
+  const MOTOR_URL = 'https://script.google.com' + '/macros/s/' + 'AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen' + '/exec';
+  function doMotor(j){
+    const c = j && j.cotacoes, n = j && j.noticias, quando = j && Date.parse(j.atualizado);
+    if(!c || !n || !Number.isFinite(quando)) throw new Error('motor sem dados');
+    const v = k => c[k] && typeof c[k].valor === 'number' && c[k].valor > 0 ? c[k].valor : null, d = k => c[k] && typeof c[k].variacao === 'number' ? c[k].variacao : null;
+    const usd = v('usd_brl'), eur = v('eur_brl'), btc = v('btc_usd'), ibov = v('ibovespa');
+    if(!usd || !eur || !btc) throw new Error('motor sem cotação');
+    const atualizadoEm = new Date(quando).toISOString();
+    const lista = items => (Array.isArray(items) ? items : []).slice(0,6).map(x=>({
+      title: texto(x && x.titulo,240).replace(/\s+-\s+[^-]{2,40}$/,''), source: texto(x && x.fonte,100) || 'Google',
+      date: x && Number.isFinite(Date.parse(x.horario)) ? new Date(x.horario).toISOString() : atualizadoEm,
+      link: /^https:\/\//.test(String(x && x.link || '')) ? x.link : 'https://www.google.com/search?q=' + encodeURIComponent(texto(x && x.titulo,240))
+    })).filter(x=>x.title);
+    const politica = lista(n.politica), tecnologia = lista(n.tecnologia);
+    if(!politica.length || !tecnologia.length) throw new Error('motor sem manchetes');
+    return { fonte:'motor', atualizadoEm,
+      mercado:{ ok:true, atualizadoEm, cambio:{ usdbrl:usd, eurbrl:eur, usdbrlChg:d('usd_brl'), eurbrlChg:d('eur_brl'), data:atualizadoEm.slice(0,10) },
+        cripto:{ bitcoin:{ usd:btc, usdt:btc, brl:Math.round(btc*usd), chgUsdt:d('btc_usd') } }, ibovespa:{ pontos:ibov, chg:d('ibovespa') } },
+      noticias:{ ok:true, atualizadoEm, politica, tecnologia } };
+  }
+  function buscarMotor(){
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null; const t = setTimeout(()=>ctl && ctl.abort(), 6000);
+    return fetch(MOTOR_URL, { cache:'no-store', signal: ctl ? ctl.signal : undefined }).then(r=>r.json()).then(doMotor).finally(()=>clearTimeout(t));
+  }
   function criar({ia, tokenUrl, sessao, model, onEstado}){
     const chave = 'vinci.paineis.google.v1.' + ia;
     let ultimo = null, voo = null, tentativa = 0;
     try{
       const salvo = JSON.parse(localStorage.getItem(chave) || 'null');
       if(salvo && salvo.fonte === 'googleSearch') ultimo = normalizar(salvo,salvo.atualizadoEm,salvo.groundingMetadata);
+      else if(salvo && salvo.fonte === 'motor' && salvo.mercado && salvo.noticias) ultimo = salvo;
     }catch(e){}
     function avisar(estado){
       try{ if(typeof onEstado === 'function') onEstado({estado,comCache:!!ultimo}); }catch(e){}
@@ -143,12 +170,12 @@
       if(!sessao() || (tentativa && agora - tentativa < INTERVALO) || (ultimo && agora - Date.parse(ultimo.atualizadoEm) < TTL)) return Promise.resolve(ultimo);
       tentativa = agora;
       avisar('carregando');
-      voo = buscar().then(resultado=>{
+      voo = buscarMotor().then(r=>{ tentativa = Date.now() - INTERVALO + 3*60000; return r; }, ()=>buscar()).then(resultado=>{   // motor: confere de novo em 3 min se o dado já estiver velho
         ultimo = resultado;
         try{ localStorage.setItem(chave,JSON.stringify(ultimo)); }catch(e){}
         avisar('pronto');
         return ultimo;
-      }).catch(()=>{ avisar('erro'); return ultimo; }).finally(()=>{ voo = null; });
+      }).catch(()=>{ avisar('erro'); if(!ultimo) tentativa = Date.now() - INTERVALO + 60000; return ultimo; })  // 19/11/2026 (Claude): sem cache, falha tenta de novo em 1 min, e não trava os cartões vazios por 15 min.finally(()=>{ voo = null; });
       return voo;
     }
     return {cache:()=>ultimo,carregar};

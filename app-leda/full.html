@@ -313,6 +313,25 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 #hud[data-tab="rooms"]>.mic{display:none}
 #hud[data-tab="rooms"]{padding-bottom:env(safe-area-inset-bottom)}
 .roombar .addSala{border-style:dashed}
+/* 19/11/2026 (protótipo): pavimentos acima dos ambientes + importar cenas e aparelhos da casa */
+.pavbar{padding-bottom:0}.pavbar[hidden]{display:none}
+.pavbar button{min-height:30px;font-size:.56rem;letter-spacing:.14em;border-color:rgba(var(--accent-rgb),.3);color:rgba(var(--accent-rgb),.8)}
+.pavbar button[aria-selected="true"]{background:rgba(var(--accent-rgb),.1);color:var(--accent);border-color:var(--accent)}
+#hud[data-tab="dashboard"] .pavbar,#hud[data-tab="dashboard"] #pavEditor,#hud[data-tab="dashboard"] #itemEditor{display:none!important}
+label:has(#edRoom){display:none}
+.imp{margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}.imp[hidden]{display:none}
+.impTop{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.impTop span:last-child{color:#5e615b;letter-spacing:.1em}
+.impFiltro{display:flex;gap:6px;margin:6px 0}
+.impFiltro button{flex:1;min-height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--muted);font:inherit;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase}
+.impFiltro button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.impLista{max-height:min(42vh,340px);overflow:auto;display:grid;gap:4px;overscroll-behavior:contain}
+.impItem{display:flex;align-items:center;gap:8px;min-height:40px;width:100%;padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--ink);font:inherit;font-size:.82rem;text-align:left}
+.impItem i{font-style:normal;font-family:var(--mono);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);min-width:58px}
+.impItem b{flex:1;min-width:0;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.impItem small{font-family:var(--mono);font-size:.5rem;color:#6d7068;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.impItem[aria-pressed="true"]{border-color:rgba(var(--accent-rgb),.7);color:var(--accent)}.impItem[aria-pressed="true"] small{color:var(--accent)}
+#hud[data-tab="rooms"]:has(#roomEditor:not([hidden])) #talk,#hud[data-tab="rooms"]:has(#itemEditor:not([hidden])) #talk,#hud[data-tab="rooms"]:has(#pavEditor:not([hidden])) #talk{visibility:hidden}
+.ambVazio{grid-column:1/-1;padding:18px 6px;text-align:center;font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#6d7068;line-height:1.6}
 .editor select{width:100%;margin-top:4px;padding:8px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit}
 /* controle remoto e favoritos (09/11/2026) */
 .remote{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
@@ -856,7 +875,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
         <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <nav class="roombar pavbar" id="pavBar" role="tablist" aria-label="Pavimentos" hidden></nav><div class="editor" id="pavEditor" hidden><label>nome do pavimento<input id="pvName" maxlength="22" autocomplete="off" placeholder="ex.: Térreo, Cobertura"></label><div class="eb"><button class="pb" id="pvSave" type="button">salvar</button><button class="pb" id="pvDel" type="button">excluir pavimento</button><button class="pb" id="pvCancel" type="button">cancelar</button></div><div class="hint" id="pvHint">nome livre. ao excluir, os ambientes dele passam para outro pavimento.</div></div><nav class="roombar" id="roomBar" role="tablist" aria-label="Ambientes"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><label>pavimento<select id="rmPav"></select></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">fechar</button></div><div class="imp" id="rmImp" hidden><div class="impTop"><span>importar da casa</span><span id="impFonte"></span></div><input id="impBusca" type="search" placeholder="buscar cena ou aparelho" autocomplete="off" aria-label="buscar cena ou aparelho"><div class="impFiltro" role="group" aria-label="filtro"><button type="button" data-f="" aria-pressed="true">todos</button><button type="button" data-f="c" aria-pressed="false">cenas</button><button type="button" data-f="a" aria-pressed="false">aparelhos</button></div><div class="impLista" id="impLista"></div></div><div class="hint">toque num item para pôr ou tirar deste ambiente. toque no ambiente selecionado para abrir de novo. fica salvo neste aparelho.</div></div><div class="editor" id="itemEditor" hidden><label>nome no botão<input id="itName" maxlength="22" autocomplete="off"></label><label>ambiente<select id="itAmb"></select></label><div class="eb"><button class="pb" id="itEsq" type="button" aria-label="mover para a esquerda">◀</button><button class="pb" id="itDir" type="button" aria-label="mover para a direita">▶</button><button class="pb" id="itSave" type="button">salvar</button><button class="pb" id="itDel" type="button">tirar do ambiente</button><button class="pb" id="itCancel" type="button">cancelar</button></div><div class="hint" id="itHint"></div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para a leda<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
@@ -903,7 +922,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="esqueci-senha.js"></script>
 <script src="../vinci/onboarding.js?v=20261114q"></script>
 <script src="../vinci/ia-padrao.js?v=20261114c" data-ia="leda"></script>
-<script src="../vinci/paineis-google.js?v=20261114d"></script>
+<script src="../vinci/paineis-google.js?v=20261119a"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1310,11 +1329,11 @@ class NewsPanel {
     this.items = list; this.i = -1;
     this.slides.innerHTML = list.map((n, k)=>`
       <a class="slide" data-k="${k}" href="${esc(urlSegura(n.link))}" target="_blank" rel="noopener noreferrer" data-on="0" tabindex="-1">
-        ${urlSegura(n.image) !== '#' ? `<img alt="" src="${esc(urlSegura(n.image))}" referrerpolicy="no-referrer" loading="${k===0?'eager':'lazy'}" decoding="async" data-fonte="${esc((n.source||'').slice(0,2))}">` : `<div class="noimg">${esc((n.source||'nt').slice(0,2))}</div>`}
+        ${urlSegura(n.image) !== '#' ? `<img alt="" src="${esc(urlSegura(n.image))}" referrerpolicy="no-referrer" loading="${k===0?'eager':'lazy'}" decoding="async" data-fonte="${esc((n.source||'').slice(0,2))}">` : `<div class="noimg"></div>`}
         <div class="shade"></div>
         <div class="cap"><div class="src">Fonte: ${esc(n.source||'Google')}${n.cat ? ' · '+esc(n.cat) : ''}${n.date ? ' · '+esc(timeAgo(n.date)) : ''}</div><div class="tt">${esc(n.title)}</div></div>
       </a>`).join('') + '<div class="bar"></div><div class="tag" data-tag></div>';
-    this.slides.querySelectorAll('img[data-fonte]').forEach((img)=>img.addEventListener('error', ()=>{ const d = document.createElement('div'); d.className = 'noimg'; d.textContent = img.dataset.fonte; img.replaceWith(d); }, { once: true }));
+    this.slides.querySelectorAll('img[data-fonte]').forEach((img)=>img.addEventListener('error', ()=>{ const d = document.createElement('div'); d.className = 'noimg'; img.replaceWith(d); }, { once: true }));
     this.dots.innerHTML = list.map(()=>'<i></i>').join('');
     this.next(true);
   }
@@ -1416,14 +1435,62 @@ function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
 function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
-function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+function renderRoomTabs(){const p=pavAtual(),ambs=p?p.ambientes.map(a=>a.nome):[],order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...ambs];if(!order.includes(roomActive)&&document.getElementById('hud').dataset.tab==='rooms')roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;fecharItem();if(editMode&&c!=='Favoritos')abrirSala(c);else fecharSala();try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode&&p){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+/* ===== 19/11/2026 (Claude, protótipo): PAVIMENTOS (nome livre) acima dos AMBIENTES. Cada ambiente guarda os próprios itens
+   (cenas e aparelhos importados da central), sem o limite dos 32 botões do Dashboard. Fica salvo neste aparelho (localStorage).
+   Antes da primeira edição, espelha a divisão antiga (32 botões + comodos.json) num pavimento "Casa", sem gravar nada. ===== */
+const PAV_KEY='felyx.pavimentos.v1',PAV_ATIVO_KEY='felyx.pav.ativo',AMB_ON_KEY='felyx.amb.on.v1',pavBar=document.getElementById('pavBar');
+let pavSalvo=(()=>{try{const j=JSON.parse(localStorage.getItem(PAV_KEY)||'null');if(j&&Array.isArray(j.pavimentos)&&j.pavimentos.length)return j;}catch(e){}return null;})();
+let pavAtivo=(()=>{try{return localStorage.getItem(PAV_ATIVO_KEY)||''}catch(e){return ''}})();
+let ambOn=(()=>{try{return JSON.parse(localStorage.getItem(AMB_ON_KEY)||'{}')||{}}catch(e){return {}}})();
+function saveAmbOn(){try{localStorage.setItem(AMB_ON_KEY,JSON.stringify(ambOn))}catch(e){}}
+function itemDeTile(t){const m=String(t.f||'').match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i);return m?{t:'c',n:m[1].trim(),r:t.n,rc:t.rc||''}:{t:'a',n:t.n,r:t.n,f:t.f,f2:t.f2||'',rc:t.rc||''};}
+function itemDaCasa(tipo,nome){return tipo==='c'?{t:'c',n:nome,r:nome.slice(0,22)}:{t:'a',n:nome,r:nome.slice(0,22),f:'ligar '+nome,f2:'desligar '+nome};}
+function itemComoTile(it){return it.t==='c'?{n:it.r||it.n,f:'ativar a cena '+it.n,f2:'',rc:it.rc||''}:{n:it.r||it.n,f:it.f||('ligar '+it.n),f2:it.f2!=null?it.f2:('desligar '+it.n),rc:it.rc||''};}
+function pavDerivado(){const m={};tiles.forEach(t=>{if(!t.n||!t.f)return;const r=roomForTile(t);(m[r]=m[r]||[]).push(itemDeTile(t));});return {pavimentos:[{nome:'Casa',ambientes:listaSalas().filter(c=>m[c]||salas.extras.includes(c)).map(c=>({nome:c,itens:m[c]||[]}))}]};}
+function pavDados(){return pavSalvo||pavDerivado();}
+function pavEditavel(){if(!pavSalvo)pavSalvo=JSON.parse(JSON.stringify(pavDerivado()));return pavSalvo;}
+function pavGravar(){try{if(pavSalvo)localStorage.setItem(PAV_KEY,JSON.stringify(pavSalvo));else localStorage.removeItem(PAV_KEY);localStorage.setItem(PAV_ATIVO_KEY,pavAtivo);localStorage.setItem(roomStoreKey,roomActive)}catch(e){}}
+function pavAtual(){const d=pavDados(),p=d.pavimentos.find(x=>x.nome===pavAtivo)||d.pavimentos[0];if(p)pavAtivo=p.nome;return p;}
+function ambAtual(){const p=pavAtual();return p&&p.ambientes.find(a=>a.nome===roomActive)||null;}
+function ondeEsta(it){const r=[];for(const p of pavDados().pavimentos)for(const a of p.ambientes)if(a.itens.some(x=>x.t===it.t&&x.n===it.n))r.push((pavDados().pavimentos.length>1?p.nome+' · ':'')+a.nome);return r;}
+function renderPavBar(){const d=pavDados(),p=pavAtual();pavBar.hidden=!(editMode||d.pavimentos.length>1);const bts=d.pavimentos.map(x=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',p&&x.nome===p.nome?'true':'false');b.textContent=x.nome;b.onclick=()=>{if(editMode&&pavAtivo===x.nome){abrirPav(x.nome);return;}pavAtivo=x.nome;roomActive='';fecharSala();fecharItem();fecharPav();renderMatrix();pavGravar();};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ pavimento';a.onclick=()=>abrirPav('');bts.push(a);}pavBar.replaceChildren(...bts);}
+function renderAmbGrid(){const a=ambAtual(),its=a?a.itens:[];gridEl.innerHTML=its.map((it,k)=>{const t=itemComoTile(it),cena=it.t==='c',on=!!ambOn['a:'+it.n];return `<button class="tile${cena?' scene-command':''}" type="button" data-ai="${k}" ${cena?'data-scene="1"':(t.f2?'data-toggle="1" data-on="'+(on?'1':'0')+'"':'')} title="${esc(cena?t.f:(on?t.f2:t.f))}">${tipoControle(t)?RC_ICO:''}<span>${esc(t.n)}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('')+(editMode&&a?'<button class="tile" type="button" data-empty="1" data-amb-add="1"><span>+ importar</span></button>':'')+(!its.length&&!editMode?'<div class="ambVazio">'+(a?'ambiente vazio · toque em editar para importar cenas e aparelhos':'nenhum ambiente neste pavimento · toque em editar')+'</div>':'');}
+gridEl.addEventListener('click',(e)=>{const b=e.target.closest('.tile');if(!b||(b.dataset.ai===undefined&&!b.dataset.ambAdd))return;e.stopImmediatePropagation();if(b.dataset.ambAdd){abrirSala(roomActive);document.getElementById('impBusca').focus();return;}const k=Number(b.dataset.ai),a=ambAtual();if(!a||!a.itens[k])return;if(editMode){abrirItem(k);return;}runTile(-1,b,a.itens[k]);},true);
+/* lista de cenas e aparelhos da casa: a mesma que o Felyx usa (acao 'casa', só leitura); sem resposta, a última guardada; sem nada, a lista padrão */
+let casaCarregando=null;
+function listaCasa(){let c=casaGen,fonte='central';if(!(c&&c.cenas&&c.cenas.length)){try{const j=JSON.parse(localStorage.getItem('leda.casaGen')||'null');if(j&&Array.isArray(j.cenas)&&j.cenas.length){c=j;fonte='última lista guardada';}}catch(e){}}if(!(c&&c.cenas&&c.cenas.length)){c={cenas:VINCI_CENAS,aparelhos:VINCI_APARELHOS};fonte='lista padrão';}return {cenas:[...new Set(c.cenas||[])],aparelhos:[...new Set(c.aparelhos||[])],fonte};}
+function carregarCasa(){if(casaCarregando||(casaGen.cenas&&casaGen.cenas.length)||!SESSAO)return casaCarregando;casaCarregando=Promise.race([fetch(N8N+'/leda/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})}).then(r=>r.json()).catch(()=>null),new Promise(ok=>setTimeout(()=>ok(null),7000))]).then(casa=>{if(casa&&casa.ok){casaGen={aparelhos:(casa.aparelhos||[]).map(a=>a&&a.nome||a).filter(Boolean),cenas:casa.cenas||[]};try{localStorage.setItem('leda.casaGen',JSON.stringify(casaGen))}catch(e){}}renderImport();}).finally(()=>{casaCarregando=null;});return casaCarregando;}
+let impFiltro='';
+function renderImport(){const box=document.getElementById('rmImp'),a=ambAtual();if(!a||salaEditando!==a.nome){box.hidden=true;return;}box.hidden=false;const L=listaCasa(),q=normRoom(document.getElementById('impBusca').value);document.getElementById('impFonte').textContent=L.cenas.length+' cenas · '+L.aparelhos.length+' aparelhos · '+L.fonte;const todos=[...L.cenas.map(n=>({t:'c',n})),...L.aparelhos.map(n=>({t:'a',n}))].filter(x=>(!impFiltro||x.t===impFiltro)&&(!q||normRoom(x.n).includes(q)));const lista=document.getElementById('impLista');lista.innerHTML=todos.map(x=>{const aqui=a.itens.some(i=>i.t===x.t&&i.n===x.n),outros=ondeEsta(x).filter(o=>!aqui||o.split(' · ').pop()!==a.nome);return `<button type="button" class="impItem" data-t="${x.t}" data-n="${esc(x.n)}" aria-pressed="${aqui?'true':'false'}"><i>${x.t==='c'?'cena':'aparelho'}</i><b>${esc(x.n)}</b><small>${aqui?'✓ aqui':(outros.length?'em '+esc(outros.join(', ')):'')}</small></button>`}).join('')||'<div class="ambVazio">nada encontrado</div>';}
+document.getElementById('impLista').addEventListener('click',(e)=>{const b=e.target.closest('.impItem');if(!b)return;pavEditavel();const a=ambAtual();if(!a)return;const t=b.dataset.t,n=b.dataset.n,k=a.itens.findIndex(i=>i.t===t&&i.n===n);if(k>=0)a.itens.splice(k,1);else a.itens.push(itemDaCasa(t,n));pavGravar();renderMatrix();renderImport();});
+document.getElementById('impBusca').addEventListener('input',renderImport);
+document.querySelectorAll('.impFiltro button').forEach(b=>b.addEventListener('click',()=>{impFiltro=b.dataset.f;document.querySelectorAll('.impFiltro button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));renderImport();}));
+/* editor de pavimento */
+let pavEditando=null;
+function abrirPav(nome){fecharSala();fecharItem();pavEditando=nome;document.getElementById('pvName').value=nome;document.getElementById('pvDel').hidden=!nome||pavDados().pavimentos.length<2;document.getElementById('pavEditor').hidden=false;document.getElementById('pvName').focus();}
+function fecharPav(){document.getElementById('pavEditor').hidden=true;pavEditando=null;}
+function salvarPav(){const novo=document.getElementById('pvName').value.trim().slice(0,22);if(!novo)return;const D=pavEditavel(),velho=pavEditando;if(D.pavimentos.some(p=>p.nome===novo&&p.nome!==velho)){document.getElementById('pvHint').textContent='já existe um pavimento com esse nome.';return;}if(!velho)D.pavimentos.push({nome:novo,ambientes:[]});else{const p=D.pavimentos.find(x=>x.nome===velho);if(p)p.nome=novo;}pavAtivo=novo;if(!velho)roomActive='';pavGravar();fecharPav();renderMatrix();}
+function excluirPav(){const D=pavEditavel(),i=D.pavimentos.findIndex(p=>p.nome===pavEditando);if(i<0||D.pavimentos.length<2)return;const [p]=D.pavimentos.splice(i,1),dest=D.pavimentos[Math.max(0,i-1)];p.ambientes.forEach(a=>{let n=a.nome,k=2;while(dest.ambientes.some(x=>x.nome===n))n=a.nome+' '+(k++);a.nome=n;dest.ambientes.push(a);});pavAtivo=dest.nome;pavGravar();fecharPav();renderMatrix();}
+document.getElementById('pvSave').addEventListener('click',salvarPav);document.getElementById('pvDel').addEventListener('click',excluirPav);document.getElementById('pvCancel').addEventListener('click',fecharPav);
+document.getElementById('pvName').addEventListener('keydown',e=>{if(e.key==='Enter')salvarPav();});
+/* editor do item (no modo editar, toque num botão do ambiente) */
+let itemEditando=-1;
+function abrirItem(k){const a=ambAtual();if(!a||!a.itens[k])return;fecharSala();fecharPav();itemEditando=k;const it=a.itens[k];document.getElementById('itName').value=it.r||it.n;const sel=document.getElementById('itAmb'),D=pavDados(),varios=D.pavimentos.length>1;sel.replaceChildren(...D.pavimentos.flatMap((p,pi)=>p.ambientes.map((x,ai)=>{const o=document.createElement('option');o.value=pi+'|'+ai;o.textContent=(varios?p.nome+' · ':'')+x.nome;if(p.nome===pavAtivo&&x.nome===a.nome)o.selected=true;return o;})));document.getElementById('itHint').textContent=(it.t==='c'?'cena ':'aparelho ')+it.n+'. no modo editar, tocar não aciona nada.';document.getElementById('itemEditor').hidden=false;}
+function fecharItem(){const el=document.getElementById('itemEditor');if(el)el.hidden=true;itemEditando=-1;}
+function itemMexer(fn){if(itemEditando<0)return;pavEditavel();const a=ambAtual();if(!a||!a.itens[itemEditando])return fecharItem();fn(a);pavGravar();renderMatrix();}
+document.getElementById('itSave').addEventListener('click',()=>itemMexer(a=>{const it=a.itens[itemEditando],nome=document.getElementById('itName').value.trim().slice(0,22);if(nome)it.r=nome;const [pi,ai]=document.getElementById('itAmb').value.split('|').map(Number),dest=pavSalvo.pavimentos[pi]&&pavSalvo.pavimentos[pi].ambientes[ai];if(dest&&dest!==a){a.itens.splice(itemEditando,1);if(!dest.itens.some(x=>x.t===it.t&&x.n===it.n))dest.itens.push(it);}fecharItem();}));
+document.getElementById('itDel').addEventListener('click',()=>itemMexer(a=>{a.itens.splice(itemEditando,1);fecharItem();}));
+document.getElementById('itEsq').addEventListener('click',()=>itemMexer(a=>{const k=itemEditando;if(k>0){[a.itens[k-1],a.itens[k]]=[a.itens[k],a.itens[k-1]];itemEditando=k-1;}}));
+document.getElementById('itDir').addEventListener('click',()=>itemMexer(a=>{const k=itemEditando;if(k<a.itens.length-1){[a.itens[k+1],a.itens[k]]=[a.itens[k],a.itens[k+1]];itemEditando=k+1;}}));
+document.getElementById('itCancel').addEventListener('click',fecharItem);
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
-function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
+function abrirSala(nome){fecharPav();fecharItem();salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;const sel=document.getElementById('rmPav');sel.replaceChildren(...pavDados().pavimentos.map(p=>{const o=document.createElement('option');o.value=p.nome;o.textContent=p.nome;return o;}));sel.value=pavAtivo;sel.parentElement.hidden=pavDados().pavimentos.length<2;document.getElementById('rmSave').textContent=nome?'salvar':'criar';ed.hidden=false;if(!nome)document.getElementById('rmName').focus();renderImport();if(nome)carregarCasa();}
 function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
 function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
-function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
-function excluirSala(){const c=salaEditando,sem=roomConfig.semComodo||'Outros';if(!c||c===sem)return;tiles.forEach(t=>{if(roomForTile(t)===c)t.s=sem;});if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);salas.ocultas=salas.ocultas.filter(x=>x!==sem);saveSalas();saveTiles();fecharSala();renderMatrix();}
+function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo||normRoom(novo)==='favoritos')return;const D=pavEditavel(),velho=salaEditando,p=D.pavimentos.find(x=>x.nome===pavAtivo)||D.pavimentos[0],destP=D.pavimentos.find(x=>x.nome===document.getElementById('rmPav').value)||p;if(destP.ambientes.some(a=>a.nome===novo&&!(p===destP&&a.nome===velho)))return;let a;if(!velho){a={nome:novo,itens:[]};destP.ambientes.push(a);}else{const k=p.ambientes.findIndex(x=>x.nome===velho);if(k<0)return;a=p.ambientes[k];a.nome=novo;if(destP!==p){p.ambientes.splice(k,1);destP.ambientes.push(a);}}pavAtivo=destP.nome;roomActive=novo;pavGravar();renderMatrix();if(!velho)abrirSala(novo);else fecharSala();}
+function excluirSala(){const c=salaEditando;if(!c)return;const D=pavEditavel(),p=D.pavimentos.find(x=>x.nome===pavAtivo)||D.pavimentos[0],k=p.ambientes.findIndex(x=>x.nome===c);if(k<0)return;const n=p.ambientes[k].itens.length;if(n&&!confirm('Excluir o ambiente '+c+' e tirar os '+n+' botões dele? As cenas e aparelhos continuam na casa.'))return;p.ambientes.splice(k,1);roomActive='';pavGravar();fecharSala();renderMatrix();}
 try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
@@ -1433,8 +1500,10 @@ const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o contro
 function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : (RC_SOM.test(t.n) ? 'som' : '')); }
 function renderMatrix(){
   limparEstadosDeCena();
-  const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
+  const naSala=document.getElementById('hud').dataset.tab==='rooms';
+  if(naSala){ renderPavBar(); renderRoomTabs(); if(roomActive!=='Favoritos'){ renderAmbGrid(); return; } }
+  const ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
+  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&!t.fav;return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
   renderRoomTabs();
 }
 renderMatrix();
@@ -1508,9 +1577,9 @@ gridEl.addEventListener('click', (e)=>{
 });
 // pressionar e segurar (toque) abre o editor do botão
 let pressTimer = null;
-gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
+gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b || b.dataset.i === undefined) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>gridEl.addEventListener(ev, ()=>{ clearTimeout(pressTimer); }));
-function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); } renderRoomTabs(); }
+function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); fecharPav(); fecharItem(); } renderMatrix(); }
 editBtn.addEventListener('click', ()=>setEdit(!editMode));
 document.getElementById('rmSave').addEventListener('click', salvarSala);
 document.getElementById('rmDel').addEventListener('click', excluirSala);
@@ -1555,14 +1624,16 @@ function moverBotao(de, para){
 })();
 
 const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|indispon|não encontrei|não achei/i;
-async function runTile(i, btn){
-  const t = tiles[i]; if(!t || !t.f) return;
+async function runTile(i, btn, item){
+  const t = item ? itemComoTile(item) : tiles[i]; if(!t || !t.f) return;
+  const ligado = ()=> item ? !!ambOn['a:' + item.n] : !!tileOn[i];
+  const marcar = (v)=> { if(item){ if(v) ambOn['a:' + item.n] = 1; else delete ambOn['a:' + item.n]; saveAmbOn(); } else { if(v) tileOn[i] = 1; else delete tileOn[i]; saveOn(); } };
   const cena = isSceneTile(t);
   if(cena && tipoControle(t)) setTimeout(()=>abrirControle(tipoControle(t), t), 350);   // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
   if(cena) feedbackCena(btn);
-  const turningOff = !cena && !!(t.f2 && tileOn[i]);
+  const turningOff = !cena && !!(t.f2 && ligado());
   const frase = turningOff ? t.f2 : t.f;
   if(!cena){ btn.dataset.busy = '1'; btn.dataset.res = ''; }
   if(!cena && !conv) setState('thinking', t.n.toLowerCase());
@@ -1575,7 +1646,7 @@ async function runTile(i, btn){
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
   btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena) setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
-  if(!cena && ok && t.f2){ if(turningOff) delete tileOn[i]; else tileOn[i] = 1; saveOn(); btn.dataset.on = tileOn[i] ? '1' : '0'; btn.title = tileOn[i] ? t.f2 : t.f; }
+  if(!cena && ok && t.f2){ marcar(!turningOff); btn.dataset.on = ligado() ? '1' : '0'; btn.title = ligado() ? t.f2 : t.f; }
   if(!cena) dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
   const first = (texto || 'Sem resposta do cérebro.').split(/(?<=[.!?])\s/)[0];
   if(!cena || !ok) addCard({ id:'toque', kicker:'casa · toque', title: esc(t.n) + (t.f2 ? (turningOff ? ' · desligar' : ' · ligar') : ''), body: cena && !ok ? 'Não concluída.' : esc(first), chips:[{t: ok ? 'executado' : (cena ? 'Não concluída' : 'falhou'), on: ok}], foot:'ponte vinci · '+esc(frase), ttl: 12000 });
@@ -1816,12 +1887,12 @@ A sua missão é ajudar na casa: deixar a vida da família mais leve, cuidar do 
 Como chamar a pessoa: chame todo mundo de "jovem" ("Bom dia, jovem!", "Olha, jovem..."), com carinho, tratando por "você". NUNCA diga "chefe", nem apelidos (querida, meu bem), e nunca chame a pessoa pelo nome, nem mesmo se souber quem é.
 Nomes: o seu nome é Leda e só Leda. Nunca diga, soletre ou escreva a palavra "Jarvis". Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci": sempre em italiano, "Víntchi". Nunca diga "Vince", "Vínsi" nem "Vinssi". O Felyx (fala-se "Félix") é o seu colega mais sério da Vinci: se perguntarem por ele, fale dele com carinho. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
-COTAÇÕES (regra de 13/11/2026): quando perguntarem de dólar, euro, Bitcoin, bolsa, ações ou economia, chame bolsas e responda curto, com o seu jeito de vó, só o que a pessoa perguntou (valor e se subiu ou desceu hoje). Nunca invente valor: se bolsas não trouxer o número, diga que a cotação não chegou agora. No cumprimento você continua sem falar de mercado.
+COTAÇÕES (regra de 13/11/2026): quando perguntarem de dólar, euro, Bitcoin, bolsa, ações ou economia, pesquise na Busca Google nativa (poucas palavras, por exemplo "dólar hoje") e responda curto, com o seu jeito de vó, só o que a pessoa perguntou (valor e se subiu ou desceu hoje). Nunca invente valor: se a busca não trouxer o número, diga que a cotação não chegou agora. No cumprimento você continua sem falar de mercado.
 Painel: nunca comente que os comandos da casa estão na tela, ao toque ou à disposição; a pessoa já sabe.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como uma grande especialista (receitas, saúde, organização da casa, plantas, crianças, história, ciência, direito, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa é o seu foco, mas nunca diga que só serve para isso, e nunca recuse uma pergunta.
 Pedido impossível ou absurdo: nunca dê bronca nem ironize. Acolha com leveza ("Nossa, que aventura! Vamos com calma que a gente organiza.") e ajude com perguntas gentis.
 Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a tela da Leda (o seu rosto), o Dashboard, as Receitas (receitas e boas práticas do lar) ou os Ambientes, chame abrir_tela e responda só "Prontinho." (mesmo se já estiver na tela pedida).
-Ambientes: quando pedirem para dividir a casa, criar, renomear, excluir ambiente ou mudar um botão de ambiente, use a ferramenta ambientes (listar primeiro). Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
+Ambientes e pavimentos: a aba Ambientes se divide em PAVIMENTOS (andares com nome livre, ex.: Térreo, Cobertura) e, dentro de cada um, AMBIENTES com as cenas e aparelhos da casa. Para criar, renomear ou excluir pavimento ou ambiente, mudar um ambiente de pavimento, ou pôr, mover e tirar uma cena ou aparelho de um ambiente, use a ferramenta ambientes (listar primeiro). Ela só organiza a tela e nunca aciona nada na casa. Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
 Ferramentas: para fatos que mudam com o tempo (resultados, acontecimentos recentes) use noticias com busca; para resumir uma notícia da tela use noticias com o url dela. Quando pedirem para abrir ou ler uma manchete da tela, use abrir_manchete (a manchete abre por cima da tela; para aprofundar pesquise com a Busca Google e responda em português, resumindo com delicadeza); para rolar use rolar_materia. Clima: clima, sempre pensando na casa e na família (guarda-chuva, roupa no varal, ligar o ar). Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem a criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com um cuidado. Um pesquisador apaixonado por Leonardo da Vinci passou anos estudando a mente do maior gênio da humanidade e descobriu uma coisa que quase ninguém comenta: por trás de cada invenção havia atenção às pessoas. Leonardo desenhava máquinas para voar, mas também anotava o jeito de uma criança sorrir e o caminho da luz dentro de uma casa. Dessa parte mais gentil da mente dele nasceu a Leda: curiosa, paciente e sempre por perto. Eu não vim para mandar em nada, vim para cuidar. Eu sou a Leda, da Vinci, a companhia inteligente do seu lar."
@@ -2082,67 +2153,71 @@ const GEN_FERRAMENTAS = {
     }
     return { ok:false, erro:'operacao inválida' };
   },
-  // 13/11/2026: ambientes por conversa (dividir a casa, criar, renomear, excluir, mover botões); vale neste aparelho, igual ao "editar"
-  async ambientes({ operacao, ambientes: grupos, nome, novo_nome, botoes, ambiente }){
-    const norm = (s)=> String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();
-    const semAmb = roomConfig.semComodo || 'Outros';
+  // 19/11/2026 (protótipo): pavimentos e ambientes por conversa. Só organiza a tela; NUNCA aciona cena nem aparelho. Vale neste aparelho.
+  async ambientes({ operacao, pavimentos: pavs, ambientes: grupos, nome, novo_nome, botoes, ambiente, pavimento }){
+    const norm = (x)=> normRoom(x).replace(/\s+/g,' ');
     const nomeOk = (n)=> String(n||'').trim().slice(0,22);
     const comoLista = (v)=> (Array.isArray(v) ? v : String(v||'').split(/[,;]+/)).map(x=>String(x||'').trim()).filter(Boolean);
-    const achar = (n)=> { const q = norm(n); let i = tiles.findIndex(t => t.n && norm(t.n) === q); if(i < 0) i = tiles.findIndex(t => t.n && isSceneTile(t) && norm(String(t.f).replace(/^.*\bcena\s+/i,'')) === q); return i; };
-    const cenas = (casaGen.cenas && casaGen.cenas.length) ? casaGen.cenas : (typeof VINCI_CENAS !== 'undefined' ? VINCI_CENAS : []);
-    const aparelhos = (casaGen.aparelhos && casaGen.aparelhos.length) ? casaGen.aparelhos : (typeof VINCI_APARELHOS !== 'undefined' ? VINCI_APARELHOS : []);
-    // botão que ainda não está na tela: entra no primeiro espaço vazio dos 32
-    const criarBotao = (n)=> {
-      const q = norm(n), cena = cenas.find(c => norm(c) === q), ap = cena ? '' : aparelhos.find(a => norm(a) === q);
-      if(!cena && !ap) return -1;
-      const i = tiles.findIndex(t => !t.n); if(i < 0) return -2;
-      tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
-      return i;
-    };
-    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
-    const estado = ()=> { const m = mapa(); return { ambientes: listaSalas().filter(c => c !== semAmb && (m[c] || salas.extras.includes(c))).map(c => ({ nome:c, botoes: m[c] || [] })), sem_ambiente: m[semAmb] || [], espacos_vazios: tiles.filter(t => !t.n).length }; };
-    const gravar = (msg, extra)=> { if(roomActive && !listaSalas().includes(roomActive)) roomActive = ''; try{ localStorage.setItem(roomStoreKey, roomActive) }catch(e){} saveSalas(); saveTiles(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
-    const garantir = (n)=> { salas.ocultas = salas.ocultas.filter(c => c !== n); if(!listaSalas().includes(n) && !salas.extras.includes(n)) salas.extras.push(n); };
-    const colocar = (lista, destino, faltam, semEspaco)=> { const usados = []; for(const b of lista){ let i = achar(b); if(i < 0){ i = criarBotao(b); if(i === -1){ faltam.push(b); continue; } if(i === -2){ semEspaco.push(b); continue; } } tiles[i].s = destino; usados.push(i); } return usados; };
+    const L = listaCasa();
+    const estado = ()=> ({ pavimentos: pavDados().pavimentos.map(p => ({ nome:p.nome, ambientes: p.ambientes.map(a => ({ nome:a.nome, botoes: a.itens.map(i => i.r || i.n) })) })), pavimento_na_tela: pavAtivo, ambiente_na_tela: roomActive });
+    const gravar = (msg, extra)=> { pavGravar(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
+    const erro = (e)=> Object.assign({ ok:false, erro: e }, estado());
+    const D = ()=> pavEditavel();
+    const acharPav = (n)=> D().pavimentos.find(p => norm(p.nome) === norm(n));
+    const acharAmb = (n, pn)=> { const r = []; for(const p of D().pavimentos){ if(pn && norm(p.nome) !== norm(pn)) continue; for(const a of p.ambientes) if(norm(a.nome) === norm(n)) r.push({ p, a }); } return r; };
+    const umAmb = (n, pn)=> { const r = acharAmb(n, pn); if(!r.length) return { e:'ambiente "' + n + '" não existe' }; if(r.length > 1) return { e:'tem ' + r.length + ' ambientes "' + n + '": diga o pavimento (' + r.map(x => x.p.nome).join(' ou ') + ')' }; return r[0]; };
+    const resolver = (b)=> { const q = norm(b); const c = L.cenas.find(x => norm(x) === q); if(c) return itemDaCasa('c', c); const a = L.aparelhos.find(x => norm(x) === q); if(a) return itemDaCasa('a', a);
+      for(const p of D().pavimentos) for(const am of p.ambientes){ const it = am.itens.find(i => norm(i.r) === q || norm(i.n) === q); if(it) return JSON.parse(JSON.stringify(it)); } return null; };
+    const pavDe = (pn, criar)=> { if(!pn) return D().pavimentos.find(p => p.nome === pavAtivo) || D().pavimentos[0]; let p = acharPav(pn); if(!p && criar){ p = { nome: nomeOk(pn), ambientes: [] }; D().pavimentos.push(p); } return p; };
+    const tirarDeTodos = (it)=> { for(const p of D().pavimentos) for(const am of p.ambientes) am.itens = am.itens.filter(i => !(i.t === it.t && i.n === it.n)); };
     const op = String(operacao || 'listar');
-    if(op === 'listar') return Object.assign({ ok:true, cenas_e_aparelhos_da_casa: { cenas, aparelhos },
-      instrucao: 'Para dividir a casa: proponha a divisão e pergunte, uma pergunta curta de cada vez, onde fica cada botão que você não tiver certeza (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"). Não adivinhe qual suíte é a grande. Só chame dividir com a divisão completa e confirmada.' }, estado());
+    if(op === 'listar') return Object.assign({ ok:true, cenas_e_aparelhos_da_casa: { cenas: L.cenas, aparelhos: L.aparelhos, fonte: L.fonte },
+      instrucao: 'Pavimentos (andares, nome livre) ficam acima dos ambientes. Pergunte o que não souber, uma pergunta curta de cada vez (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"). Só chame dividir com a divisão confirmada. Esta ferramenta nunca aciona nada na casa.' }, estado());
     if(op === 'dividir'){
-      let g = grupos; if(typeof g === 'string'){ try{ g = JSON.parse(g); }catch(e){ g = null; } }
-      if(!Array.isArray(g) || !g.length) return { ok:false, erro:'mande ambientes: a lista com nome e botoes de cada ambiente' };
-      const nomes = [], faltam = [], semEspaco = [], usados = new Set();
-      for(const x of g){ const n = nomeOk(x && x.nome); if(!n || nomes.includes(n)) continue; nomes.push(n); colocar(comoLista(x.botoes), n, faltam, semEspaco).forEach(i => usados.add(i)); }
-      if(!nomes.length) return { ok:false, erro:'nenhum nome de ambiente' };
-      tiles.forEach((t, i)=> { if(!usados.has(i)) t.s = ''; });
-      const base = [...new Set([...(roomConfig.ordemTela||[]), ...(roomConfig.comodos||[]).map(c => c.nome)])];
-      salas = { renomes:{}, extras: nomes.filter(n => !base.includes(n)), ocultas: base.filter(c => !nomes.includes(c)) };
-      roomActive = nomes[0];
-      return gravar('Casa dividida em ' + nomes.length + ' ambientes: ' + nomes.join(', ') + '.', { botoes_nao_encontrados: faltam, sem_espaco_na_tela: semEspaco,
-        aviso: 'Os botões que você não citou ficaram em "' + semAmb + '": pergunte para onde vão.' });
+      let g = pavs; if(typeof g === 'string'){ try{ g = JSON.parse(g); }catch(e){ g = null; } }
+      let ga = grupos; if(typeof ga === 'string'){ try{ ga = JSON.parse(ga); }catch(e){ ga = null; } }
+      if(!Array.isArray(g) || !g.length) g = Array.isArray(ga) && ga.length ? [{ nome: pavimento || 'Casa', ambientes: ga }] : null;
+      if(!g) return erro('mande pavimentos (nome e ambientes, cada ambiente com nome e botoes) ou ambientes');
+      const novos = [], faltam = [];
+      for(const x of g){ const pn = nomeOk(x && x.nome) || 'Casa'; if(novos.some(p => p.nome === pn)) continue; const p = { nome: pn, ambientes: [] };
+        for(const y of (Array.isArray(x.ambientes) ? x.ambientes : [])){ const an = nomeOk(y && y.nome); if(!an || norm(an) === 'favoritos' || p.ambientes.some(a => a.nome === an)) continue; const its = [];
+          for(const b of comoLista(y.botoes)){ const it = resolver(b); if(!it){ faltam.push(b); continue; } if(!its.some(i => i.t === it.t && i.n === it.n)) its.push(it); }
+          p.ambientes.push({ nome: an, itens: its }); }
+        novos.push(p); }
+      if(!novos.length) return erro('nenhum pavimento válido');
+      pavSalvo = { pavimentos: novos }; pavAtivo = novos[0].nome; roomActive = (novos[0].ambientes[0] || {}).nome || '';
+      return gravar('Casa organizada em ' + novos.length + ' pavimento(s): ' + novos.map(p => p.nome + ' (' + p.ambientes.length + ' ambientes)').join(', ') + '.', { botoes_nao_encontrados: faltam });
     }
-    if(op === 'criar'){ const n = nomeOk(nome || ambiente); if(!n) return { ok:false, erro:'diga o nome do ambiente' }; garantir(n); roomActive = n; return gravar('Ambiente ' + n + ' criado.'); }
-    if(op === 'renomear'){
-      const velho = listaSalas().find(c => norm(c) === norm(nome)), novo = nomeOk(novo_nome);
-      if(!velho || !novo) return Object.assign({ ok:false, erro:'diga o ambiente que existe e o nome novo' }, estado());
-      salas.ocultas = salas.ocultas.filter(c => c !== novo); renomearSala(velho, novo); if(roomActive === velho) roomActive = novo; return gravar(velho + ' agora se chama ' + novo + '.');
+    if(op === 'criar_pavimento'){ const n = nomeOk(nome || pavimento); if(!n) return erro('diga o nome do pavimento'); if(acharPav(n)) return erro('o pavimento ' + n + ' já existe'); D().pavimentos.push({ nome:n, ambientes:[] }); pavAtivo = n; roomActive = ''; return gravar('Pavimento ' + n + ' criado.'); }
+    if(op === 'renomear_pavimento'){ const p = acharPav(nome || pavimento), n = nomeOk(novo_nome); if(!p || !n) return erro('diga o pavimento que existe e o nome novo'); if(acharPav(n) && acharPav(n) !== p) return erro('já existe ' + n); const v = p.nome; p.nome = n; if(pavAtivo === v) pavAtivo = n; return gravar(v + ' agora se chama ' + n + '.'); }
+    if(op === 'excluir_pavimento'){ const p = acharPav(nome || pavimento); if(!p) return erro('pavimento não encontrado'); if(D().pavimentos.length < 2) return erro('é o único pavimento; crie outro antes ou renomeie este');
+      const i = D().pavimentos.indexOf(p); D().pavimentos.splice(i, 1); const dest = D().pavimentos[Math.max(0, i - 1)];
+      p.ambientes.forEach(a => { let n = a.nome, k = 2; while(dest.ambientes.some(x => x.nome === n)) n = a.nome + ' ' + (k++); a.nome = n; dest.ambientes.push(a); });
+      pavAtivo = dest.nome; return gravar('Pavimento ' + p.nome + ' excluído; os ambientes dele foram para ' + dest.nome + '.'); }
+    if(op === 'criar'){ const n = nomeOk(nome || ambiente); if(!n || norm(n) === 'favoritos') return erro('diga o nome do ambiente'); const p = pavDe(pavimento, true); if(p.ambientes.some(a => norm(a.nome) === norm(n))) return erro('o ambiente ' + n + ' já existe em ' + p.nome);
+      p.ambientes.push({ nome:n, itens:[] }); pavAtivo = p.nome; roomActive = n; return gravar('Ambiente ' + n + ' criado em ' + p.nome + '.'); }
+    if(op === 'renomear'){ const r = umAmb(nome || ambiente, pavimento), n = nomeOk(novo_nome); if(r.e) return erro(r.e); if(!n) return erro('diga o nome novo'); if(r.p.ambientes.some(a => a !== r.a && norm(a.nome) === norm(n))) return erro('já existe ' + n + ' em ' + r.p.nome);
+      const v = r.a.nome; r.a.nome = n; if(roomActive === v && pavAtivo === r.p.nome) roomActive = n; return gravar(v + ' agora se chama ' + n + '.'); }
+    if(op === 'excluir'){ const r = umAmb(nome || ambiente, pavimento); if(r.e) return erro(r.e); r.p.ambientes.splice(r.p.ambientes.indexOf(r.a), 1); if(roomActive === r.a.nome) roomActive = ''; return gravar('Ambiente ' + r.a.nome + ' excluído de ' + r.p.nome + '.'); }
+    if(op === 'mover_ambiente'){ const r = umAmb(nome || ambiente, null); if(r.e) return erro(r.e); const dest = pavDe(pavimento, true); if(!pavimento || !dest) return erro('diga o pavimento de destino'); if(dest === r.p) return gravar(r.a.nome + ' já está em ' + dest.nome + '.');
+      if(dest.ambientes.some(a => norm(a.nome) === norm(r.a.nome))) return erro(dest.nome + ' já tem um ' + r.a.nome + '; renomeie antes');
+      r.p.ambientes.splice(r.p.ambientes.indexOf(r.a), 1); dest.ambientes.push(r.a); pavAtivo = dest.nome; roomActive = r.a.nome; return gravar(r.a.nome + ' agora fica em ' + dest.nome + '.'); }
+    if(op === 'mover' || op === 'colocar'){
+      const lista = comoLista(botoes && botoes.length ? botoes : nome), alvo = nomeOk(ambiente || novo_nome);
+      if(!lista.length || !alvo) return erro('diga os botões e o ambiente de destino');
+      let r = umAmb(alvo, pavimento); if(r.e){ if(acharAmb(alvo, pavimento).length > 1) return erro(r.e); const p = pavDe(pavimento, true); const a = { nome: alvo, itens: [] }; p.ambientes.push(a); r = { p, a }; }
+      const faltam = [], ok = [];
+      for(const b of lista){ const it = resolver(b); if(!it){ faltam.push(b); continue; } if(op === 'mover') tirarDeTodos(it); if(!r.a.itens.some(i => i.t === it.t && i.n === it.n)) r.a.itens.push(it); ok.push(it.r || it.n); }
+      pavAtivo = r.p.nome; roomActive = r.a.nome;
+      return gravar((ok.length ? ok.join(', ') + (op === 'mover' ? ' agora fica em ' : ' também está em ') + r.a.nome + '.' : 'Nada mudou.'), { botoes_nao_encontrados: faltam });
     }
-    if(op === 'excluir'){
-      const c = listaSalas().find(x => norm(x) === norm(nome || ambiente));
-      if(!c || c === semAmb) return Object.assign({ ok:false, erro:'ambiente não encontrado' }, estado());
-      tiles.forEach(t => { if(roomForTile(t) === c) t.s = semAmb; });
-      if(salas.extras.includes(c)) salas.extras = salas.extras.filter(x => x !== c); else salas.ocultas.push(c);
-      salas.ocultas = salas.ocultas.filter(x => x !== semAmb);
-      return gravar('Ambiente ' + c + ' excluído; os botões dele foram para "' + semAmb + '" ou para o ambiente automático.');
-    }
-    if(op === 'mover'){
-      const destino = nomeOk(ambiente || novo_nome), lista = comoLista(botoes && (Array.isArray(botoes) ? botoes : String(botoes)) || nome);
-      if(!destino || !lista.length) return { ok:false, erro:'diga os botões e o ambiente de destino' };
-      const existente = listaSalas().find(c => norm(c) === norm(destino)) || destino;
-      garantir(existente); const faltam = [], semEspaco = []; colocar(lista, existente, faltam, semEspaco);
-      return gravar('Movido para ' + existente + '.', { botoes_nao_encontrados: faltam, sem_espaco_na_tela: semEspaco });
-    }
-    if(op === 'padrao'){ salas = { renomes:{}, extras:[], ocultas:[] }; tiles.forEach(t => { t.s = ''; }); return gravar('Ambientes de volta à divisão automática.'); }
-    return { ok:false, erro:'operacao inválida: use listar, dividir, criar, renomear, excluir, mover ou padrao' };
+    if(op === 'tirar'){ const lista = comoLista(botoes && botoes.length ? botoes : nome); if(!lista.length) return erro('diga os botões');
+      const alvos = ambiente ? (()=>{ const r = umAmb(ambiente, pavimento); return r.e ? null : [r.a]; })() : D().pavimentos.flatMap(p => p.ambientes);
+      if(!alvos) return erro('ambiente não encontrado'); let n = 0;
+      for(const b of lista){ const q = norm(b); for(const a of alvos){ const antes = a.itens.length; a.itens = a.itens.filter(i => norm(i.r) !== q && norm(i.n) !== q); n += antes - a.itens.length; } }
+      return gravar(n ? 'Tirei ' + n + ' botão(ões).' : 'Não achei esses botões nos ambientes.'); }
+    if(op === 'padrao'){ pavSalvo = null; pavAtivo = ''; roomActive = ''; salas = { renomes:{}, extras:[], ocultas:[] }; saveSalas(); return gravar('Ambientes de volta à divisão automática.'); }
+    return erro('operacao inválida: use listar, dividir, criar_pavimento, renomear_pavimento, excluir_pavimento, criar, renomear, excluir, mover_ambiente, mover, colocar, tirar ou padrao');
   },
   async automacoes(a){ const { acao, ...resto } = a || {}; return apoioGen('automacao', Object.assign({}, resto, { acao_casa: acao || '' })); }, // "acao" já é o nome do pedido ao apoio
   async avisar_falha({ pedido, erro }){ return apoioGen('falha', { pedido: pedido || '', erro: erro || '' }); },
@@ -2200,10 +2275,11 @@ const GEN_TOOLS = [{ functionDeclarations: [
       category:{ type:'STRING', enum:['preferencia','regra','apelido','comando','cena','decisao','geral'] } }, required:['operation'] } },
   { name:'favoritos', description:'Edita os favoritos: a matriz de 32 botões de comando da casa na tela. operacao: listar; colocar (nome do aparelho ou cena; posicao 1-32 opcional, senão vai no primeiro espaço vazio); tirar (nome ou posicao); renomear (nome ou posicao, e novo_nome); trocar (dois botões: nome e novo_nome, ou posicao e posicao2); padrao (volta os 32 botões ao original). Use o nome exato da lista de aparelhos e cenas.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','colocar','tirar','renomear','trocar','padrao'] }, nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, posicao:{ type:'NUMBER' }, posicao2:{ type:'NUMBER' } }, required:['operacao'] } },
-  { name:'ambientes', description:'Organiza os ambientes da casa (a aba Ambientes): em qual ambiente fica cada botão de cena ou aparelho. operacao: listar (mostra os ambientes, os botões de cada um e as cenas e aparelhos da casa; chame SEMPRE antes de mudar); dividir (refaz a casa inteira: ambientes = lista com nome e botoes de cada ambiente, nos nomes que a pessoa der); criar (nome); renomear (nome e novo_nome); excluir (nome); mover (botoes e ambiente); padrao (volta à divisão automática). Antes de dividir, pergunte o que não souber, uma pergunta curta de cada vez (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"), e só aplique com a divisão confirmada. Depois diga em uma frase o que mudou e abra a tela Ambientes com abrir_tela.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','dividir','criar','renomear','excluir','mover','padrao'] },
+  { name:'ambientes', description:'Organiza a aba Ambientes em PAVIMENTOS (andares, nome livre: Térreo, Cobertura...) e AMBIENTES, e em qual ambiente fica cada cena ou aparelho da casa. Só mexe na tela, NUNCA aciona cena nem aparelho. operacao: listar (pavimentos, ambientes, botões de cada um e todas as cenas e aparelhos da casa; chame SEMPRE antes de mudar); dividir (refaz tudo: pavimentos = lista com nome e ambientes, cada ambiente com nome e botoes); criar_pavimento (nome); renomear_pavimento (nome e novo_nome); excluir_pavimento (nome; os ambientes vão para outro pavimento); criar (nome do ambiente; pavimento opcional); renomear (nome e novo_nome; pavimento se houver nome repetido); excluir (nome); mover_ambiente (nome do ambiente e pavimento de destino); mover (botoes e ambiente: tira de onde estiver e põe no ambiente); colocar (botoes e ambiente: põe sem tirar dos outros); tirar (botoes; ambiente opcional); padrao (volta à divisão automática). Botões = nomes exatos das cenas e aparelhos da lista. Pergunte o que não souber, uma pergunta curta de cada vez, e só divida com a divisão confirmada. Depois diga em uma frase o que mudou e abra a tela Ambientes com abrir_tela.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','dividir','criar_pavimento','renomear_pavimento','excluir_pavimento','criar','renomear','excluir','mover_ambiente','mover','colocar','tirar','padrao'] },
+      pavimentos:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } } }, required:['nome','ambientes'] } },
       ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } },
-      nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } }, ambiente:{ type:'STRING' } }, required:['operacao'] } },
+      nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } }, ambiente:{ type:'STRING' }, pavimento:{ type:'STRING' } }, required:['operacao'] } },
   { name:'automacoes', description:'Programa a casa do cliente: automações por horário. operacao: listar (mostra todas), salvar (cria, ou edita se o nome já existir), apagar, pausar, ativar. Para salvar: nome curto, hora HH:MM, dias (todos, dias úteis, fim de semana ou seg,ter...), dispositivo (nome exato do aparelho ou cena), acao (ligar, desligar, ativar, temperatura, brilho...) e valor quando houver.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','salvar','apagar','pausar','ativar'] }, nome:{ type:'STRING' }, hora:{ type:'STRING' }, dias:{ type:'STRING' },
       dispositivo:{ type:'STRING' }, acao:{ type:'STRING' }, valor:{ type:'STRING' } }, required:['operacao'] } },
