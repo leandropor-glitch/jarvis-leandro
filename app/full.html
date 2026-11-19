@@ -1745,6 +1745,13 @@ function comandoCasa(nome, acao){
   return (acao === 'desligar' ? 'desligar ' : 'ligar ') + nome;
   return 'ativar cena ' + nome;
 }
+// nome do aparelho/cena dito pela pessoa? (sem acento, sem maiúscula; metade ou mais das palavras do nome, ignorando on/off)
+function nomeFoiDito(nome, fala){
+  const lim = (x)=> String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const f = ' ' + lim(fala) + ' ', ps = lim(nome).split(' ').filter(p => p && !['on','off','de','da','do'].includes(p));
+  if(!ps.length) return false;
+  return ps.filter(p => f.includes(' ' + p + ' ')).length >= Math.ceil(ps.length / 2);
+}
 const GEN_FERRAMENTAS = {
   // 09/11/2026: o Felyx muda de tela por voz (Home, Dashboard, Salas)
   async abrir_tela({ tela }){
@@ -2020,7 +2027,7 @@ class GeminiLive {
         if(m.toolCall) this.handleToolCall(m.toolCall);
         const sc = m.serverContent;
         if(sc){
-          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
+          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; (this.falas = (this.falas||[]).filter(f=>Date.now()-f.t < 60000)).push({ t: Date.now(), x: sc.inputTranscription.text }); if(this.aceitar()) FelyxAvatar.ouvir(); }
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
           if(sc.modelTurn && sc.modelTurn.parts){
@@ -2269,6 +2276,10 @@ class GeminiLive {
         // ninguém chamou o Félix (TV, conversa, barulho): não pesquisa e não aciona nada na casa
         if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
         if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
+        // 19/11/2026 (Claude): a Leda acionou a cena Cozinha sozinha (o mesmo risco vale aqui) ao ouvir "senhas" no lugar de "cenas". Agora só aciona aparelho ou cena
+        // quando o nome dele aparece no que a pessoa falou no último minuto; senão devolve ao cérebro que não houve pedido.
+        if(fc.name === 'controlar_casa' && !nomeFoiDito((fc.args||{}).dispositivo, (this.falas||[]).filter(f=>Date.now()-f.t < 60000).map(f=>f.x).join(' '))){
+          out.push({ id: fc.id, name: fc.name, response: { ok:false, nao_executado:true, aviso: 'A pessoa não falou o nome deste aparelho ou cena. Não acione nada; responda só ao que ela perguntou.' } }); continue; }
         const rapida = fc.name === 'abrir_tela';   // troca de tela: instantânea, sem "pensando" e sem barulho de teclado
         this.pensando = !rapida; this.mudo = true;
         if(!rapida) this.onState('thinking');
