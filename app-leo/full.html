@@ -2300,7 +2300,7 @@ class GeminiLive {
     try{ this.outCtx && this.outCtx.close(); }catch(e){}
     this.onClose(reason);
   }
-  end(){ try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
+  end(){ this.peloUsuario = true; try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
 }
 
 /* ---------- reação da interface ao que o cérebro respondeu ---------- */
@@ -2335,7 +2335,7 @@ async function start(){
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // da íris até o fim do cumprimento o Felyx não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
@@ -2370,6 +2370,25 @@ async function start(){
       : 'Não foi possível conectar. ('+(e&&e.message?e.message:e)+')';
     setState('error', msg);
   }
+}
+// 19/11/2026: a conversa caiu sem o usuário encerrar (rede, servidor): reconecta sozinha a voz,
+// sem íris nem cumprimento, com espera crescente (1, 2, 4, 8, 16 s; até 5 tentativas). Mesmo token e rota de voz.
+async function reconectarVoz(antiga, n){
+  if(conv !== antiga) return;
+  if(n >= 5){ conv = null; FelyxAvatar.fechar(); iniciando = false; setState('idle', 'conexão perdida, toque para falar'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; return; }
+  statusText.textContent = 'reconectando…';
+  await pausa(1000 * Math.pow(2, n));
+  if(conv !== antiga) return;
+  const g = new GeminiLive();
+  g.onState = antiga.onState; g.onBrain = antiga.onBrain; g.onTranscript = antiga.onTranscript;
+  g.mutado = antiga.mutado; g.micOpen = false;
+  try{
+    await g.start();
+    conv = g;
+    g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+    g.micOpen = !g.mutado; setState('listening',''); statusText.textContent = 'pode falar';
+    setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 3000);
+  }catch(e){ try{ g.teardown(''); }catch(_){} reconectarVoz(antiga, n + 1); }
 }
 function stop(){ if(conv){ conv.end(); } }
 // 14/11/2026 (modo live): durante a conversa, tocar no microfone MUTA e DESMUTA (a conversa continua aberta);
