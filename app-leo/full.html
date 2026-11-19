@@ -1733,15 +1733,18 @@ let casaGen = { aparelhos:[], cenas:[] };
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
+    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera((()=>{ try{ return localStorage.getItem('leo.casaGen') ? 3000 : 7000; }catch(e){ return 7000; } })())]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
-  if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
+  // 19/11/2026 (Claude): a central às vezes passa de 3 s e a lista de cenas não chegava ("a central não me passou a lista").
+  // Guarda a última lista boa neste aparelho e usa ela quando a resposta atrasar; sem lista guardada, espera até 7 s.
+  if(casa && casa.ok){ casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] }; try{ localStorage.setItem('leo.casaGen', JSON.stringify(casaGen)); }catch(e){} }
+  else { try{ const c = JSON.parse(localStorage.getItem('leo.casaGen') || 'null'); if(c && Array.isArray(c.cenas) && c.cenas.length) casaGen = c; }catch(e){} }
   const lista = (mem && (mem.memories || mem.memorias || mem.items || mem.rows)) || [];
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
   const tec = (newsTec.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
-  return '\n\nAparelhos da casa: ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas: ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
+  return '\n\nAparelhos da casa' + (casaGen.aparelhos.length ? ' (' + casaGen.aparelhos.length + ' no total)' : '') + ': ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas' + (casaGen.cenas.length ? ' (' + casaGen.cenas.length + ' no total; ao perguntarem quantas, diga exatamente ' + casaGen.cenas.length + ')' : '') + ': ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
     '\n\nPAINEL — mercado: ' + (dolarResumo(mercadoData) ? 'dólar ' + dolarResumo(mercadoData) : 'sem leitura') +
     '\nPAINEL — política:\n' + (pol || 'sem leitura') + '\nPAINEL — tecnologia:\n' + (tec || 'sem leitura') +
     '\n\nMemórias gravadas:\n' + (memorias || 'nenhuma');

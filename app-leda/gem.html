@@ -442,6 +442,8 @@ html body footer.bottom{background:linear-gradient(rgba(41,27,22,0),rgba(41,27,2
 html body footer.bottom:has(#statusText:empty){background:transparent!important}
 /* rev5: Leda Gem com as abas embaixo, igual ao Full (microfone no mesmo lugar em todas as telas) */
 html[data-leda="gem"]{--tabsH:calc(60px + env(safe-area-inset-bottom,0px))}
+/* 19/11/2026 (Claude): deitado e no computador a barra cobria o microfone na aba Home e o toque de encerrar caía na barra. Deitado o microfone sobe para cima da barra (em pé continua como estava) e fica sempre na frente dela. */
+@media (orientation:landscape){html[data-leda="gem"] body #hud[data-tab]>.mic{bottom:calc(var(--tabsH) + 16px)!important}}html[data-leda="gem"] body #hud[data-tab]>.mic{z-index:41!important}
 html[data-leda="gem"] body nav.appTabs,html[data-leda="gem"] body #hud[data-tab] nav.appTabs{position:fixed!important;top:auto!important;bottom:0!important;left:0!important;right:0!important;z-index:40!important;border-bottom:0!important;padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important}
 html[data-leda="gem"] body #hud{padding-top:calc(10px + env(safe-area-inset-top,0px))!important;padding-bottom:calc(var(--tabsH) + 130px)!important}
 html[data-leda="gem"] body #hud[data-tab="home"]{padding-bottom:0!important}
@@ -1779,15 +1781,18 @@ let casaGen = { aparelhos:[], cenas:[] };
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
+    Promise.race([fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera((()=>{ try{ return localStorage.getItem('leda.casaGen') ? 3000 : 7000; }catch(e){ return 7000; } })())]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
-  if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
+  // 19/11/2026 (Claude): a central às vezes passa de 3 s e a Leda ficava sem a lista ("a central não me passou a lista de cenas").
+  // Guarda a última lista boa neste aparelho e usa ela quando a resposta atrasar; sem lista guardada, espera até 7 s.
+  if(casa && casa.ok){ casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] }; try{ localStorage.setItem('leda.casaGen', JSON.stringify(casaGen)); }catch(e){} }
+  else { try{ const c = JSON.parse(localStorage.getItem('leda.casaGen') || 'null'); if(c && Array.isArray(c.cenas) && c.cenas.length) casaGen = c; }catch(e){} }
   const lista = (mem && (mem.memories || mem.memorias || mem.items || mem.rows)) || [];
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx' && x.memoryKey !== 'apresentacao da leda').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
   const tec = (newsTec.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
-  return '\n\nAparelhos da casa: ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas: ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
+  return '\n\nAparelhos da casa' + (casaGen.aparelhos.length ? ' (' + casaGen.aparelhos.length + ' no total)' : '') + ': ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas' + (casaGen.cenas.length ? ' (' + casaGen.cenas.length + ' no total; ao perguntarem quantas, diga exatamente ' + casaGen.cenas.length + ')' : '') + ': ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
     '\n' +
     '\nPAINEL — política:\n' + (pol || 'sem leitura') + '\nPAINEL — tecnologia:\n' + (tec || 'sem leitura') +
     '\n\nMemórias gravadas:\n' + (memorias || 'nenhuma');
@@ -1797,6 +1802,13 @@ function comandoCasa(nome, acao){
   if(cena) return 'ativar cena ' + cena; // mesmo nome de cena e aparelho: sempre a cena
   return (acao === 'desligar' ? 'desligar ' : 'ligar ') + nome;
   return 'ativar cena ' + nome;
+}
+// nome do aparelho/cena dito pela pessoa? (sem acento, sem maiúscula; metade ou mais das palavras do nome, ignorando on/off)
+function nomeFoiDito(nome, fala){
+  const lim = (x)=> String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const f = ' ' + lim(fala) + ' ', ps = lim(nome).split(' ').filter(p => p && !['on','off','de','da','do'].includes(p));
+  if(!ps.length) return false;
+  return ps.filter(p => f.includes(' ' + p + ' ')).length >= Math.ceil(ps.length / 2);
 }
 const GEN_FERRAMENTAS = {
   async controlar_casa({ dispositivo, acao }){
@@ -1964,7 +1976,7 @@ class GeminiLive {
         if(m.toolCall) this.handleToolCall(m.toolCall);
         const sc = m.serverContent;
         if(sc){
-          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
+          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; (this.falas = (this.falas||[]).filter(f=>Date.now()-f.t < 60000)).push({ t: Date.now(), x: sc.inputTranscription.text }); if(this.aceitar()) FelyxAvatar.ouvir(); }
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
           if(sc.modelTurn && sc.modelTurn.parts){
@@ -2081,6 +2093,10 @@ class GeminiLive {
         // ninguém chamou o Félix (TV, conversa, barulho): não pesquisa e não aciona nada na casa
         if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
         if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou a Leda. Não diga nada.' } }); continue; }
+        // 19/11/2026 (Claude): a Leda acionou a cena Cozinha sozinha ao ouvir "senhas" no lugar de "cenas". Agora só aciona aparelho ou cena
+        // quando o nome dele aparece no que a pessoa falou no último minuto; senão devolve ao cérebro que não houve pedido.
+        if(fc.name === 'controlar_casa' && !nomeFoiDito((fc.args||{}).dispositivo, (this.falas||[]).filter(f=>Date.now()-f.t < 60000).map(f=>f.x).join(' '))){
+          out.push({ id: fc.id, name: fc.name, response: { ok:false, nao_executado:true, aviso: 'A pessoa não falou o nome deste aparelho ou cena. Não acione nada; responda só ao que ela perguntou.' } }); continue; }
         this.pensando = true; this.mudo = true;
         this.onState('thinking');
         // barulhinho de teclado enquanto ele "dá uma olhadinha" (só se a ferramenta demorar)
@@ -2103,7 +2119,7 @@ class GeminiLive {
     try{ this.outCtx && this.outCtx.close(); }catch(e){}
     this.onClose(reason);
   }
-  end(){ try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
+  end(){ this.peloUsuario = true; try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
 }
 
 /* ---------- reação da interface ao que o cérebro respondeu ---------- */
@@ -2138,7 +2154,7 @@ async function start(){
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // microfone só abre depois das boas-vindas (o Felyx não ouve a própria abertura)
@@ -2177,6 +2193,26 @@ async function start(){
       : 'Não foi possível conectar. ('+(e&&e.message?e.message:e)+')';
     setState('error', msg);
   }
+}
+const pausa = (ms)=> new Promise(ok=>setTimeout(ok, ms));
+// 19/11/2026: a conversa caiu sem o usuário encerrar (rede, servidor): reconecta sozinha a voz,
+// sem íris nem cumprimento, com espera crescente (1, 2, 4, 8, 16 s; até 5 tentativas). Mesmo token e rota de voz.
+async function reconectarVoz(antiga, n){
+  if(conv !== antiga) return;
+  if(n >= 5){ conv = null; FelyxAvatar.fechar(); iniciando = false; setState('idle', 'conexão perdida, toque para falar'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; return; }
+  statusText.textContent = 'reconectando…';
+  await pausa(1000 * Math.pow(2, n));
+  if(conv !== antiga) return;
+  const g = new GeminiLive();
+  g.onState = antiga.onState; g.onBrain = antiga.onBrain; g.onTranscript = antiga.onTranscript;
+  g.mutado = antiga.mutado; g.micOpen = false;
+  try{
+    await g.start();
+    conv = g;
+    g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+    g.micOpen = !g.mutado; setState('listening',''); statusText.textContent = 'pode falar';
+    setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 3000);
+  }catch(e){ try{ g.teardown(''); }catch(_){} reconectarVoz(antiga, n + 1); }
 }
 function stop(){ if(conv){ conv.end(); } }
 talkBtn.addEventListener('click', ()=>{ if(conv){ stop(); return; } if(iniciando) return; primeAudio(); start(); });

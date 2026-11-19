@@ -16,7 +16,9 @@
     if (!/\.n8n\.cloud$/.test(u.hostname)) return original(entrada, op);
     const metodo = String((op && op.method) || (entrada && entrada.method) || 'GET').toUpperCase();
     const corpo = op && typeof op.body === 'string' ? op.body : '';
-    const chave = metodo + ' ' + u.pathname + u.search + (corpo ? ' #' + resumo(corpo) : '');
+    // 19/11/2026 (Claude): a conta passa a ser por página. Antes Felyx Full e Léo Full (mesmo endereço /felix/token, mesma sessão,
+    // mesmo site) dividiam os 5 pedidos por minuto: abrir um e depois o outro, ou reconectar a voz, bloqueava o token do Léo (429 local).
+    const chave = location.pathname + ' | ' + metodo + ' ' + u.pathname + u.search + (corpo ? ' #' + resumo(corpo) : '');
     const agora = Date.now(), tudo = ler();
     for (const k in tudo) { tudo[k] = (tudo[k] || []).filter((t) => agora - t < JANELA); if (!tudo[k].length) delete tudo[k]; }
     const lista = tudo[chave] || [];

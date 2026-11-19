@@ -1723,15 +1723,18 @@ let casaGen = { aparelhos:[], cenas:[] };
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
+    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera((()=>{ try{ return localStorage.getItem('felyx.casaGen') ? 3000 : 7000; }catch(e){ return 7000; } })())]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
-  if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
+  // 19/11/2026 (Claude): a central às vezes passa de 3 s e a lista de cenas não chegava ("a central não me passou a lista").
+  // Guarda a última lista boa neste aparelho e usa ela quando a resposta atrasar; sem lista guardada, espera até 7 s.
+  if(casa && casa.ok){ casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] }; try{ localStorage.setItem('felyx.casaGen', JSON.stringify(casaGen)); }catch(e){} }
+  else { try{ const c = JSON.parse(localStorage.getItem('felyx.casaGen') || 'null'); if(c && Array.isArray(c.cenas) && c.cenas.length) casaGen = c; }catch(e){} }
   const lista = (mem && (mem.memories || mem.memorias || mem.items || mem.rows)) || [];
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
   const tec = (newsTec.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
-  return '\n\nAparelhos da casa: ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas: ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
+  return '\n\nAparelhos da casa' + (casaGen.aparelhos.length ? ' (' + casaGen.aparelhos.length + ' no total)' : '') + ': ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas' + (casaGen.cenas.length ? ' (' + casaGen.cenas.length + ' no total; ao perguntarem quantas, diga exatamente ' + casaGen.cenas.length + ')' : '') + ': ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
     '\n\nPAINEL — mercado: ' + (dolarResumo(mercadoData) ? 'dólar ' + dolarResumo(mercadoData) : 'sem leitura') +
     '\nPAINEL — política:\n' + (pol || 'sem leitura') + '\nPAINEL — tecnologia:\n' + (tec || 'sem leitura') +
     '\n\nMemórias gravadas:\n' + (memorias || 'nenhuma');
@@ -2290,7 +2293,7 @@ class GeminiLive {
     try{ this.outCtx && this.outCtx.close(); }catch(e){}
     this.onClose(reason);
   }
-  end(){ try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
+  end(){ this.peloUsuario = true; try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
 }
 
 /* ---------- reação da interface ao que o cérebro respondeu ---------- */
@@ -2326,7 +2329,7 @@ async function start(){
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // da íris até o fim do cumprimento o Felyx não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
@@ -2361,6 +2364,25 @@ async function start(){
       : 'Não foi possível conectar. ('+(e&&e.message?e.message:e)+')';
     setState('error', msg);
   }
+}
+// 19/11/2026: a conversa caiu sem o usuário encerrar (rede, servidor): reconecta sozinha a voz,
+// sem íris nem cumprimento, com espera crescente (1, 2, 4, 8, 16 s; até 5 tentativas). Mesmo token e rota de voz.
+async function reconectarVoz(antiga, n){
+  if(conv !== antiga) return;
+  if(n >= 5){ conv = null; FelyxAvatar.fechar(); iniciando = false; setState('idle', 'conexão perdida, toque para falar'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; return; }
+  statusText.textContent = 'reconectando…';
+  await pausa(1000 * Math.pow(2, n));
+  if(conv !== antiga) return;
+  const g = new GeminiLive();
+  g.onState = antiga.onState; g.onBrain = antiga.onBrain; g.onTranscript = antiga.onTranscript;
+  g.mutado = antiga.mutado; g.micOpen = false;
+  try{
+    await g.start();
+    conv = g;
+    g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+    g.micOpen = !g.mutado; setState('listening',''); statusText.textContent = 'pode falar';
+    setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 3000);
+  }catch(e){ try{ g.teardown(''); }catch(_){} reconectarVoz(antiga, n + 1); }
 }
 function stop(){ if(conv){ conv.end(); } }
 // 14/11/2026 (modo live): durante a conversa, tocar no microfone MUTA e DESMUTA (a conversa continua aberta);
