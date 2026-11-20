@@ -38,7 +38,7 @@
 
   /* ---------- modo: padrão (Gemini) ou Full (Claude + n8n em paralelo) ---------- */
   (function(){ try{ const q = new URLSearchParams(location.search).get('modo'); if(q === 'full' || q === 'padrao') gravar('vinci.modo.forcado', q); if(q === 'auto') gravar('vinci.modo.forcado', null); }catch(e){} })();
-  function modo(){ const f = ler('vinci.modo.forcado'); if(f === 'full' || f === 'padrao') return f; return ler('vinci.modo') === 'full' ? 'full' : 'padrao'; }
+  function modo(){ const f = ler('vinci.modo.forcado'); if(f === 'full' || f === 'padrao') return f; if(/\/full\.html$/.test(caminho)) return 'full'; return ler('vinci.modo') === 'full' ? 'full' : 'padrao'; }
   async function atualizarModo(){
     if(!OPERACOES_REMOTAS) return modo();
     const s = sessao(); if(!s) return modo();
