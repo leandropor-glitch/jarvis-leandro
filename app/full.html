@@ -1659,6 +1659,7 @@ const FelyxAvatar = (()=>{
   try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
   let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
   const soNoFull = ()=> { try{ return !!(window.VinciIA && typeof window.VinciIA.modo === 'function' && window.VinciIA.modo() === 'full'); }catch(e){ return false; } };   // 14/11/2026: Live Avatar só no Felyx Full (ordem do Leandro)
+  let vozLocalAte = 0; try{ if(localStorage.getItem('felyx_voz_local') === '1') vozLocalAte = Infinity; }catch(e){}   // 20/11: voz pelo alto-falante (rosto só mexe a boca)
   let ultimosEventos = [], aceitouEm = 0;   // diagnóstico (10/11): o que o LiveAvatar mandou por último
   let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
   const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
@@ -1688,7 +1689,7 @@ const FelyxAvatar = (()=>{
       room = new LK.Room({ adaptiveStream: true });
       room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
         if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto && !escondido) video.classList.add('on'); }; }
-        if(track.kind === 'audio'){ track.attach(audio); audio.muted = false; audio.play().catch(()=>{}); }
+        if(track.kind === 'audio'){ track.attach(audio); audio.muted = Date.now() < vozLocalAte; audio.play().catch(()=>{}); }
       });
       // o LiveKit avisa quem está falando: é a prova de que o rosto devolveu a voz
       room.on(LK.RoomEvent.ActiveSpeakersChanged, (lista)=>{ if((lista || []).some((p)=> p && !p.isLocal)) falouEm = Date.now(); });
@@ -1702,7 +1703,11 @@ const FelyxAvatar = (()=>{
           let m; try{ m = JSON.parse(e.data); }catch(x){ return; }
           if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
           if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
-          if(m.type === 'error' || m.type === 'warning'){ const d = m.error || m.warning || m; avisarSilencioso('LiveAvatar ' + m.type + ': ' + String((d && (d.type || d.code)) || '') + ' ' + String((d && d.message) || JSON.stringify(d)).slice(0, 200)); }
+          if(m.type === 'error' || m.type === 'warning'){ const d = m.error || m.warning || m;
+            // 20/11/2026 (Leandro: "a voz está muito ruim"): o vídeo do rosto engasgou → a voz passa a sair pelo alto-falante
+            // da página por 15 min; o rosto continua na tela mexendo a boca
+            if(/starvation|buffer|stall|lag|underrun/i.test(JSON.stringify(d || ''))){ vozLocalAte = Date.now() + 15 * 60000; try{ audio.muted = true; }catch(e){} try{ window.__felyxVozLocal && window.__felyxVozLocal(); }catch(e){} }
+            avisarSilencioso('LiveAvatar ' + m.type + ': ' + String((d && (d.type || d.code)) || '') + ' ' + String((d && d.message) || JSON.stringify(d)).slice(0, 200)); }
           ultimosEventos.push(m.type + (m.new_state ? ':' + m.new_state : '')); if(ultimosEventos.length > 8) ultimosEventos.shift();
           if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }
           // 10/11: o estado "talking" não se repete entre falas seguidas (o LiveAvatar junta transições iguais).
@@ -1756,6 +1761,8 @@ const FelyxAvatar = (()=>{
     pronto: ()=> pronto,
     modo: ()=> pronto ? 'rosto' : 'local',   // com o rosto pronto, a voz sai sempre pelo vídeo, sincronizada com a boca
     aceitouDesde: (t)=> aceitouEm >= t,
+    vozLocal: ()=> Date.now() < vozLocalAte,
+    mutarSom(sim){ try{ audio.muted = !!sim; }catch(e){} },
     diagnostico: ()=> ultimosEventos.join(' > ') + ' | ws ' + (ws ? ws.readyState : 'nulo') + ' | áudio ' + (audio && audio.srcObject ? (audio.paused ? 'pausado' : 'tocando') : 'sem faixa'),
     falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
     falandoAgora: ()=> agenteFalando || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
@@ -2262,7 +2269,7 @@ class GeminiLive {
     for(let i=0;i<n;i++){ let v = bin.charCodeAt(2*i) | (bin.charCodeAt(2*i+1)<<8); if(v>=0x8000) v-=0x10000; f[i]=v/0x8000; }
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
     const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.somDoRosto ? this.silencio : this.analyser);   // com o rosto, a voz sai pelo vídeo, sincronizada com a boca; aqui só marca o tempo
-    const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
+    const agora = this.outCtx.currentTime, t = this.playhead > agora + 0.02 ? this.playhead : agora + 0.18; s.start(t); this.playhead = t + buf.duration;   // 20/11: fila contínua; se secou (começo da fala ou atraso da rede), pré-buffer de 180 ms antes de tocar
     this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
     this.mudo = true;
     this.onState('speaking');
@@ -2275,6 +2282,7 @@ class GeminiLive {
     try{ this.silencio.gain.value = 0; }catch(e){}
     clearTimeout(this.timerRosto);
     if(!peloRosto) return;
+    if(FelyxAvatar.vozLocal()){ this.somDoRosto = false; FelyxAvatar.mutarSom(true); return; }   // 20/11: rosto engasgou há pouco: boca no rosto, som daqui
     const inicio = Date.now(), turno = this.turno = (this.turno || 0) + 1;
     const conferir = (tentativa)=>{
       if(this.closed || this.turno !== turno || !this.somDoRosto || this.planoBAtivo) return;
@@ -2408,6 +2416,8 @@ function fimDaFala(g){
     }, 120);
   });
 }
+// 20/11/2026: o rosto engasgou no meio da fala → a mesma fala, que já toca aqui em silêncio, passa a sair pelo alto-falante
+window.__felyxVozLocal = ()=>{ const g = conv; if(!g || !g.somDoRosto) return; g.somDoRosto = false; clearTimeout(g.timerRosto); try{ g.silencio.gain.value = 1; }catch(e){} };
 let iniciando = false;   // login, tela da íris e botão podem chamar ao mesmo tempo: a abertura roda uma vez só
 async function start(){
   if(iniciando || conv) return;

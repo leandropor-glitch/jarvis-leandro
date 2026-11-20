@@ -2272,7 +2272,7 @@ class GeminiLive {
     for(let i=0;i<n;i++){ let v = bin.charCodeAt(2*i) | (bin.charCodeAt(2*i+1)<<8); if(v>=0x8000) v-=0x10000; f[i]=v/0x8000; }
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
     const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.somDoRosto ? this.silencio : this.analyser);   // com o rosto, a voz sai pelo vídeo, sincronizada com a boca; aqui só marca o tempo
-    const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
+    const agora = this.outCtx.currentTime, t = this.playhead > agora + 0.02 ? this.playhead : agora + 0.18; s.start(t); this.playhead = t + buf.duration;   // 20/11: fila contínua; se secou (começo da fala ou atraso da rede), pré-buffer de 180 ms antes de tocar
     this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
     this.mudo = true;
     this.onState('speaking');
