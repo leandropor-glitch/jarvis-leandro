@@ -16,7 +16,7 @@
   /* ---------- pontos configuráveis (decisões ainda abertas do Leandro) ---------- */
   const CONFIG = {
     versao: '2026-11-14',
-    url: 'https://vinciautomacao.app.n8n.cloud/webhook/vinci/onboarding',
+    url: 'https://ia.uservinci.com/api/vinci/onboarding',
     // Onboarding antes ou depois do pagamento: decisão aberta. Hoje ele roda no primeiro acesso ao app.
     momento: 'primeiro-acesso',
     // Ponte da casa. Google ainda em validação (PDF, item 7): aparece, mas marcado como em validação.

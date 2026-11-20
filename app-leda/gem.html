@@ -753,7 +753,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
-<script src="esqueci-senha.js"></script>
+<script src="esqueci-senha.js?v=20261120local"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1079,7 +1079,7 @@ function clearCards(){ [...deckEl.children].forEach(c=>{ c.dataset.in='0'; setTi
 const WMO = {0:'céu limpo',1:'quase limpo',2:'parcialmente nublado',3:'nublado',45:'nevoeiro',48:'nevoeiro',51:'garoa',53:'garoa',55:'garoa',61:'chuva fraca',63:'chuva',65:'chuva forte',80:'pancadas',81:'pancadas',82:'pancadas fortes',95:'trovoadas'};
 
 /* ===================== n8n (ponte) ===================== */
-const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const N8N = 'https://ia.uservinci.com/api';
 const TOKEN_URL = N8N + '/leda/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/leda/gemini-apoio';

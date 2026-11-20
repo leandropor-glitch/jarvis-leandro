@@ -17,7 +17,9 @@
    ===================================================================== */
 (function(){
   'use strict';
-  const URL_IA = 'https://vinciautomacao.app.n8n.cloud/webhook/vinci/ia';
+  // 20/11/2026: modo/réplica remotos pausados por ordem do Leandro. Edição local permanece.
+  const OPERACOES_REMOTAS = false;
+  const URL_IA = 'https://ia.uservinci.com/api/vinci/ia';
   const caminho = String(location.pathname || '');
   const daTag = (document.currentScript && document.currentScript.dataset && document.currentScript.dataset.ia) || '';
   const IA = ['felyx','leda','leo'].includes(daTag) ? daTag : (/app-leda/i.test(caminho) ? 'leda' : (/app-leo/i.test(caminho) ? 'leo' : 'felyx'));
@@ -38,6 +40,7 @@
   (function(){ try{ const q = new URLSearchParams(location.search).get('modo'); if(q === 'full' || q === 'padrao') gravar('vinci.modo.forcado', q); if(q === 'auto') gravar('vinci.modo.forcado', null); }catch(e){} })();
   function modo(){ const f = ler('vinci.modo.forcado'); if(f === 'full' || f === 'padrao') return f; return ler('vinci.modo') === 'full' ? 'full' : 'padrao'; }
   async function atualizarModo(){
+    if(!OPERACOES_REMOTAS) return modo();
     const s = sessao(); if(!s) return modo();
     const ctl = window.AbortController ? new AbortController() : null;
     const tm = setTimeout(()=>{ try{ ctl && ctl.abort(); }catch(e){} }, 4000);
@@ -66,10 +69,12 @@
     catch(e){ replicaEmMemoria = true; } // Preserva a fila nesta página se o armazenamento falhar.
   }
   function agendarReplicas(){
+    if(!OPERACOES_REMOTAS) return;
     if(timerReplica !== null || !lerReplicas().length) return;
     timerReplica = setTimeout(()=>{ timerReplica = null; reenviarPendentes(); }, 30000);
   }
   async function enviarReplica(pedido){
+    if(!OPERACOES_REMOTAS) return false;
     const ctl = window.AbortController ? new AbortController() : null;
     let tm;
     try{
@@ -88,6 +93,7 @@
     finally{ clearTimeout(tm); }
   }
   function reenviarPendentes(){
+    if(!OPERACOES_REMOTAS) return Promise.resolve(new Set());
     if(envioReplica) return envioReplica;
     envioReplica = (async()=>{
       const enviados = new Set();
@@ -107,6 +113,7 @@
     return envioReplica;
   }
   function reportar(ferramenta, args, resultado){
+    if(!OPERACOES_REMOTAS) return;
     const def = EDITA[ferramenta] || { aba: ferramenta };
     const detalhe = { ferramenta, pedido: args || {}, resultado: resumo(resultado), modo: modo(), destino: modo() === 'full' ? 'claude' : 'gemini', em: new Date().toISOString() };
     const item = { id: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2),
@@ -171,7 +178,7 @@
         const r = await original.call(GEN_FERRAMENTAS, args);
         const op = String((args && (args.operacao || args.operation)) || '');
         const mudou = EDITA[nome].ops.includes(op) && r && r.ok !== false && !r.erro;
-        if(mudou){
+        if(mudou && OPERACOES_REMOTAS){
           reportar(nome, args, r);
           return Object.assign({}, r, { replica: 'feito, e já mandei para a fila da Vinci replicar', replica_status: 'na_fila' });
         }
@@ -211,7 +218,7 @@
       '\n- Cotações, preços, notícias, resultados, o porquê do mercado e tudo que muda com o tempo: use a Busca Google, que está ligada para você. As ferramentas antigas bolsas, noticias e manchetes_do_dia foram desligadas; ignore qualquer menção a elas acima. Dólar, euro e bitcoin da tela: use o PAINEL. Notícia do painel: abrir_manchete.' +
       '\n- Suas abas: você conhece todo o conteúdo delas (abaixo) e faz qualquer edição pedida: criar, apagar, renomear, mover botões entre ambientes, colocar, tirar e trocar favoritos' + (IA === 'leda' ? ', criar, editar, renomear e apagar receitas (ferramenta receitas)' : '') + '. Liste antes, aplique sem pedir confirmação quando o pedido for claro, e confirme em meia frase.' +
       '\n- Apagar: quando o cliente pedir, pode apagar ambiente, favorito' + (IA === 'leda' ? ', receita' : '') + ' ou automação. Cena da central da casa você não apaga: só tira do botão.' +
-      '\n- Quando a ferramenta devolver "replica", confirme na hora: "feito, e já mandei para a fila da Vinci replicar". A fila local cuida do envio, do recibo persistido e dos reenvios em segundo plano, sem segurar a conversa. A fila não comprova execução no App Vinci, no Google Home nem na Amazon; nunca diga que eles já foram alterados sem prova. Confirme uma vez por conversa, sem citar Claude, Gemini nem GPT.' +
+      (OPERACOES_REMOTAS ? '\n- Quando a ferramenta devolver "replica", confirme na hora: "feito, e já mandei para a fila da Vinci replicar". A fila local cuida do envio, do recibo persistido e dos reenvios em segundo plano, sem segurar a conversa. A fila não comprova execução no App Vinci, no Google Home nem na Amazon; nunca diga que eles já foram alterados sem prova. Confirme uma vez por conversa, sem citar Claude, Gemini nem GPT.' : '\n- Os ajustes nas abas são locais neste aparelho. A réplica para outros sistemas está pausada; nunca diga que enviou ou replicou um ajuste.') +
       '\n- O que não é seu (falha, mudança na programação do app da Vinci ou da Amazon, pedido de outra equipe): avisar_falha, em silêncio, para a engenharia da Vinci (Claude ou GPT). Nunca comente isso com o cliente.' +
       (full ? '\n- Modo Full: o WhatsApp do cliente corre em paralelo pela Vinci' + (IA === 'felyx' ? ', e o seu rosto ao vivo (Live Avatar) acompanha a sua voz' : '') + '. Aqui no app, quem responde é você, na hora.' : '') +
       '\n\nCONTEÚDO DAS SUAS ABAS AGORA:\n' + (abas() || 'sem leitura');

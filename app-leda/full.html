@@ -919,9 +919,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
-<script src="esqueci-senha.js"></script>
-<script src="../vinci/onboarding.js?v=20261114q"></script>
-<script src="../vinci/ia-padrao.js?v=20261114c" data-ia="leda"></script>
+<script src="esqueci-senha.js?v=20261120local"></script>
+<script src="../vinci/onboarding.js?v=20261120local"></script>
+<script src="../vinci/ia-padrao.js?v=20261120local" data-ia="leda"></script>
 <script src="../vinci/paineis-google.js?v=20261120a"></script>
 <script>
 /* =====================================================================
@@ -1178,7 +1178,7 @@ function clearCards(){ [...deckEl.children].forEach(c=>{ c.dataset.in='0'; setTi
 const WMO = {0:'céu limpo',1:'quase limpo',2:'parcialmente nublado',3:'nublado',45:'nevoeiro',48:'nevoeiro',51:'garoa',53:'garoa',55:'garoa',61:'chuva fraca',63:'chuva',65:'chuva forte',80:'pancadas',81:'pancadas',82:'pancadas fortes',95:'trovoadas'};
 
 /* ===================== n8n (ponte) ===================== */
-const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const N8N = 'https://ia.uservinci.com/api';
 const TOKEN_URL = N8N + '/leda/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/leda/gemini-apoio';
@@ -1933,7 +1933,7 @@ function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falh
 }
 let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Felyx (Gemini Live, Algieba)
 function carregarFraseEspera(ctx){
-  if(!fraseEspera && ctx) fraseEspera = fetch('espera-leda.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
+  if(!fraseEspera && ctx) fraseEspera = fetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
   return fraseEspera || Promise.resolve(null);
 }
 const FelyxAvatar = (()=>{

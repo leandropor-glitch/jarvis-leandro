@@ -2,7 +2,7 @@
 // do Felyx e senha nova — pelo n8n (felix/app: codigo → verificar → senha). Ao terminar, já devolve a sessão.
 // Uso: felyxEsqueciSenha({ telefone, aoEntrar: (j) => { /* j.token, j.nome */ } })
 (function () {
-  const APP_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/leda/app';
+  const APP_URL = 'https://ia.uservinci.com/api/leda/app';
   const digitos = (s) => String(s || '').replace(/\D/g, '');
   async function api(acao, dados) {
     const r = await fetch(APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ acao }, dados)) });
