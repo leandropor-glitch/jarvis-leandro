@@ -2234,10 +2234,17 @@ const GEN_FERRAMENTAS = {
     return { disponivel:true, lido_em:j.em, total_ligados: ligados.length, ligados: ligados.map(fmt), sem_resposta: lista.filter(e=> e.ligado === null).map(e=>e.nome) };
   },
   async clima(){ return (await climaAgora()) || { erro:'indisponível agora' }; },
-  async abrir_manchete({ secao, posicao }){
-    const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
+  async abrir_manchete({ secao, posicao, busca }){
+    // 20/11/2026 (Leandro pediu por voz "abre a do Fachin" e não abriu): acha a manchete pelas palavras do título, em qualquer seção
+    const norm = s=> String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const fora = ['abre','abrir','abra','noticia','noticias','materia','manchete','sobre','aquela','essa','dessa','daquela','pra','para','com'];
+    let painel = /pol/i.test(secao||'') ? newsPol : (/tec/i.test(secao||'') ? newsTec : null), k = -1;
+    const termos = norm(busca).split(/[^a-z0-9]+/).filter(w=> w.length > 2 && !fora.includes(w));
+    if(termos.length){ let melhor = 0; for(const p of (painel ? [painel] : [newsPol, newsTec])) (p.items||[]).forEach((n,i)=>{ const t = norm(n.title + ' ' + (n.source||'')); const pts = termos.filter(w=> t.includes(w)).length; if(pts > melhor){ melhor = pts; painel = p; k = i; } }); }
+    if(!painel) painel = newsPol.items.length ? newsPol : newsTec;
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
-    const k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
+    if(k < 0) k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
+    try{ painel.show(k); }catch(e){}
     const n = painel.items[k]; const m = document.getElementById('materia');
     document.getElementById('matFonte').textContent = 'Fonte: ' + (n.source||'Google') + (n.cat ? ' · ' + n.cat : '');
     document.getElementById('matTitulo').textContent = n.title; document.getElementById('matTexto').textContent = 'abrindo a matéria…';
@@ -2245,7 +2252,7 @@ const GEN_FERRAMENTAS = {
     const texto = n.title;
     document.getElementById('matTexto').textContent = texto;
     return { titulo:n.title, fonte:n.source || '', url:n.link || '', texto,
-      instrucao:'A manchete do painel está aberta na tela. Para aprofundar ou buscar detalhes da matéria, use a Busca Google nativa, citando as fontes. Para rolar use rolar_materia; para fechar, fechar_materia.' };
+      instrucao:'A manchete do painel está aberta na tela. Diga em voz alta, em 2 ou 3 frases, do que trata a notícia (pesquise o título na Busca Google para resumir com fatos). Para aprofundar ou buscar detalhes da matéria, use a Busca Google nativa, citando as fontes. Para rolar use rolar_materia; para fechar, fechar_materia.' };
   },
   async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
   async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
@@ -2267,7 +2274,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'estado_casa', description:'Diz se aparelhos da casa estão ligados ou desligados agora. dispositivo: nome do aparelho (vazio = todos).', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
   { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a manchete do painel, com fonte e link. Para aprofundar o conteúdo, use a Busca Google nativa. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
+  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, uma manchete do painel de notícias, com fonte e link, e você lê um resumo falado. Use quando pedirem "abre a do Fachin", "abre a notícia da Anthropic", "abre a primeira de tecnologia", "lê essa manchete". busca: palavras do título que a pessoa disse (ex.: "Fachin", "Anthropic"); secao: tecnologia ou politica (opcional); posicao: 1 a 6 (opcional; vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } } } },
   { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
   { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'memoria', description:'Memória de longo prazo da Leda: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',

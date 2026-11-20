@@ -65,6 +65,7 @@
     const lista = items => (Array.isArray(items) ? items : []).slice(0,6).map(x=>({
       title: texto(x && x.titulo,240).replace(/\s+-\s+[^-]{2,40}$/,''), source: texto(x && x.fonte,100) || 'Google',
       date: x && Number.isFinite(Date.parse(x.horario)) ? new Date(x.horario).toISOString() : atualizadoEm,
+      image: /^https:\/\//.test(String(x && (x.imagem || x.image) || '')) ? String(x.imagem || x.image) : '',   // 20/11: foto da matéria quando o motor mandar
       link: /^https:\/\//.test(String(x && x.link || '')) ? x.link : 'https://www.google.com/search?q=' + encodeURIComponent(texto(x && x.titulo,240))
     })).filter(x=>x.title);
     const politica = lista(n.politica), tecnologia = lista(n.tecnologia);
