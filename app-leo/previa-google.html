@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><script src="limite-pedidos.js"></script>
+<meta charset="utf-8"><script src="../app-assets/controle-co-parser.js"></script><script src="../app-assets/controle-co-ui.js"></script><script src="limite-pedidos.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Leo iA Vinci</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -949,6 +949,7 @@ async function googleRequest(acao, data={}, method='POST') {
   const endpoint = method === 'GET' ? GOOGLE_WEB_APP+'?'+new URLSearchParams(payload) : GOOGLE_WEB_APP;
   const r=await window.fetch(endpoint,options), j=await r.json();
   if(['nao_autenticado','sessao_invalida'].includes(j.erro)){salvarSessao('');mostrarLogin('Entre novamente.');}
+  updateGoogleCredits(j);
   return j;
 }
 let googleCardsFlight=null, googleCardsCache=null, googleCardsTime=0;
@@ -965,7 +966,7 @@ async function previewFetch(url,options={}){
     if(u.includes('/token'))j=await googleRequest('token');
     else if(u.includes('/mercado')){const p=await googleCards();const c=p.cotacoes||{};j={ok:true,cambio:{usdbrl:Number(c.usd_brl?.valor),eurbrl:Number(c.eur_brl?.valor)},cripto:{bitcoin:{usdt:Number(c.btc_usd?.valor)}},updatedAt:p.updatedAt};}
     else if(u.includes('/noticias')){const p=await googleCards();const cards=(p.cards||[]).map(c=>({title:c.titulo,link:c.fonteUrl,image:c.fotoUrl,source:'G1',cat:c.categoria}));j={ok:true,politica:cards.filter(c=>['politica','destaques'].includes(c.cat)),tecnologia:cards.filter(c=>['tecnologia','economia'].includes(c.cat))};}
-    else if(b.acao==='casa'){const r=await googleRequest('scenes',{},'GET');j={...r,cenas:(r.scenes||[]).map(x=>x.nome),aparelhos:[]};}
+    else if(b.acao==='casa'){const r=await googleRequest('scenes',{},'GET');if(window.coRemote)window.coRemote.reload().catch(()=>{});j={...r,cenas:(r.scenes||[]).map(x=>x.nome),aparelhos:[]};}
     else if(b.acao==='estados')j={ok:false,erro:'estado_indisponivel'};
     else if(b.acao==='comando'){j=await googleRequest('edit',{input:b.texto});j.text=j.message;}
     else j={ok:false,erro:'operacao_indisponivel_na_previa'};
@@ -1218,12 +1219,13 @@ const SALAS_KEY='google.leo.salas.v1';let salas=(()=>{try{const j=JSON.parse(loc
 function saveSalas(){try{localStorage.setItem(SALAS_KEY,JSON.stringify(salas))}catch(e){}}
 const roomStoreKey='google.leo.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
 const normRoom=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
+function isCOTile(t){return VinciCO.isCO(String(t&&t.f||'').replace(/^.*\bcena\s+/i,''))||VinciCO.isCO(t&&t.n);}
 function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i.test(String(t.f||'')); }
 function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes(r)?(roomConfig.semComodo||'Outros'):r;}
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
-function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
-function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s&&!isCOTile(t)).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
+function renderRoomTabs(){const counts=new Set([...tiles.filter(t=>isSceneTile(t)&&!isCOTile(t)).map(roomForTile),...tiles.filter(t=>t.s&&!isCOTile(t)).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav&&!isCOTile(t))?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
 function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
@@ -1241,7 +1243,7 @@ function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''
 function renderMatrix(){
   limparEstadosDeCena();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
+  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i];if(isCOTile(t))return '';const cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
   renderRoomTabs();
 }
 renderMatrix();
@@ -1257,8 +1259,9 @@ let rcAtual = null, rcEditando = -1, rcModoEditar = false;
 function rcChave(t){ return 'google.leo.rc.botoes.' + t.n; }
 function rcCarregar(tipo, t){ try{ const j = JSON.parse(localStorage.getItem(rcChave(t)) || 'null'); if(Array.isArray(j)) return j; }catch(e){} return RC_PADRAO[tipo].map((rot)=>({ rot, cena:'' })); }
 function rcSalvar(){ try{ localStorage.setItem(rcChave(rcAtual.t), JSON.stringify(rcAtual.botoes)); }catch(e){} }
-function nomesDeCenas(){ return [...new Set(tiles.filter(isSceneTile).map((t)=>{ const m = String(t.f).match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i); return m ? m[1].trim() : t.n; }))]; }
+function nomesDeCenas(){ return [...new Set(tiles.filter(t=>isSceneTile(t)&&!isCOTile(t)).map((t)=>{ const m = String(t.f).match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i); return m ? m[1].trim() : t.n; }))]; }
 function abrirControle(tipo, t){
+  if(window.coRemote&&window.coRemote.afterScene(t.n))return;delete document.getElementById('remote').dataset.co;
   rcAtual = { tipo, t, botoes: rcCarregar(tipo, t) }; rcModoEditar = false;
   document.getElementById('rcTitulo').textContent = t.n;
   document.getElementById('rcCenas').innerHTML = nomesDeCenas().map((n)=>`<option value="${esc(n)}">`).join('');
@@ -1267,6 +1270,7 @@ function abrirControle(tipo, t){
 }
 // 14/11/2026: cena acionada por voz também abre o controle remoto do aparelho (TV, Apple TV, ar, som), igual ao toque
 function rcDaCena(nome){
+  if(window.coRemote&&window.coRemote.afterScene(nome))return true;
   const n = String(nome || '').trim(); if(!n) return false;
   const q = n.toLowerCase();
   const t = tiles.find(x => x.n && (x.n.toLowerCase() === q || (isSceneTile(x) && String(x.f).replace(/^.*\bcena\s+/i, '').trim().toLowerCase() === q))) || { n: n, f: 'ativar a cena ' + n, f2: '', rc: '' };   // nome inteiro: os botões salvos não se misturam com outra cena de nome parecido
@@ -1330,7 +1334,7 @@ function openEditor(i, temp){
 }
 function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
 document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
-document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'', f2:'' }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edClear').addEventListener('click', async ()=>{if(editing<0)return;const t=tiles[editing];if(isSceneTile(t)){const r=await googleRequest('edit',{input:'Mova a cena '+t.n+' para o ambiente Outros, sem apagar.'});if(!r.ok){document.getElementById('avisoCena').textContent='Não foi possível mover para Outros.';return;}t.s='Outros';document.getElementById('avisoCena').textContent='Mandei para Outros; você revisa e apaga se quiser';}else t.s='Outros';saveTiles();renderMatrix();closeEditor();});
 document.getElementById('edCancel').addEventListener('click', closeEditor);
 document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; saveOn(); saveTiles(); renderMatrix(); closeEditor(); } });
 edPhrase.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') document.getElementById('edSave').click(); });
@@ -1363,9 +1367,10 @@ function moverBotao(de, para){
 
 const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|indispon|não encontrei|não achei/i;
 async function runTile(i, btn){
-  const t = tiles[i]; if(!t || !t.f) return;
+  const t = tiles[i]; if(!t) return;if(normRoom(t.n)==='controle remoto'){window.coRemote.showList();return;}if(!t.f)return;
   const cena = isSceneTile(t);
-  if(cena && tipoControle(t)) setTimeout(()=>abrirControle(tipoControle(t), t), 350);   // a cena roda e, por fim, o controle remoto abre na mão do cliente
+  // Controle abre apenas depois da confirmação da cena.
+  // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
   if(cena) feedbackCena(btn);
@@ -1381,6 +1386,7 @@ async function runTile(i, btn){
   }catch(e){ texto = ''; }
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
+  if(cena&&ok)rcDaCena(t.n);
   btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena) setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
   if(!cena && ok && t.f2){ if(turningOff) delete tileOn[i]; else tileOn[i] = 1; saveOn(); btn.dataset.on = tileOn[i] ? '1' : '0'; btn.title = tileOn[i] ? t.f2 : t.f; }
   if(!cena) dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
@@ -2205,7 +2211,7 @@ class GeminiLive {
     for(const fc of tc.functionCalls||[]){
       this.googleLastActivity=Date.now();
       let response;
-      try{response=await googleRequest('tool',{name:fc.name,args:fc.args||{}});}
+      try{response=await googleRequest('tool',{name:fc.name,args:fc.args||{}});if(typeof window!=='undefined'&&window.coRemoteTool)await window.coRemoteTool(fc.name,fc.args||{},response);}
       catch(e){response={ok:false,erro:'Falha de conexão com a ferramenta'};}
       if(this.textTurn)this.textTurn.tools.push({name:fc.name,response});
       out.push({id:fc.id,name:fc.name,response});
@@ -2355,6 +2361,21 @@ document.addEventListener('keydown', (e)=>{
   if(e.key==='i' && !conv){ bootSequence().then(()=>setState('idle','')); }
   if(e.key==='m'){ loadMercado(true); loadNoticias(true); }
 });
+
+/* CO: nomes da Planilha são a fonte dos controles. */
+window.coRemote=VinciRemoteCO.create({
+ getControls:async()=>{const r=await googleRequest('listarControles',{},'GET');if(!r.ok)throw Error('indisponivel');return r.controles||r.controls||[];},
+ request:(action,args)=>action==='importarControles'?googleRequest('tool',{name:action,args}):googleRequest(action,args),
+ onMessage:text=>{const reply=document.getElementById('googleReply');if(reply){reply.hidden=false;reply.textContent=text;}}
+});
+window.coRemoteTool=async(name,args,response)=>{
+ if(!response||!response.ok)return;
+ if(['listarControles','importarControles'].includes(name)){window.coRemote.setControls(response.controles||response.controls||[]);if(name==='importarControles')window.coRemote.showList();}
+ if(name==='abrirControle'){if(response.controles)window.coRemote.setControls(response.controles);window.coRemote.open(response.controle||args);}
+ if(name==='executarCena')rcDaCena(response.nome||(response.cena&&response.cena.nome)||args.nome||'');
+ if(['criarCena','editarCena','excluirCena','apagarCena'].includes(name))await window.coRemote.reload();
+};
+if(SESSAO)window.coRemote.reload().catch(()=>{});
 
 /* Conversa escrita da prévia: login e respostas ficam no próprio painel. */
 (function(){
