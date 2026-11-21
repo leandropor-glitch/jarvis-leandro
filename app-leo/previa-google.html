@@ -1897,8 +1897,10 @@ class GeminiLive {
     this.mudo=false; this.pensando=false;
     // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
     this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
-  async start(){
-    this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+  async start(textOnly=false){
+    this.textOnly=textOnly;
+    const opening=performance.now();
+    if(!textOnly) this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
     const r = await previewFetch(comS(TOKEN_URL), { cache:'no-store' });
     if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
     if(!r.ok) throw new Error('Google não devolveu o token ('+r.status+')');
@@ -1911,25 +1913,27 @@ class GeminiLive {
       const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
       this.ws = new WebSocket(url);
       let setupDone=false;
-      this.ws.onopen = async ()=>{
-        const contexto = await contextoGen();
-        this.ws.send(JSON.stringify({ setup: {
-          model: 'models/' + MODEL,
-          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
-          tools: GEN_TOOLS,
-          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
-          inputAudioTranscription: {},
-          outputAudioTranscription: {}
-        }}));
-      };
+      this.ws.onopen = ()=>{ this.ws.send(JSON.stringify({setup: tk.setup})); };
+      const setupTimer=setTimeout(()=>{fail(new Error('Tempo de abertura esgotado'));this.end();},15000);
       this.ws.onmessage = async (ev)=>{
         const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
         let m; try{ m = JSON.parse(data); }catch(e){ return; }
-        if(m.setupComplete && !setupDone){ setupDone=true; await this.startAudio(); ok(); return; }
-        if(m.toolCall) this.handleToolCall(m.toolCall);
+        if(m.setupComplete && !setupDone){
+          setupDone=true;clearTimeout(setupTimer);this.openingMs=performance.now()-opening;
+          try{if(!this.textOnly)await this.startAudio();ok();}catch(e){fail(e);this.end();}return;
+        }
+        if(m.error){this.finishText(new Error(m.error.message||'Falha do Gemini'));return;}
+        if(m.toolCall) this.handleToolCall(m.toolCall).catch(e=>this.finishText(e));
         const sc = m.serverContent;
         if(sc){
+          this.googleLastActivity=Date.now();
+          if(this.textTurn){
+            const part=sc.outputTranscription&&sc.outputTranscription.text;
+            if(part){this.textTurn.text+=part;this.textTurn.onChunk(this.textTurn.text);}
+            if(sc.interrupted)this.finishText(new Error('Resposta interrompida'));
+            if(sc.turnComplete&&!this.toolPending)this.finishText();
+            return;
+          }
           if(sc.inputTranscription && sc.inputTranscription.text){ this.googleLastActivity=Date.now(); this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
@@ -1939,8 +1943,8 @@ class GeminiLive {
           if(sc.turnComplete) this.fimDoTurno();
         }
       };
-      this.ws.onerror = ()=>{ if(!setupDone) fail(new Error('WebSocket do Gemini falhou')); };
-      this.ws.onclose = (e)=>{ if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
+      this.ws.onerror = ()=>{ clearTimeout(setupTimer);if(!setupDone) fail(new Error('WebSocket do Gemini falhou'));this.finishText(new Error('Conexão Live falhou')); };
+      this.ws.onclose = (e)=>{ clearTimeout(setupTimer);if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
     });
   }
   // a fala deste turno chamou o Félix? (mensagens da página sempre valem; sem transcrição, vale tudo)
@@ -2172,29 +2176,41 @@ class GeminiLive {
   }
   getInputLevel(){ return this.inLevel || 0; }
   async handleToolCall(tc){
-    const out = [];
-    for(const fc of (tc.functionCalls||[])){
+    this.toolPending=(this.toolPending||0)+1;
+    const out=[];
+    for(const fc of tc.functionCalls||[]){
+      this.googleLastActivity=Date.now();
       let response;
-      if(GEN_FERRAMENTAS[fc.name]){
-        // ninguém chamou o Félix (TV, conversa, barulho): não pesquisa e não aciona nada na casa
-        if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
-        if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
-        const rapida = fc.name === 'abrir_tela';   // troca de tela: instantânea, sem "pensando" e sem barulho de teclado
-        this.pensando = !rapida; this.mudo = true;
-        if(!rapida) this.onState('thinking');
-        // barulhinho de teclado enquanto ele "dá uma olhadinha" (só se a ferramenta demorar)
-        const parar = teclado(this.outCtx, (fc.name === 'avisar_falha' || rapida) ? 999999 : 450);
-        try{ response = await GEN_FERRAMENTAS[fc.name](fc.args || {}); }catch(e){ response = { erro: 'indisponível agora' }; }
-        parar();
-        this.pensando = false;
-        try{ this.onBrain(this.ouvido || fc.name, fc.name === 'controlar_casa' ? (response && response.ok ? 'Pronto, feito.' : 'Não consegui.') : 'ok'); }catch(e){}
-      } else { response = { erro: 'função desconhecida' }; }
-      out.push({ id: fc.id, name: fc.name, response });
+      try{response=await googleRequest('tool',{name:fc.name,args:fc.args||{}});}
+      catch(e){response={ok:false,erro:'Falha de conexão com a ferramenta'};}
+      if(this.textTurn)this.textTurn.tools.push({name:fc.name,response});
+      out.push({id:fc.id,name:fc.name,response});
     }
-    if(this.ws && this.ws.readyState===1) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: out } }));
+    this.googleLastActivity=Date.now();
+    if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify({toolResponse:{functionResponses:out}}));
+    this.toolPending--;
+  }
+  sendText(text,onChunk=()=>{}){
+    if(this.closed||!this.ws||this.ws.readyState!==1)return Promise.reject(new Error('Sessão encerrada'));
+    if(this.textTurn)return Promise.reject(new Error('Aguarde a resposta atual'));
+    this.stopPlayback();this.googleLastActivity=Date.now();
+    return new Promise((resolve,reject)=>{
+      const micOpen=this.micOpen;this.micOpen=false;
+      this.textTurn={text:'',tools:[],started:performance.now(),onChunk,resolve,reject,micOpen};
+      this.textTimer=setTimeout(()=>{this.finishText(new Error('Tempo de resposta esgotado'));this.end();},45000);
+      this.ws.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}}));
+    });
+  }
+  finishText(error){
+    const turn=this.textTurn;if(!turn)return;
+    clearTimeout(this.textTimer);this.textTurn=null;this.micOpen=turn.micOpen;
+    this.googleLastActivity=Date.now();
+    if(error)return turn.reject(error);
+    if(!turn.text.trim())return turn.reject(new Error('Gemini não devolveu texto'));
+    turn.resolve({message:turn.text,tools:turn.tools,elapsedMs:performance.now()-turn.started});
   }
   teardown(reason){
-    if(this.closed) return; this.closed=true; clearTimeout(this.googleDeadline);clearInterval(this.googleIdle);
+    if(this.closed) return; this.closed=true; this.finishText(new Error(reason||'Sessão encerrada'));clearTimeout(this.googleDeadline);clearInterval(this.googleIdle);
     clearInterval(this.vigiaSom);
     this.stopPlayback();
     try{ this.worklet && this.worklet.disconnect(); }catch(e){}
@@ -2319,8 +2335,26 @@ document.addEventListener('keydown', (e)=>{
  box.innerHTML='<input aria-label="Mensagem" placeholder="Converse por texto" style="min-width:0;flex:1;background:var(--bg,#111);color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px;font:inherit"><button type="submit" style="background:var(--accent);border:0;border-radius:10px;padding:10px;color:#111">Enviar</button>';
  document.body.appendChild(box);
  const reply=document.createElement('div');reply.id='googleReply';reply.setAttribute('role','status');reply.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabsH) + 166px);z-index:90;width:min(420px,calc(100vw - 24px));max-height:24vh;overflow:auto;white-space:pre-wrap;background:var(--bg,#111);color:var(--accent);border-radius:10px;padding:10px;box-sizing:border-box';reply.hidden=true;document.body.appendChild(reply);
- box.addEventListener('submit',async e=>{e.preventDefault();if(!SESSAO){mostrarLogin('Entre para conversar.');return;}const input=box.querySelector('input'),button=box.querySelector('button'),text=input.value.trim();if(!text)return;button.disabled=true;
- try{const j=await googleRequest('edit',{input:text});reply.hidden=false;reply.textContent=j.message||j.erro||'Sem resposta';addCard({kicker:'LEO',title:esc(text),body:esc(j.message||j.erro||'Sem resposta'),foot:j.ok?'':'Não confirmado'});if(j.ok)input.value='';}catch(e){reply.hidden=false;reply.textContent='Não foi possível conversar agora.';addCard({kicker:'conexão',body:'Não foi possível conversar agora.'});}finally{button.disabled=false;}});
+ let textLive=null;
+ box.addEventListener('submit',async e=>{
+   e.preventDefault();if(!SESSAO){mostrarLogin('Entre para conversar.');return;}
+   const input=box.querySelector('input'),button=box.querySelector('button'),text=input.value.trim();
+   if(!text||button.disabled)return;button.disabled=true;reply.hidden=false;reply.textContent='Conectando…';
+   try{
+     let live=conv&&!conv.closed?conv:textLive;
+     if(!live||live.closed){
+       live=textLive=new GeminiLive();
+       try{await live.start(true);}catch(e){live.end();throw e;}
+     }
+     reply.textContent='Pensando…';
+     const j=await live.sendText(text,value=>{reply.textContent=value;});
+     reply.textContent=j.message;input.value='';
+     box.dataset.lastResponseMs=String(Math.round(j.elapsedMs));
+     box.dataset.sessionOpeningMs=String(Math.round(live.openingMs));
+   }catch(e){reply.textContent='Não foi possível concluir: '+e.message;}
+   finally{button.disabled=false;}
+ });
+ window.addEventListener('pagehide',()=>{if(textLive)textLive.end();});
 })();
 /* ---------- carga inicial e atualização periódica ---------- */
 loadMercado(true); loadNoticias(true);
