@@ -944,7 +944,7 @@ function updateGoogleCredits(j){
 }
 async function refreshGoogleCredits(){if(SESSAO)try{await googleRequest('credits',{},'GET');}catch(e){/* falha não inventa saldo */}}
 async function googleRequest(acao, data={}, method='POST') {
-  const payload = Object.assign({acao, token:SESSAO},data);
+  const payload = Object.assign({acao, token:SESSAO, produto:'leo'},data);
   const options = method === 'GET' ? {cache:'no-store'} : {method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)};
   const endpoint = method === 'GET' ? GOOGLE_WEB_APP+'?'+new URLSearchParams(payload) : GOOGLE_WEB_APP;
   const r=await window.fetch(endpoint,options), j=await r.json();
