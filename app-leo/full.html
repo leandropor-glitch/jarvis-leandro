@@ -313,25 +313,6 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 #hud[data-tab="rooms"]>.mic{display:none}
 #hud[data-tab="rooms"]{padding-bottom:env(safe-area-inset-bottom)}
 .roombar .addSala{border-style:dashed}
-/* 19/11/2026 (protótipo): pavimentos acima dos ambientes + importar cenas e aparelhos da casa */
-.pavbar{padding-bottom:0}.pavbar[hidden]{display:none}
-.pavbar button{min-height:30px;font-size:.56rem;letter-spacing:.14em;border-color:rgba(var(--accent-rgb),.3);color:rgba(var(--accent-rgb),.8)}
-.pavbar button[aria-selected="true"]{background:rgba(var(--accent-rgb),.1);color:var(--accent);border-color:var(--accent)}
-#hud[data-tab="dashboard"] .pavbar,#hud[data-tab="dashboard"] #pavEditor,#hud[data-tab="dashboard"] #itemEditor{display:none!important}
-label:has(#edRoom){display:none}
-.imp{margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}.imp[hidden]{display:none}
-.impTop{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}.impTop span:last-child{color:#5e615b;letter-spacing:.1em}
-.impFiltro{display:flex;gap:6px;margin:6px 0}
-.impFiltro button{flex:1;min-height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--muted);font:inherit;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase}
-.impFiltro button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.impLista{max-height:min(42vh,340px);overflow:auto;display:grid;gap:4px;overscroll-behavior:contain}
-.impItem{display:flex;align-items:center;gap:8px;min-height:40px;width:100%;padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--ink);font:inherit;font-size:.82rem;text-align:left}
-.impItem i{font-style:normal;font-family:var(--mono);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);min-width:58px}
-.impItem b{flex:1;min-width:0;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.impItem small{font-family:var(--mono);font-size:.5rem;color:#6d7068;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
-.impItem[aria-pressed="true"]{border-color:rgba(var(--accent-rgb),.7);color:var(--accent)}.impItem[aria-pressed="true"] small{color:var(--accent)}
-#hud[data-tab="rooms"]:has(#roomEditor:not([hidden])) #talk,#hud[data-tab="rooms"]:has(#itemEditor:not([hidden])) #talk,#hud[data-tab="rooms"]:has(#pavEditor:not([hidden])) #talk{visibility:hidden}
-.ambVazio{grid-column:1/-1;padding:18px 6px;text-align:center;font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#6d7068;line-height:1.6}
 .editor select{width:100%;margin-top:4px;padding:8px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(255,255,255,.15);font:inherit}
 /* controle remoto e favoritos (09/11/2026) */
 .remote{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
@@ -597,15 +578,15 @@ input,select,textarea{font-size:16px!important}
 
   <main class="stage">
     <aside class="col left">
-      <section class="panel market" id="market" aria-busy="false" aria-label="Cotações">
-        <div class="ph"><span class="k"><i></i>mercado · Google</span><span class="pr" id="marketWhen" role="status" aria-live="polite">aguardando</span></div>
+      <section class="panel market" id="market" aria-label="Cotações">
+        <div class="ph"><span class="k"><i></i>mercado · binance</span><span class="pr" id="marketWhen">carregando</span></div>
         <div class="rows" id="marketRows"></div>
-        <div class="pf" id="marketFoot">Fonte: Google</div>
+        <div class="pf" id="marketFoot">pares binance · spot e futuros</div>
       </section>
-      <section class="panel news" id="newsPol" aria-busy="false" aria-label="Notícias de política">
+      <section class="panel news" id="newsPol" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
-        <div class="slides"><div class="empty" role="status" aria-live="polite">Aguardando manchetes</div></div>
-        <div class="pf"><span class="src">Fonte: Google</span><span class="dots"></span></div>
+        <div class="slides"><div class="empty">carregando manchetes</div></div>
+        <div class="pf"><span class="src">agência brasil</span><span class="dots"></span></div>
       </section>
     </aside>
 
@@ -627,7 +608,7 @@ input,select,textarea{font-size:16px!important}
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
         <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="roombar pavbar" id="pavBar" role="tablist" aria-label="Pavimentos" hidden></nav><div class="editor" id="pavEditor" hidden><label>nome do pavimento<input id="pvName" maxlength="22" autocomplete="off" placeholder="ex.: Térreo, Cobertura"></label><div class="eb"><button class="pb" id="pvSave" type="button">salvar</button><button class="pb" id="pvDel" type="button">excluir pavimento</button><button class="pb" id="pvCancel" type="button">cancelar</button></div><div class="hint" id="pvHint">nome livre. ao excluir, os ambientes dele passam para outro pavimento.</div></div><nav class="roombar" id="roomBar" role="tablist" aria-label="Ambientes"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><label>pavimento<select id="rmPav"></select></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">fechar</button></div><div class="imp" id="rmImp" hidden><div class="impTop"><span>importar da casa</span><span id="impFonte"></span></div><input id="impBusca" type="search" placeholder="buscar cena ou aparelho" autocomplete="off" aria-label="buscar cena ou aparelho"><div class="impFiltro" role="group" aria-label="filtro"><button type="button" data-f="" aria-pressed="true">todos</button><button type="button" data-f="c" aria-pressed="false">cenas</button><button type="button" data-f="a" aria-pressed="false">aparelhos</button></div><div class="impLista" id="impLista"></div></div><div class="hint">toque num item para pôr ou tirar deste ambiente. toque no ambiente selecionado para abrir de novo. fica salvo neste aparelho.</div></div><div class="editor" id="itemEditor" hidden><label>nome no botão<input id="itName" maxlength="22" autocomplete="off"></label><label>ambiente<select id="itAmb"></select></label><div class="eb"><button class="pb" id="itEsq" type="button" aria-label="mover para a esquerda">◀</button><button class="pb" id="itDir" type="button" aria-label="mover para a direita">▶</button><button class="pb" id="itSave" type="button">salvar</button><button class="pb" id="itDel" type="button">tirar do ambiente</button><button class="pb" id="itCancel" type="button">cancelar</button></div><div class="hint" id="itHint"></div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o Leo<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
@@ -640,10 +621,10 @@ input,select,textarea{font-size:16px!important}
           <div class="hint">a frase é mandada à central da Vinci. fica salvo neste aparelho.</div>
         </div>
       </section>
-      <section class="panel news" id="newsTec" aria-busy="false" aria-label="Notícias de tecnologia">
+      <section class="panel news" id="newsTec" aria-label="Notícias de tecnologia">
         <div class="ph"><span class="k"><i></i>tecnologia</span><span class="pr">automação · ia</span></div>
-        <div class="slides"><div class="empty" role="status" aria-live="polite">Aguardando manchetes</div></div>
-        <div class="pf"><span class="src">Fonte: Google</span><span class="dots"></span></div>
+        <div class="slides"><div class="empty">carregando manchetes</div></div>
+        <div class="pf"><span class="src">olhar digital · canaltech</span><span class="dots"></span></div>
       </section>
     </aside>
   </main>
@@ -657,23 +638,34 @@ input,select,textarea{font-size:16px!important}
   <nav class="appTabs" role="tablist" aria-label="Navegação principal"><button type="button" role="tab" data-tab-target="home" aria-selected="true">Leo</button><button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button><button type="button" role="tab" data-tab-target="news" aria-selected="false">Notícias</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Ambientes</button></nav>
 </div>
 
-<script>
-// Félix GEN dentro do app (iPhone, iPad, Mac, Android): o login é o do app; a sessão chega pelo localStorage (mesmo endereço).
-// Sessão inválida = volta para o login do app. O app nativo espera o aviso "pronto".
-(function(){
-  try{ const s = JSON.parse(localStorage.getItem('felyx.sessao') || 'null'); if(s && s.token) localStorage.setItem('felyx_sessao', s.token); }catch(e){}
-  const aviso = (tipo) => { try{ window.webkit.messageHandlers.felyx.postMessage({ tipo }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo })); }catch(e){} };
-  window.felyxVoltarAoLogin = function(){ try{ localStorage.removeItem('felyx.sessao'); localStorage.removeItem('felyx_sessao'); }catch(e){} aviso('logout'); location.replace('./' + location.search); };
-  addEventListener('DOMContentLoaded', () => aviso('pronto'));
+
+<script>// Regra do cumprimento (GEM, FULL e app): o "bom dia / boa tarde / boa noite" completo — com mercado, dólar e
+// notícias — sai no máximo uma vez a cada 4 horas. Dentro desse intervalo o Felyx só devolve um cumprimento curto.
+// A marca fica no localStorage do domínio, então vale para todas as versões abertas neste aparelho.
+(function () {
+  const CHAVE = 'google.leo.cumprimento', INTERVALO = 4 * 60 * 60 * 1000;
+  const SAUDACAO = /\b(bom\s*dia|boa\s*tarde|boa\s*noite)\b/i;
+  function ultimo() { try { return Number(localStorage.getItem(CHAVE) || 0); } catch (e) { return 0; } }
+  const felyxCumprimento = {
+    recente: () => Date.now() - ultimo() < INTERVALO,
+    marcar: () => { try { localStorage.setItem(CHAVE, String(Date.now())); } catch (e) {} },
+    agoraMesmo: () => Date.now() - ultimo() < 8000,   // o completo acabou de ser liberado (para acender os cards)
+    ehSaudacao: (texto) => SAUDACAO.test(String(texto || '')),
+    // pergunta que vai para o cérebro: se for só um cumprimento e já houve o completo há pouco, pede resposta curta
+    ajustar(pergunta) {
+      if (!this.ehSaudacao(pergunta)) return pergunta;
+      if (this.recente()) return pergunta + ' (Instrução do sistema: já houve um cumprimento completo há menos de 4 horas. Responda só com um cumprimento curto e cordial, sem mercado, dólar, bolsa, cotações nem notícias.)';
+      this.marcar();
+      return pergunta;
+    },
+  };
+  window.felyxCumprimento = felyxCumprimento;
 })();
 </script>
-<script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
-<script src="esqueci-senha.js?v=20261120local"></script>
-<script src="../vinci/onboarding.js?v=20261120local"></script>
-<script src="../vinci/ia-padrao.js?v=20261120local" data-ia="leo"></script>
-<script src="../vinci/paineis-google.js?v=20261120a"></script>
+
+
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -681,7 +673,7 @@ input,select,textarea{font-size:16px!important}
    notícias de política; à direita a matriz de 32 comandos e as notícias de
    tecnologia. Felyx GEN: voz e cérebro no Gemini Live, sem o Claude; o n8n só
    entrega dados (felix/gemini-apoio, felix/app). Mercado e notícias vêm
-   do Gemini com Busca Google; para os cartões, o n8n só emite o token.
+   do n8n (ponte): /felix/mercado e /felix/noticias.
    ===================================================================== */
 const hud = document.getElementById('hud');
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -929,17 +921,75 @@ function clearCards(){ [...deckEl.children].forEach(c=>{ c.dataset.in='0'; setTi
 const WMO = {0:'céu limpo',1:'quase limpo',2:'parcialmente nublado',3:'nublado',45:'nevoeiro',48:'nevoeiro',51:'garoa',53:'garoa',55:'garoa',61:'chuva fraca',63:'chuva',65:'chuva forte',80:'pancadas',81:'pancadas',82:'pancadas fortes',95:'trovoadas'};
 
 /* ===================== n8n (ponte) ===================== */
-const N8N = 'https://ia.uservinci.com/api';
+const GOOGLE_WEB_APP = 'https://script.google.com/macros/s/AKfycbwV5hQDg6pPGIxYPCrty-avnemWZEBHnatYP8xxEJ9a0iKqECyEKfi45JckWHMEKAZilw/exec';
+// Saldo mensal expresso somente em créditos; cards não dependem deste bloqueio.
+const GOOGLE_CREDIT_END='Seus créditos deste mês acabaram.';
+const googleLiveSessions=new Set();
+let googleCreditState=null;
+function googleCreditBlocked(){return !!(googleCreditState&&googleCreditState.bloqueado);}
+function renderGoogleCredits(){
+  const el=document.getElementById('googleCredits');if(!el)return;
+  if(!googleCreditState){el.textContent='Saldo de créditos: consultando…';return;}
+  const c=googleCreditState;
+  el.textContent=Number(c.restante).toLocaleString('pt-BR')+' créditos disponíveis de '+Number(c.franquia||25500).toLocaleString('pt-BR')+' neste mês.';
+  if(c.bloqueado)el.textContent+=' '+GOOGLE_CREDIT_END;
+  else if(c.usados>=Number(c.franquia||25500)*.9||c.aviso)el.textContent+=' Você já usou 90% dos seus créditos deste mês.';
+  for(const node of document.querySelectorAll('#googleChat input,#googleChat button,#talk'))node.disabled=!!c.bloqueado||(node.tagName==='BUTTON'&&node.closest('#googleChat')?.dataset.busy==='1');
+}
+function updateGoogleCredits(j){
+  if(j.creditos&&typeof j.creditos==='object')googleCreditState={...j.creditos,aviso:j.aviso&&j.aviso.nivel===90};
+  if(j.erro==='creditos_esgotados')googleCreditState={...(googleCreditState||{}),restante:0,franquia:25500,bloqueado:true};
+  if(googleCreditBlocked())for(const live of googleLiveSessions){live.finishText(new Error(GOOGLE_CREDIT_END));live.end();}
+  renderGoogleCredits();
+}
+async function refreshGoogleCredits(){if(SESSAO)try{await googleRequest('credits',{},'GET');}catch(e){/* falha não inventa saldo */}}
+async function googleRequest(acao, data={}, method='POST') {
+  const payload = Object.assign({acao, token:SESSAO, produto:'leo'},data);
+  const options = method === 'GET' ? {cache:'no-store'} : {method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)};
+  const endpoint = method === 'GET' ? GOOGLE_WEB_APP+'?'+new URLSearchParams(payload) : GOOGLE_WEB_APP;
+  const r=await window.fetch(endpoint,options), j=await r.json();
+  if(['nao_autenticado','sessao_invalida'].includes(j.erro)){salvarSessao('');mostrarLogin('Entre novamente.');}
+  updateGoogleCredits(j);
+  return j;
+}
+let googleCardsFlight=null, googleCardsCache=null, googleCardsTime=0;
+async function googleCards(){
+  if(!SESSAO) return {cards:[]};
+  if(googleCardsCache && Date.now()-googleCardsTime<14*60000)return googleCardsCache;
+  if(!googleCardsFlight)googleCardsFlight=googleRequest('cards',{},'GET').then(j=>{if(!j.ok)throw Error(j.erro);googleCardsCache=Array.isArray(j.cards)?{cards:j.cards}:j.cards;googleCardsTime=Date.now();return googleCardsCache;}).finally(()=>googleCardsFlight=null);
+  return googleCardsFlight;
+}
+async function previewFetch(url,options={}){
+  const u=String(url), b=options.body?JSON.parse(options.body):{};
+  let j;
+  if(u.startsWith('google-compat:')){
+    if(u.includes('/token'))j=await googleRequest('token');
+    else if(u.includes('/mercado')){const p=await googleCards();const c=p.cotacoes||{};j={ok:true,cambio:{usdbrl:Number(c.usd_brl?.valor),eurbrl:Number(c.eur_brl?.valor)},cripto:{bitcoin:{usdt:Number(c.btc_usd?.valor)}},updatedAt:p.updatedAt};}
+    else if(u.includes('/noticias')){const p=await googleCards();const cards=(p.cards||[]).map(c=>({title:c.titulo,link:c.fonteUrl,image:c.fotoUrl,source:'G1',cat:c.categoria}));j={ok:true,politica:cards.filter(c=>['politica','destaques'].includes(c.cat)),tecnologia:cards.filter(c=>['tecnologia','economia'].includes(c.cat))};}
+    else if(b.acao==='casa'){const r=await googleRequest('scenes',{},'GET');j={...r,cenas:(r.scenes||[]).map(x=>x.nome),aparelhos:[]};}
+    else if(b.acao==='estados')j={ok:false,erro:'estado_indisponivel'};
+    else if(b.acao==='comando'){j=await googleRequest('edit',{input:b.texto});j.text=j.message;}
+    else j={ok:false,erro:'operacao_indisponivel_na_previa'};
+    return new Response(JSON.stringify(j),{headers:{'Content-Type':'application/json'}});
+  }
+  if(u.startsWith('https://script.google.com/'))return new Response(JSON.stringify(await googleCards()));
+  const resolved=new URL(u,location.href);
+  if(resolved.origin===location.origin)return window.fetch(url,options);
+  throw Error('Consulta disponível pelo Google na prévia.');
+}
+const N8N = 'google-compat:';
 const TOKEN_URL = N8N + '/felix/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/felix/gemini-apoio';
+const MERCADO_URL = N8N + '/felix/mercado';
+const NOTICIAS_URL = N8N + '/felix/noticias';
 const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
 /* ===================== acesso (login) ===================== */
 const LOGIN_URL = N8N + '/felix/login';
 let SESSAO = '';
-try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
-function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
+try{ SESSAO = localStorage.getItem('vinci.google.leo.sessao') || ''; }catch(e){}
+function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('vinci.google.leo.sessao', t); else localStorage.removeItem('vinci.google.leo.sessao'); }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
 try{ VinciOnboarding.iniciar({ ia:'leo', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
@@ -948,43 +998,33 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
   st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#d6ff1a}#felyxLogin button{width:100%;margin-top:14px;background:#d6ff1a;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
   document.head.appendChild(st);
   const el = document.createElement('div'); el.id = 'felyxLogin';
-  el.innerHTML = '<div class="cx"><h1>LEO</h1><p>iA · vinci</p>'
-    + '<input id="flTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="telefone com DDD">'
-    + '<input id="flSenha" type="password" autocomplete="current-password" placeholder="senha do app Felyx">'
-    + '<button id="flEntrar">Entrar</button><button id="flEsqueci" type="button" style="background:none;color:#8a8d86;font-weight:400;margin-top:6px">Esqueci a senha</button><div class="er" id="flErro"></div></div>';
+  el.innerHTML = '<div class="cx"><h1>LEO</h1><p>iA · vinci</p><input id="flTel" type="email" autocomplete="email" placeholder="seu e-mail"><input id="flSenha" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="código de 6 dígitos" hidden><button id="flEntrar">Enviar código</button><button id="flEsqueci" type="button" hidden>Enviar outro código</button><div class="er" id="flErro" role="status"></div></div>';
   document.body.appendChild(el);
-  const entrar = document.getElementById('flEntrar'), erro = document.getElementById('flErro');
+  const entrar=document.getElementById('flEntrar'),erro=document.getElementById('flErro'),email=document.getElementById('flTel'),code=document.getElementById('flSenha');
+  let sent=false;
   async function tentar(){
-    const tel = document.getElementById('flTel').value.trim();
-    const senha = document.getElementById('flSenha').value;
-    if(!tel || !senha){ erro.textContent = 'Preencha telefone e senha.'; return; }
-    entrar.disabled = true; erro.textContent = 'entrando…';
-    try{
-      // mesma senha do app Felyx (GEM, FULL e apps); a senha antiga da casa continua valendo como segunda tentativa
-      let r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'entrar', telefone: tel, senha, aparelho:'App · Leo iA Vinci' }) });
-      let j = {}; try{ j = await r.json(); }catch(e){}
-      if(!(r.ok && j.ok && j.token)){
-        r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
-        j = {}; try{ j = await r.json(); }catch(e){}
-      }
-      if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); }
-      else { erro.textContent = 'Telefone ou senha não conferem, ou você não está autorizado.'; }
-    }catch(e){ erro.textContent = 'Não consegui conectar. Tente de novo.'; }
-    entrar.disabled = false;
+    if(!email.validity.valid||!email.value.trim()){erro.textContent='Informe seu e-mail.';return;}
+    if(sent&&!/^\d{6}$/.test(code.value.trim())){erro.textContent='Informe o código de 6 dígitos.';return;}
+    entrar.disabled=true;erro.textContent='Aguarde…';
+    try{const j=await googleRequest('login',sent?{email:email.value.trim(),code:code.value.trim()}:{email:email.value.trim()});
+      if(!j.ok)throw Error(j.erro);
+      if(j.token){salvarSessao(j.token);esconderLogin();googleCardsCache=null;loadMercado(true);loadNoticias(true);}
+      else {sent=true;email.readOnly=true;code.hidden=false;document.getElementById('flEsqueci').hidden=false;entrar.textContent='Entrar';erro.textContent='Código enviado por e-mail.';code.focus();}
+    }catch(e){erro.textContent=String(e.message||'Falha ao conectar.').replaceAll('_',' ');}finally{entrar.disabled=false;}
   }
-  entrar.addEventListener('click', tentar);
-  document.getElementById('flEsqueci').addEventListener('click', ()=> felyxEsqueciSenha({ telefone: document.getElementById('flTel').value, aparelho: 'Felyx GEN',
-    aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); } }));
-  document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
+  entrar.addEventListener('click',tentar);
+  code.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
+  email.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
+  document.getElementById('flEsqueci').addEventListener('click',()=>{sent=false;email.readOnly=false;code.value='';code.hidden=true;entrar.textContent='Enviar código';});
 })();
-function mostrarLogin(msg){ if(window.felyxVoltarAoLogin) return window.felyxVoltarAoLogin(); const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
+function mostrarLogin(msg){  const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
 function esconderLogin(){ const el = document.getElementById('felyxLogin'); if(el) el.dataset.on = '0'; }
 
 /* ===================== mercado (em real) ===================== */
 const OIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c-3.2 4.3-6 7.6-6 11.3A6 6 0 0 0 18 13.8c0-3.7-2.8-7-6-11.3zm0 16.3a3 3 0 0 1-3-3c0-.5.4-.8.8-.8s.8.3.8.8a1.4 1.4 0 0 0 1.4 1.4c.5 0 .8.4.8.8s-.3.8-.8.8z"/></svg>';
 const ASSETS = [
-  { id:'usd', nome:'USD/BRL', glyph:'$', dec:4, pick:(m)=> m.usdtbrl ? { brl:m.usdtbrl.preco, chg:m.usdtbrl.chg, sub:'dólar em real' } : ((m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, chg:m.cambio.usdbrlChg, sub:'dólar em real' } : null) },
-  { id:'eur', nome:'EUR/BRL', glyph:'€', dec:4, pick:(m)=> (m.cambio && m.cambio.eurbrl) ? { brl:m.cambio.eurbrl, chg:m.cambio.eurbrlChg, sub:'euro em real' } : null },   // só Dólar, Euro e Bitcoin (Leandro, 06/11)
+  { id:'usd', nome:'USD/BRL', glyph:'$', dec:4, pick:(m)=> m.usdtbrl ? { brl:m.usdtbrl.preco, chg:m.usdtbrl.chg, sub:'dólar em real' } : ((m.cambio && m.cambio.usdbrl) ? { brl:m.cambio.usdbrl, chg:null, sub:'dólar em real' } : null) },
+  { id:'eur', nome:'EUR/BRL', glyph:'€', dec:4, pick:(m)=> (m.cambio && m.cambio.eurbrl) ? { brl:m.cambio.eurbrl, chg:null, sub:'euro em real' } : null },   // só Dólar, Euro e Bitcoin (Leandro, 06/11)
   { id:'btc', nome:'BTC/USD', glyph:'₿', dec:0, usdt:true, pick:(m)=> m.cripto && m.cripto.bitcoin },
 ];
 const marketRows = document.getElementById('marketRows'), marketWhen = document.getElementById('marketWhen');
@@ -1021,52 +1061,48 @@ function renderMercado(m){
     else { chg.textContent = (m.cambio && m.cambio.data) ? 'ref. ' + m.cambio.data.split('-').reverse().slice(0,2).join('/') : ''; chg.className = 'chg'; }
     row.dataset.flash = '1'; setTimeout(()=>{ row.dataset.flash = '0'; }, 1200);
   }
-  if(any){
-    const atualizado = new Date(m.atualizadoEm);
-    marketWhen.textContent = hhmm(atualizado);
-    marketWhen.title = 'Atualizado em ' + atualizado.toLocaleString('pt-BR');
-  }
+  if(any) marketWhen.textContent = hhmm(new Date());
   return any;
 }
-function exibirEstadoPaineis({estado,comCache}){
-  const carregando = estado === 'carregando';
-  ['market','newsPol','newsTec'].forEach(id=>{
-    const painel = document.getElementById(id);
-    if(painel) painel.setAttribute('aria-busy',String(carregando));
-  });
-  // Uma atualização nunca troca os dados já confirmados por placeholders.
-  if(comCache || estado === 'pronto') return;
-  marketWhen.textContent = carregando ? 'buscando…' : 'aguardando';
-  marketWhen.title = carregando ? 'Buscando cotações no Google' : 'Aguardando atualização';
-  ['newsPol','newsTec'].forEach(id=>{
-    const vazio = document.getElementById(id).querySelector('.slides .empty');
-    if(vazio) vazio.textContent = carregando ? 'Buscando no Google…' : 'Aguardando atualização';
-  });
+async function fetchMercadoDireto(){
+  // reserva: busca direto no navegador se a ponte não responder
+  const [fx, cg] = await Promise.all([
+    previewFetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then(r=>r.json()),
+    previewFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,zcash&vs_currencies=brl,usd&include_24hr_change=true').then(r=>r.json())
+  ]);
+  const cripto = {}; for(const k of ['bitcoin','ethereum','solana','zcash']){ const c = cg[k]; if(c) cripto[k] = { brl:c.brl, usd:c.usd, usdt:c.usd, chg:c.brl_24h_change, chgUsdt:c.usd_24h_change }; }
+  let usdtbrl = null, clusdt = null;
+  try{ const b = await previewFetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then(r=>r.json()); if(b && b.lastPrice) usdtbrl = { preco:+b.lastPrice, chg:+b.priceChangePercent }; }catch(e){}
+  try{ const c = await previewFetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
+  return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, usdtbrl, clusdt, petroleo:null };
 }
-const paineisGoogle = VinciPaineis.criar({ ia:'leo', tokenUrl:()=>comS(TOKEN_URL), sessao:()=>SESSAO, model:()=>MODEL, onEstado:exibirEstadoPaineis });
 let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
-function exibirMercado(paineis){
-  if(paineis && paineis.mercado && mercadoData !== paineis.mercado){
-    mercadoData = paineis.mercado; mercadoAt = Date.parse(paineis.atualizadoEm);
-    renderMercado(mercadoData);
-  }
-  return mercadoData;
-}
+// uma busca por vez: quem chega enquanto outra está em andamento recebe a mesma resposta (evita chamadas duplicadas ao n8n)
 function loadMercado(force){
-  // O último valor aparece antes da rede; falha nunca apaga o cartão.
-  exibirMercado(paineisGoogle.cache());
   if(mercadoVoo) return mercadoVoo;
-  mercadoVoo = buscarMercado(force).finally(()=>{ mercadoVoo = null; });
+  if(!force && Date.now() - mercadoAt < 14*60000) return Promise.resolve(mercadoData);
+  if(force && mercadoData && Date.now() - mercadoAt < 20000) return Promise.resolve(mercadoData);
+  mercadoVoo = buscarMercado().finally(()=>{ mercadoVoo = null; });
   return mercadoVoo;
 }
-async function buscarMercado(force){ return exibirMercado(await paineisGoogle.carregar(force)); }
+async function buscarMercado(){
+  mercadoAt = Date.now();
+  try{
+    const r = await previewFetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
+    if(!m || !m.ok) throw new Error('ponte sem dados');
+    mercadoData = m; renderMercado(m); return m;
+  }catch(e){
+    try{ const m = await fetchMercadoDireto(); mercadoData = m; renderMercado(m); return m; }
+    catch(e2){ marketWhen.textContent = 'sem conexão'; return null; }
+  }
+}
 
 /* ===================== notícias (cards animados) ===================== */
 const SRC_SHORT = { 'agência brasil':'agência brasil', 'olhar digital':'olhar digital', 'canaltech':'canaltech' };
 function timeAgo(s){
   const d = new Date(s); if(isNaN(d)) return '';
   const m = Math.round((Date.now() - d.getTime())/60000);
-  if(m < 1) return 'agora'; if(m < 60) return 'há '+m+' min'; if(m < 24*60) return 'há '+Math.round(m/60)+' h';
+  if(m < 1) return 'agora'; if(m < 60) return 'recentemente'; if(m < 24*60) return 'há '+Math.round(m/60)+' h';
   return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
 }
 class NewsPanel {
@@ -1075,16 +1111,16 @@ class NewsPanel {
     el.style.setProperty('--dur', (this.dur/1000)+'s');
   }
   set(items){
-    const list = (items||[]).filter(n=>n && n.title).slice(0, 6);
+    const list = (items||[]).filter(n=>n && n.title).slice(0, 12);
     if(!list.length){ if(!this.items.length) this.slides.innerHTML = '<div class="empty">sem manchetes agora</div>'; return; }
     this.items = list; this.i = -1;
     this.slides.innerHTML = list.map((n, k)=>`
       <a class="slide" data-k="${k}" href="${esc(urlSegura(n.link))}" target="_blank" rel="noopener noreferrer" data-on="0" tabindex="-1">
-        ${urlSegura(n.image) !== '#' ? `<img alt="" src="${esc(urlSegura(n.image))}" referrerpolicy="no-referrer" loading="${k===0?'eager':'lazy'}" decoding="async" data-fonte="${esc((n.source||'').slice(0,2))}">` : `<div class="noimg"></div>`}
+        ${urlSegura(n.image) !== '#' ? `<img alt="" src="${esc(urlSegura(n.image))}" referrerpolicy="no-referrer" loading="${k===0?'eager':'lazy'}" decoding="async" data-fonte="${esc((n.source||'').slice(0,2))}">` : `<div class="noimg">${esc((n.source||'nt').slice(0,2))}</div>`}
         <div class="shade"></div>
-        <div class="cap"><div class="src">Fonte: ${esc(n.source||'Google')}${n.cat ? ' · '+esc(n.cat) : ''}${n.date ? ' · '+esc(timeAgo(n.date)) : ''}</div><div class="tt">${esc(n.title)}</div></div>
+        <div class="cap"><div class="src">${esc(n.source||'')}${n.cat ? ' · '+esc(n.cat) : ''}${n.date ? ' · '+esc(timeAgo(n.date)) : ''}</div><div class="tt">${esc(n.title)}</div></div>
       </a>`).join('') + '<div class="bar"></div><div class="tag" data-tag></div>';
-    this.slides.querySelectorAll('img[data-fonte]').forEach((img)=>img.addEventListener('error', ()=>{ const d = document.createElement('div'); d.className = 'noimg'; img.replaceWith(d); }, { once: true }));
+    this.slides.querySelectorAll('img[data-fonte]').forEach((img)=>img.addEventListener('error', ()=>{ const d = document.createElement('div'); d.className = 'noimg'; d.textContent = img.dataset.fonte; img.replaceWith(d); }, { once: true }));
     this.dots.innerHTML = list.map(()=>'<i></i>').join('');
     this.next(true);
   }
@@ -1094,7 +1130,7 @@ class NewsPanel {
     this.i = (this.i + 1) % this.items.length;
     const all = this.slides.querySelectorAll('.slide'); all.forEach(s=>{ s.dataset.on = (Number(s.dataset.k) === this.i) ? '1' : '0'; });
     [...this.dots.children].forEach((d, k)=>{ d.dataset.on = k === this.i ? '1' : '0'; });
-    const n = this.items[this.i]; const tag = this.slides.querySelector('[data-tag]'); if(tag) tag.textContent = (n.cat || ('Fonte: ' + (n.source || 'Google'))).toString();
+    const n = this.items[this.i]; const tag = this.slides.querySelector('[data-tag]'); if(tag) tag.textContent = (n.cat || n.source || '').toString();
     // reinicia a barra de progresso
     this.el.dataset.run = '0'; void this.el.offsetWidth; this.el.dataset.run = '1';
     this.arm();
@@ -1105,25 +1141,27 @@ class NewsPanel {
 const newsPol = new NewsPanel(document.getElementById('newsPol'), 9000);
 const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
-function exibirNoticias(paineis){
-  if(paineis && paineis.noticias && ultimasNoticias !== paineis.noticias){
-    ultimasNoticias = paineis.noticias; noticiasAt = Date.parse(paineis.atualizadoEm);
-    newsPol.set(ultimasNoticias.politica); newsTec.set(ultimasNoticias.tecnologia);
-    const horario = 'Atualizado em ' + new Date(noticiasAt).toLocaleString('pt-BR');
-    newsPol.el.title = horario; newsTec.el.title = horario;
-  }
-  return ultimasNoticias;
-}
 function loadNoticias(force){
-  exibirNoticias(paineisGoogle.cache());
   if(noticiasVoo) return noticiasVoo;
-  noticiasVoo = buscarNoticias(force).finally(()=>{ noticiasVoo = null; });
+  if(!force && Date.now() - noticiasAt < 14*60000) return Promise.resolve();
+  if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
+  noticiasVoo = buscarNoticias().finally(()=>{ noticiasVoo = null; });
   return noticiasVoo;
 }
-async function buscarNoticias(force){ return exibirNoticias(await paineisGoogle.carregar(force)); }
+async function buscarNoticias(){
+  noticiasAt = Date.now();
+  try{
+    const r = await previewFetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
+    if(!j || !j.ok) throw new Error('ponte sem notícias');
+    ultimasNoticias = j; newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
+  }catch(e){
+    if(!newsPol.items.length) newsPol.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
+    if(!newsTec.items.length) newsTec.slides.innerHTML = '<div class="empty">notícias indisponíveis</div>';
+  }
+}
 
 /* ===================== matriz de comandos (4×8) ===================== */
-const MATRIX_KEY = 'felyx.matrix.v2', MATRIX_ON_KEY = 'felyx.matrix.on.v2';
+const MATRIX_KEY = 'google.leo.matrix.v2', MATRIX_ON_KEY = 'google.leo.matrix.on.v2';
 // Padrão: cenas e aparelhos reais da central da casa do Leandro (lista obtida pela ponte em 14/10/2026). Tudo editável no botão "editar".
 const DEFAULT_TILES = [
   { n:'Luz Alta',       f:'ativar a cena Luz Alta' },
@@ -1177,84 +1215,34 @@ function loadTiles(){
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
 let tileOn = (()=>{ try{ return JSON.parse(localStorage.getItem(MATRIX_ON_KEY)||'{}') || {}; }catch(e){ return {}; } })();
 function saveOn(){ try{ localStorage.setItem(MATRIX_ON_KEY, JSON.stringify(tileOn)); }catch(e){} }
-const SALAS_KEY='felyx.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[]};}catch(e){}return{renomes:{},extras:[],ocultas:[]};})();
+const SALAS_KEY='google.leo.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[]};}catch(e){}return{renomes:{},extras:[],ocultas:[]};})();
 function saveSalas(){try{localStorage.setItem(SALAS_KEY,JSON.stringify(salas))}catch(e){}}
-const roomStoreKey='felyx.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
+const roomStoreKey='google.leo.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
 const normRoom=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
 function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i.test(String(t.f||'')); }
 function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes(r)?(roomConfig.semComodo||'Outros'):r;}
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
 function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
-function renderRoomTabs(){const p=pavAtual(),ambs=p?p.ambientes.map(a=>a.nome):[],order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...ambs];if(!order.includes(roomActive)&&document.getElementById('hud').dataset.tab==='rooms')roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;fecharItem();if(editMode&&c!=='Favoritos')abrirSala(c);else fecharSala();try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode&&p){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
-/* ===== 19/11/2026 (Claude, protótipo): PAVIMENTOS (nome livre) acima dos AMBIENTES. Cada ambiente guarda os próprios itens
-   (cenas e aparelhos importados da central), sem o limite dos 32 botões do Dashboard. Fica salvo neste aparelho (localStorage).
-   Antes da primeira edição, espelha a divisão antiga (32 botões + comodos.json) num pavimento "Casa", sem gravar nada. ===== */
-const PAV_KEY='felyx.pavimentos.v1',PAV_ATIVO_KEY='felyx.pav.ativo',AMB_ON_KEY='felyx.amb.on.v1',pavBar=document.getElementById('pavBar');
-let pavSalvo=(()=>{try{const j=JSON.parse(localStorage.getItem(PAV_KEY)||'null');if(j&&Array.isArray(j.pavimentos)&&j.pavimentos.length)return j;}catch(e){}return null;})();
-let pavAtivo=(()=>{try{return localStorage.getItem(PAV_ATIVO_KEY)||''}catch(e){return ''}})();
-let ambOn=(()=>{try{return JSON.parse(localStorage.getItem(AMB_ON_KEY)||'{}')||{}}catch(e){return {}}})();
-function saveAmbOn(){try{localStorage.setItem(AMB_ON_KEY,JSON.stringify(ambOn))}catch(e){}}
-function itemDeTile(t){const m=String(t.f||'').match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i);return m?{t:'c',n:m[1].trim(),r:t.n,rc:t.rc||''}:{t:'a',n:t.n,r:t.n,f:t.f,f2:t.f2||'',rc:t.rc||''};}
-function itemDaCasa(tipo,nome){return tipo==='c'?{t:'c',n:nome,r:nome.slice(0,22)}:{t:'a',n:nome,r:nome.slice(0,22),f:'ligar '+nome,f2:'desligar '+nome};}
-function itemComoTile(it){return it.t==='c'?{n:it.r||it.n,f:'ativar a cena '+it.n,f2:'',rc:it.rc||''}:{n:it.r||it.n,f:it.f||('ligar '+it.n),f2:it.f2!=null?it.f2:('desligar '+it.n),rc:it.rc||''};}
-function pavDerivado(){const m={};tiles.forEach(t=>{if(!t.n||!t.f)return;const r=roomForTile(t);(m[r]=m[r]||[]).push(itemDeTile(t));});return {pavimentos:[{nome:'Casa',ambientes:listaSalas().filter(c=>m[c]||salas.extras.includes(c)).map(c=>({nome:c,itens:m[c]||[]}))}]};}
-function pavDados(){return pavSalvo||pavDerivado();}
-function pavEditavel(){if(!pavSalvo)pavSalvo=JSON.parse(JSON.stringify(pavDerivado()));return pavSalvo;}
-function pavGravar(){try{if(pavSalvo)localStorage.setItem(PAV_KEY,JSON.stringify(pavSalvo));else localStorage.removeItem(PAV_KEY);localStorage.setItem(PAV_ATIVO_KEY,pavAtivo);localStorage.setItem(roomStoreKey,roomActive)}catch(e){}}
-function pavAtual(){const d=pavDados(),p=d.pavimentos.find(x=>x.nome===pavAtivo)||d.pavimentos[0];if(p)pavAtivo=p.nome;return p;}
-function ambAtual(){const p=pavAtual();return p&&p.ambientes.find(a=>a.nome===roomActive)||null;}
-function ondeEsta(it){const r=[];for(const p of pavDados().pavimentos)for(const a of p.ambientes)if(a.itens.some(x=>x.t===it.t&&x.n===it.n))r.push((pavDados().pavimentos.length>1?p.nome+' · ':'')+a.nome);return r;}
-function renderPavBar(){const d=pavDados(),p=pavAtual();pavBar.hidden=!(editMode||d.pavimentos.length>1);const bts=d.pavimentos.map(x=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',p&&x.nome===p.nome?'true':'false');b.textContent=x.nome;b.onclick=()=>{if(editMode&&pavAtivo===x.nome){abrirPav(x.nome);return;}pavAtivo=x.nome;roomActive='';fecharSala();fecharItem();fecharPav();renderMatrix();pavGravar();};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ pavimento';a.onclick=()=>abrirPav('');bts.push(a);}pavBar.replaceChildren(...bts);}
-function renderAmbGrid(){const a=ambAtual(),its=a?a.itens:[];gridEl.innerHTML=its.map((it,k)=>{const t=itemComoTile(it),cena=it.t==='c',on=!!ambOn['a:'+it.n];return `<button class="tile${cena?' scene-command':''}" type="button" data-ai="${k}" ${cena?'data-scene="1"':(t.f2?'data-toggle="1" data-on="'+(on?'1':'0')+'"':'')} title="${esc(cena?t.f:(on?t.f2:t.f))}">${tipoControle(t)?RC_ICO:''}<span>${esc(t.n)}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('')+(editMode&&a?'<button class="tile" type="button" data-empty="1" data-amb-add="1"><span>+ importar</span></button>':'')+(!its.length&&!editMode?'<div class="ambVazio">'+(a?'ambiente vazio · toque em editar para importar cenas e aparelhos':'nenhum ambiente neste pavimento · toque em editar')+'</div>':'');}
-gridEl.addEventListener('click',(e)=>{const b=e.target.closest('.tile');if(!b||(b.dataset.ai===undefined&&!b.dataset.ambAdd))return;e.stopImmediatePropagation();if(b.dataset.ambAdd){abrirSala(roomActive);document.getElementById('impBusca').focus();return;}const k=Number(b.dataset.ai),a=ambAtual();if(!a||!a.itens[k])return;if(editMode){abrirItem(k);return;}runTile(-1,b,a.itens[k]);},true);
-/* lista de cenas e aparelhos da casa: a mesma que o Felyx usa (acao 'casa', só leitura); sem resposta, a última guardada; sem nada, a lista padrão */
-let casaCarregando=null;
-function listaCasa(){let c=casaGen,fonte='central';if(!(c&&c.cenas&&c.cenas.length)){try{const j=JSON.parse(localStorage.getItem('leo.casaGen')||'null');if(j&&Array.isArray(j.cenas)&&j.cenas.length){c=j;fonte='última lista guardada';}}catch(e){}}if(!(c&&c.cenas&&c.cenas.length)){c={cenas:VINCI_CENAS,aparelhos:VINCI_APARELHOS};fonte='lista padrão';}return {cenas:[...new Set(c.cenas||[])],aparelhos:[...new Set(c.aparelhos||[])],fonte};}
-function carregarCasa(){if(casaCarregando||(casaGen.cenas&&casaGen.cenas.length)||!SESSAO)return casaCarregando;casaCarregando=Promise.race([fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})}).then(r=>r.json()).catch(()=>null),new Promise(ok=>setTimeout(()=>ok(null),7000))]).then(casa=>{if(casa&&casa.ok){casaGen={aparelhos:(casa.aparelhos||[]).map(a=>a&&a.nome||a).filter(Boolean),cenas:casa.cenas||[]};try{localStorage.setItem('leo.casaGen',JSON.stringify(casaGen))}catch(e){}}renderImport();}).finally(()=>{casaCarregando=null;});return casaCarregando;}
-let impFiltro='';
-function renderImport(){const box=document.getElementById('rmImp'),a=ambAtual();if(!a||salaEditando!==a.nome){box.hidden=true;return;}box.hidden=false;const L=listaCasa(),q=normRoom(document.getElementById('impBusca').value);document.getElementById('impFonte').textContent=L.cenas.length+' cenas · '+L.aparelhos.length+' aparelhos · '+L.fonte;const todos=[...L.cenas.map(n=>({t:'c',n})),...L.aparelhos.map(n=>({t:'a',n}))].filter(x=>(!impFiltro||x.t===impFiltro)&&(!q||normRoom(x.n).includes(q)));const lista=document.getElementById('impLista');lista.innerHTML=todos.map(x=>{const aqui=a.itens.some(i=>i.t===x.t&&i.n===x.n),outros=ondeEsta(x).filter(o=>!aqui||o.split(' · ').pop()!==a.nome);return `<button type="button" class="impItem" data-t="${x.t}" data-n="${esc(x.n)}" aria-pressed="${aqui?'true':'false'}"><i>${x.t==='c'?'cena':'aparelho'}</i><b>${esc(x.n)}</b><small>${aqui?'✓ aqui':(outros.length?'em '+esc(outros.join(', ')):'')}</small></button>`}).join('')||'<div class="ambVazio">nada encontrado</div>';}
-document.getElementById('impLista').addEventListener('click',(e)=>{const b=e.target.closest('.impItem');if(!b)return;pavEditavel();const a=ambAtual();if(!a)return;const t=b.dataset.t,n=b.dataset.n,k=a.itens.findIndex(i=>i.t===t&&i.n===n);if(k>=0)a.itens.splice(k,1);else a.itens.push(itemDaCasa(t,n));pavGravar();renderMatrix();renderImport();});
-document.getElementById('impBusca').addEventListener('input',renderImport);
-document.querySelectorAll('.impFiltro button').forEach(b=>b.addEventListener('click',()=>{impFiltro=b.dataset.f;document.querySelectorAll('.impFiltro button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));renderImport();}));
-/* editor de pavimento */
-let pavEditando=null;
-function abrirPav(nome){fecharSala();fecharItem();pavEditando=nome;document.getElementById('pvName').value=nome;document.getElementById('pvDel').hidden=!nome||pavDados().pavimentos.length<2;document.getElementById('pavEditor').hidden=false;document.getElementById('pvName').focus();}
-function fecharPav(){document.getElementById('pavEditor').hidden=true;pavEditando=null;}
-function salvarPav(){const novo=document.getElementById('pvName').value.trim().slice(0,22);if(!novo)return;const D=pavEditavel(),velho=pavEditando;if(D.pavimentos.some(p=>p.nome===novo&&p.nome!==velho)){document.getElementById('pvHint').textContent='já existe um pavimento com esse nome.';return;}if(!velho)D.pavimentos.push({nome:novo,ambientes:[]});else{const p=D.pavimentos.find(x=>x.nome===velho);if(p)p.nome=novo;}pavAtivo=novo;if(!velho)roomActive='';pavGravar();fecharPav();renderMatrix();}
-function excluirPav(){const D=pavEditavel(),i=D.pavimentos.findIndex(p=>p.nome===pavEditando);if(i<0||D.pavimentos.length<2)return;const [p]=D.pavimentos.splice(i,1),dest=D.pavimentos[Math.max(0,i-1)];p.ambientes.forEach(a=>{let n=a.nome,k=2;while(dest.ambientes.some(x=>x.nome===n))n=a.nome+' '+(k++);a.nome=n;dest.ambientes.push(a);});pavAtivo=dest.nome;pavGravar();fecharPav();renderMatrix();}
-document.getElementById('pvSave').addEventListener('click',salvarPav);document.getElementById('pvDel').addEventListener('click',excluirPav);document.getElementById('pvCancel').addEventListener('click',fecharPav);
-document.getElementById('pvName').addEventListener('keydown',e=>{if(e.key==='Enter')salvarPav();});
-/* editor do item (no modo editar, toque num botão do ambiente) */
-let itemEditando=-1;
-function abrirItem(k){const a=ambAtual();if(!a||!a.itens[k])return;fecharSala();fecharPav();itemEditando=k;const it=a.itens[k];document.getElementById('itName').value=it.r||it.n;const sel=document.getElementById('itAmb'),D=pavDados(),varios=D.pavimentos.length>1;sel.replaceChildren(...D.pavimentos.flatMap((p,pi)=>p.ambientes.map((x,ai)=>{const o=document.createElement('option');o.value=pi+'|'+ai;o.textContent=(varios?p.nome+' · ':'')+x.nome;if(p.nome===pavAtivo&&x.nome===a.nome)o.selected=true;return o;})));document.getElementById('itHint').textContent=(it.t==='c'?'cena ':'aparelho ')+it.n+'. no modo editar, tocar não aciona nada.';document.getElementById('itemEditor').hidden=false;}
-function fecharItem(){const el=document.getElementById('itemEditor');if(el)el.hidden=true;itemEditando=-1;}
-function itemMexer(fn){if(itemEditando<0)return;pavEditavel();const a=ambAtual();if(!a||!a.itens[itemEditando])return fecharItem();fn(a);pavGravar();renderMatrix();}
-document.getElementById('itSave').addEventListener('click',()=>itemMexer(a=>{const it=a.itens[itemEditando],nome=document.getElementById('itName').value.trim().slice(0,22);if(nome)it.r=nome;const [pi,ai]=document.getElementById('itAmb').value.split('|').map(Number),dest=pavSalvo.pavimentos[pi]&&pavSalvo.pavimentos[pi].ambientes[ai];if(dest&&dest!==a){a.itens.splice(itemEditando,1);if(!dest.itens.some(x=>x.t===it.t&&x.n===it.n))dest.itens.push(it);}fecharItem();}));
-document.getElementById('itDel').addEventListener('click',()=>itemMexer(a=>{a.itens.splice(itemEditando,1);fecharItem();}));
-document.getElementById('itEsq').addEventListener('click',()=>itemMexer(a=>{const k=itemEditando;if(k>0){[a.itens[k-1],a.itens[k]]=[a.itens[k],a.itens[k-1]];itemEditando=k-1;}}));
-document.getElementById('itDir').addEventListener('click',()=>itemMexer(a=>{const k=itemEditando;if(k<a.itens.length-1){[a.itens[k+1],a.itens[k]]=[a.itens[k],a.itens[k+1]];itemEditando=k+1;}}));
-document.getElementById('itCancel').addEventListener('click',fecharItem);
+function renderRoomTabs(){const counts=new Set([...tiles.filter(isSceneTile).map(roomForTile),...tiles.filter(t=>t.s).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav)?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
-function abrirSala(nome){fecharPav();fecharItem();salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;const sel=document.getElementById('rmPav');sel.replaceChildren(...pavDados().pavimentos.map(p=>{const o=document.createElement('option');o.value=p.nome;o.textContent=p.nome;return o;}));sel.value=pavAtivo;sel.parentElement.hidden=pavDados().pavimentos.length<2;document.getElementById('rmSave').textContent=nome?'salvar':'criar';ed.hidden=false;if(!nome)document.getElementById('rmName').focus();renderImport();if(nome)carregarCasa();}
+function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
 function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
 function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
-function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo||normRoom(novo)==='favoritos')return;const D=pavEditavel(),velho=salaEditando,p=D.pavimentos.find(x=>x.nome===pavAtivo)||D.pavimentos[0],destP=D.pavimentos.find(x=>x.nome===document.getElementById('rmPav').value)||p;if(destP.ambientes.some(a=>a.nome===novo&&!(p===destP&&a.nome===velho)))return;let a;if(!velho){a={nome:novo,itens:[]};destP.ambientes.push(a);}else{const k=p.ambientes.findIndex(x=>x.nome===velho);if(k<0)return;a=p.ambientes[k];a.nome=novo;if(destP!==p){p.ambientes.splice(k,1);destP.ambientes.push(a);}}pavAtivo=destP.nome;roomActive=novo;pavGravar();renderMatrix();if(!velho)abrirSala(novo);else fecharSala();}
-function excluirSala(){const c=salaEditando;if(!c)return;const D=pavEditavel(),p=D.pavimentos.find(x=>x.nome===pavAtivo)||D.pavimentos[0],k=p.ambientes.findIndex(x=>x.nome===c);if(k<0)return;const n=p.ambientes[k].itens.length;if(n&&!confirm('Excluir o ambiente '+c+' e tirar os '+n+' botões dele? As cenas e aparelhos continuam na casa.'))return;p.ambientes.splice(k,1);roomActive='';pavGravar();fecharSala();renderMatrix();}
-try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
-document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
-fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
+function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
+function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
+try{localStorage.removeItem('google.leo.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
+document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('google.leo.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
+previewFetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
 function limparEstadosDeCena(){ tiles.forEach((t,i)=>{ if(isSceneTile(t)) delete tileOn[i]; }); saveOn(); }
 const RC_TV = /\b(tv|televis|apple ?tv|playstation|globo|netflix|youtube)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i, RC_SOM = /(m[uú]sica|\bsom\b|\bvol\b|caixa de som|spotify)/i;   // 14/11/2026: som também tem controle
 const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
 function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : (RC_SOM.test(t.n) ? 'som' : '')); }
 function renderMatrix(){
   limparEstadosDeCena();
-  const naSala=document.getElementById('hud').dataset.tab==='rooms';
-  if(naSala){ renderPavBar(); renderRoomTabs(); if(roomActive!=='Favoritos'){ renderAmbGrid(); return; } }
-  const ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&!t.fav;return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
+  const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
+  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
   renderRoomTabs();
 }
 renderMatrix();
@@ -1267,7 +1255,7 @@ const RC_PADRAO = {
   som: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Anterior','Tocar','Próxima'],
 };
 let rcAtual = null, rcEditando = -1, rcModoEditar = false;
-function rcChave(t){ return 'felyx.rc.botoes.' + t.n; }
+function rcChave(t){ return 'google.leo.rc.botoes.' + t.n; }
 function rcCarregar(tipo, t){ try{ const j = JSON.parse(localStorage.getItem(rcChave(t)) || 'null'); if(Array.isArray(j)) return j; }catch(e){} return RC_PADRAO[tipo].map((rot)=>({ rot, cena:'' })); }
 function rcSalvar(){ try{ localStorage.setItem(rcChave(rcAtual.t), JSON.stringify(rcAtual.botoes)); }catch(e){} }
 function nomesDeCenas(){ return [...new Set(tiles.filter(isSceneTile).map((t)=>{ const m = String(t.f).match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i); return m ? m[1].trim() : t.n; }))]; }
@@ -1301,7 +1289,7 @@ function rcAbrirEditor(i){
 async function rcEnviar(frase, btn){
   const res = document.getElementById('rcRes'); if(btn) btn.dataset.busy = '1'; res.textContent = 'enviando…';
   let ok = false;
-  try{ const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
+  try{ const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
   if(btn) btn.dataset.busy = '0'; res.textContent = ok ? 'feito' : 'não concluído';
 }
 document.getElementById('remote').addEventListener('click', (e)=>{
@@ -1328,9 +1316,9 @@ gridEl.addEventListener('click', (e)=>{
 });
 // pressionar e segurar (toque) abre o editor do botão
 let pressTimer = null;
-gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b || b.dataset.i === undefined) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
+gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>gridEl.addEventListener(ev, ()=>{ clearTimeout(pressTimer); }));
-function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); fecharPav(); fecharItem(); } renderMatrix(); }
+function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); } renderRoomTabs(); }
 editBtn.addEventListener('click', ()=>setEdit(!editMode));
 document.getElementById('rmSave').addEventListener('click', salvarSala);
 document.getElementById('rmDel').addEventListener('click', excluirSala);
@@ -1375,29 +1363,27 @@ function moverBotao(de, para){
 })();
 
 const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|indispon|não encontrei|não achei/i;
-async function runTile(i, btn, item){
-  const t = item ? itemComoTile(item) : tiles[i]; if(!t || !t.f) return;
-  const ligado = ()=> item ? !!ambOn['a:' + item.n] : !!tileOn[i];
-  const marcar = (v)=> { if(item){ if(v) ambOn['a:' + item.n] = 1; else delete ambOn['a:' + item.n]; saveAmbOn(); } else { if(v) tileOn[i] = 1; else delete tileOn[i]; saveOn(); } };
+async function runTile(i, btn){
+  const t = tiles[i]; if(!t || !t.f) return;
   const cena = isSceneTile(t);
   if(cena && tipoControle(t)) setTimeout(()=>abrirControle(tipoControle(t), t), 350);   // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
   if(cena) feedbackCena(btn);
-  const turningOff = !cena && !!(t.f2 && ligado());
+  const turningOff = !cena && !!(t.f2 && tileOn[i]);
   const frase = turningOff ? t.f2 : t.f;
   if(!cena){ btn.dataset.busy = '1'; btn.dataset.res = ''; }
   if(!cena && !conv) setState('thinking', t.n.toLowerCase());
   let texto = '';
   try{
-    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
+    const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
     const j = await r.json(); if(sessaoCaiu(r, j)){ btn.dataset.busy='0'; return; }
     texto = j.ok ? String(j.text || 'Pronto, feito.').replace(/\balexa\b/gi, 'Vinci') : '';
   }catch(e){ texto = ''; }
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
   btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena) setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
-  if(!cena && ok && t.f2){ marcar(!turningOff); btn.dataset.on = ligado() ? '1' : '0'; btn.title = ligado() ? t.f2 : t.f; }
+  if(!cena && ok && t.f2){ if(turningOff) delete tileOn[i]; else tileOn[i] = 1; saveOn(); btn.dataset.on = tileOn[i] ? '1' : '0'; btn.title = tileOn[i] ? t.f2 : t.f; }
   if(!cena) dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
   const first = (texto || 'Sem resposta do cérebro.').split(/(?<=[.!?])\s/)[0];
   if(!cena || !ok) addCard({ id:'toque', kicker:'casa · toque', title: esc(t.n) + (t.f2 ? (turningOff ? ' · desligar' : ' · ligar') : ''), body: cena && !ok ? 'Não concluída.' : esc(first), chips:[{t: ok ? 'executado' : (cena ? 'Não concluída' : 'falhou'), on: ok}], foot:'ponte vinci · '+esc(frase), ttl: 12000 });
@@ -1424,7 +1410,7 @@ async function briefing(){
   if(Date.now() - briefingAt < 60000) return; briefingAt = Date.now();
   addCard({ id:'brief', kicker:'briefing · triagem', title:'Revisando o que está consolidado', chips:[{t:'clima'},{t:'mercado'},{t:'notícias'},{t:'casa'}], foot:'somente itens verificados' });
   const tasks = [
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json()).then(j=>{
+    previewFetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json()).then(j=>{
       const c = j.current, d = j.daily;
       addCard({ id:'clima', kicker:'panorama · clima', title:'Rio de Janeiro', value: fmt(c.temperature_2m,1)+'°', unit:(WMO[c.weather_code]||''),
         chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(d.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(d.temperature_2m_max[0],0)+'°'},{t:'chuva '+d.precipitation_probability_max[0]+'%', on:d.precipitation_probability_max[0]>=50}], ttl: 90000 });
@@ -1507,10 +1493,12 @@ async function _bootComIris(avisos){
 }
 
 /* ---------- cumprimento da abertura (regra do Leandro, 07/11) ----------
-   Uma fala só, assim que o rosto aparece: saudação, a temperatura agora, o dólar do painel via Busca Google e
+   Uma fala só, assim que o rosto aparece: saudação, a temperatura agora, o dólar oficial do pacote do Google e
    "Posso ajudar em alguma coisa?". Da íris até o fim dessa fala o microfone é ignorado. */
+const MOTOR_GOOGLE = 'https://script.google.com/macros/s/AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen/exec';
 const pausa = (ms)=> new Promise((ok)=> setTimeout(ok, ms));
 async function dolarDoGoogle(){
+  try{ const p = await previewFetch(MOTOR_GOOGLE, { cache:'no-store' }).then((r)=> r.json()); const v = p && p.cotacoes && p.cotacoes.usd_brl && Number(p.cotacoes.usd_brl.valor); if(v > 0) return v; }catch(e){}
   try{ const m = mercadoData || await loadMercado(true); const v = m && m.cambio && Number(m.cambio.usdbrl); if(v > 0) return v; }catch(e){}
   return null;   // sem o dólar oficial ele não fala de dólar (nunca a cotação do USDT)
 }
@@ -1543,14 +1531,14 @@ function fimDoCumprimento(g){
 function saudacaoAgora(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'); }
 async function climaAgora(){
   try{
-    const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+    const j = await previewFetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
     const c = j.current, dd = j.daily;
     addCard({ id:'clima', kicker:'panorama · clima', title:'Rio de Janeiro', value: fmt(c.temperature_2m,1)+'°', unit:(WMO[c.weather_code]||''),
       chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(dd.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(dd.temperature_2m_max[0],0)+'°'},{t:'chuva '+dd.precipitation_probability_max[0]+'%', on:dd.precipitation_probability_max[0]>=50}], ttl: 120000 });
     return { temperatura: c.temperature_2m, sensacao: c.apparent_temperature, descricao: WMO[c.weather_code] || '', max: dd.temperature_2m_max[0], min: dd.temperature_2m_min[0], chuva: dd.precipitation_probability_max[0] };
   }catch(e){ return null; }
 }
-// Regra de 15/10/2026: nas boas-vindas o mercado é SÓ o dólar; as demais cotações e notícias usam a Busca Google nativa.
+// Regra de 15/10/2026: nas boas-vindas o mercado é SÓ o dólar; as bolsas internacionais vêm do resumo da manhã (n8n).
 // As outras moedas/cripto ficam só nos cards da tela, nunca na fala.
 function dolarResumo(m){
   if(!m) return null;
@@ -1632,13 +1620,13 @@ Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a dig
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
 Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou os Ambientes, chame abrir_tela e responda só "Ok." (mesmo se já estiver na tela pedida).
-Ambientes e pavimentos: a aba Ambientes se divide em PAVIMENTOS (andares com nome livre, ex.: Térreo, Cobertura) e, dentro de cada um, AMBIENTES com as cenas e aparelhos da casa. Para criar, renomear ou excluir pavimento ou ambiente, mudar um ambiente de pavimento, ou pôr, mover e tirar uma cena ou aparelho de um ambiente, use a ferramenta ambientes (listar primeiro). Ela só organiza a tela e nunca aciona nada na casa. Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
-Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use a Busca Google nativa; para resumir ou explicar uma notícia da tela pesquise o título e a fonte com a Busca Google (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a manchete abre por cima da tela; para aprofundar pesquise com a Busca Google e responda em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
+Ambientes: quando pedirem para dividir a casa, criar, renomear, excluir ambiente ou mudar um botão de ambiente, use a ferramenta ambientes (listar primeiro). Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
+Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, diga que é o Léo, o assistente da casa criado pela Vinci para cuidar da casa, responder qualquer pergunta e facilitar o dia a dia. Uma ou duas frases.
-Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (Busca Google nativa com poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
+Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (função noticias com a busca em poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
 Cumprimentos: quando a pessoa disser bom dia, boa tarde ou boa noite, chame dados_do_cumprimento. Se vier completo=false, responda só com um cumprimento curto e cordial (o completo já foi dado há menos de 4 horas). Se vier completo=true, faça o briefing em até cinco frases: cumprimento; o clima no Rio numa frase; o mercado numa frase seca, só com o dólar, a não ser que haja movimento forte (2,5% ou mais, disparada, derrocada ou recorde), aí explique o porquê; a notícia mais importante em duas frases, dizendo o que muda; e pergunte o que a pessoa precisa. Assuntos trágicos nunca recebem piada. Sem dado, não cite números e siga com o resto, sem dizer que está indisponível.
-NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se não souber, diga o que sabe e o que pode fazer; se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase (ex.: \"A central não me passou esse estado agora, mas posso ligar ou desligar para você.\"). Nunca responda com silêncio.\nO que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.\nFAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos (ex.: \"põe a Varanda nos favoritos\", \"tira o PlayStation\", \"troca a Cama com o Closet\"). Confirme em meia frase.\nPROGRAMAR A CASA: você cria, edita, pausa e apaga automações por horário do cliente com a ferramenta automacoes (ex.: \"todo dia às 22h desliga a sala\", \"muda o ar das 18h para as 22h\": liste, ache a automação e salve com o mesmo nome e a hora nova). Confirme em uma frase o que ficou programado. As automações rodam com até 5 minutos de atraso.\nCORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase, faça do jeito certo e grave a correção na memoria (category regra) para não repetir. Se algo falhar e você não conseguir resolver, ou se o pedido exigir mudar a programação dentro do app da Vinci ou da Amazon (ex.: a temperatura em que o ar liga), chame avisar_falha explicando exatamente o que precisa ser feito: isso vai em silêncio para o Claude, o engenheiro do Léo, que corrige. NUNCA diga ao cliente que falhou, que houve erro, que avisou alguém, nem cite o Claude: para o cliente você é rápido e sabe tudo. Enquanto resolve, ganhe tempo com naturalidade (\"Deixa eu dar uma olhadinha aqui.\", \"Um instante, já vejo isso.\") e responda com o que conseguiu; se não der agora, diga só que vai deixar pronto em seguida, sem falar em falha.\nCÂMERAS E ALARME DO BEBÊ (projeto da Vinci, em preparação): câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante (UniFi Protect, Ring, Nest); o Léo nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê", "se ele chorar me avisa" ou "mostra a câmera na TV": diga que é um recurso que a Vinci instala no projeto da casa e explique em duas frases como funciona: a câmera UniFi reconhece o choro e toca o alarme e mostra a imagem no celular da mãe ou do pai, pelo app oficial; numa TV, só numa tela que o cliente escolher, por um aparelho dedicado da própria UniFi (ViewPort), nunca a TV da sala com visitas. Pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha: não chame avisar_falha para pedidos de câmera.\nCENAS: as cenas alternam a cada acionamento, então numa cena qualquer verbo (liga, desliga, acende, apaga, ativa, desativa) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho (ex.: Cozinha, Closet, Mesa, Porta, Luz Baixa, Luminárias, AC Sala, AC Suíte), acione SEMPRE a cena: é mais seguro. Responda curto, ex.: \"Pronto, cena Cozinha acionada.\"\nAntes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso.") e responda assim que o resultado chegar.
+NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se não souber, diga o que sabe e o que pode fazer; se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase (ex.: \"A central não me passou esse estado agora, mas posso ligar ou desligar para você.\"). Nunca responda com silêncio.\nO que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.\nFAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos (ex.: \"põe a Varanda nos favoritos\", \"tira o PlayStation\", \"troca a Cama com o Closet\"). Confirme em meia frase.\nPROGRAMAR A CASA: você cria, edita, pausa e apaga automações por horário do cliente com a ferramenta automacoes (ex.: \"todo dia às 22h desliga a sala\", \"muda o ar das 18h para as 22h\": liste, ache a automação e salve com o mesmo nome e a hora nova). Confirme em uma frase o que ficou programado. As automações seguem o horário programado.\nCORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase, faça do jeito certo e grave a correção na memoria (category regra) para não repetir. Se algo falhar e você não conseguir resolver, ou se o pedido exigir mudar a programação dentro do app da Vinci ou da Amazon (ex.: a temperatura em que o ar liga), chame avisar_falha explicando exatamente o que precisa ser feito: isso vai em silêncio para o Claude, o engenheiro do Léo, que corrige. NUNCA diga ao cliente que falhou, que houve erro, que avisou alguém, nem cite o Claude: para o cliente você é rápido e sabe tudo. Enquanto resolve, ganhe tempo com naturalidade (\"Deixa eu dar uma olhadinha aqui.\", \"Um instante, já vejo isso.\") e responda com o que conseguiu; se não der agora, diga só que vai deixar pronto em seguida, sem falar em falha.\nCÂMERAS E ALARME DO BEBÊ (projeto da Vinci, em preparação): câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante (UniFi Protect, Ring, Nest); o Léo nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê", "se ele chorar me avisa" ou "mostra a câmera na TV": diga que é um recurso que a Vinci instala no projeto da casa e explique em duas frases como funciona: a câmera UniFi reconhece o choro e toca o alarme e mostra a imagem no celular da mãe ou do pai, pelo app oficial; numa TV, só numa tela que o cliente escolher, por um aparelho dedicado da própria UniFi (ViewPort), nunca a TV da sala com visitas. Pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha: não chame avisar_falha para pedidos de câmera.\nCENAS: as cenas alternam a cada acionamento, então numa cena qualquer verbo (liga, desliga, acende, apaga, ativa, desativa) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho (ex.: Cozinha, Closet, Mesa, Porta, Luz Baixa, Luminárias, AC Sala, AC Suíte), acione SEMPRE a cena: é mais seguro. Responda curto, ex.: \"Pronto, cena Cozinha acionada.\"\nAntes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso.") e responda assim que o resultado chegar.
 Conversa ao vivo: você está numa conversa contínua com a pessoa e responde a toda fala dela, sem precisar ouvir o seu nome. Só fique em silêncio quando a fala claramente não for com você (TV, música ou outras pessoas conversando entre si). Quando a pessoa quiser silêncio, ela mesma muta o microfone no botão.
 Mensagens que começam com "Mensagem automática do sistema" são instruções da própria página: obedeça exatamente o que pedem e nunca chame funções nelas.`;
 const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Léo na linha." e nada mais. Não chame nenhuma função agora.';
@@ -1667,155 +1655,32 @@ function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falh
 }
 let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Felyx (Gemini Live, Algieba)
 function carregarFraseEspera(ctx){
-  if(!fraseEspera && ctx) fraseEspera = fetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
+  if(!fraseEspera && ctx) fraseEspera = previewFetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
   return fraseEspera || Promise.resolve(null);
 }
-const FelyxAvatar = (()=>{
-  try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
-  let ligado = false;   // Leo iA Vinci: sem avatar (ordem do Leandro, 13/11/2026)
-  let ultimosEventos = [], aceitouEm = 0;   // diagnóstico (10/11): o que o LiveAvatar mandou por último
-  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
-  const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
-  const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
-  const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
-  const BLOCO_ROSTO = 48000;   // ~1 s de PCM 16 bits a 24 kHz
-  let blocoPartes = [], blocoTam = 0, blocoTimer = null;
-  function limparBloco(){ clearTimeout(blocoTimer); blocoTimer = null; blocoPartes = []; blocoTam = 0; }
-  function soltarBloco(){
-    clearTimeout(blocoTimer); blocoTimer = null;
-    if(!blocoTam) return;
-    const tudo = new Uint8Array(blocoTam); let o = 0; for(const p of blocoPartes){ tudo.set(p, o); o += p.length; }
-    blocoPartes = []; blocoTam = 0;
-    let s = ''; for(let i=0;i<tudo.length;i+=0x8000) s += String.fromCharCode.apply(null, tudo.subarray(i, i+0x8000));
-    enviar('agent.speak', { audio: btoa(s) });
-  }
-  async function abrir(){
-    if(!ligado || pronto || abrindo || !SESSAO || Date.now() < bloqueadoAte) return abrindo;
-    abrindo = (async ()=>{
-      const r = await fetch(PRO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: SESSAO }) });
-      const j = await r.json().catch(()=>({}));
-      if(!j.ok || !j.livekit_url || !j.ws_url) throw new Error('avatar indisponível');
-      sessao = { id: j.session_id, token: j.session_token };
-      const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
-      room = new LK.Room({ adaptiveStream: true });
-      room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
-        if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto && !escondido) video.classList.add('on'); }; }
-        if(track.kind === 'audio'){ track.attach(audio); audio.muted = false; audio.play().catch(()=>{}); }
-      });
-      // o LiveKit avisa quem está falando: é a prova de que o rosto devolveu a voz
-      room.on(LK.RoomEvent.ActiveSpeakersChanged, (lista)=>{ if((lista || []).some((p)=> p && !p.isLocal)) falouEm = Date.now(); });
-      room.on(LK.RoomEvent.Disconnected, ()=> fechar());
-      await room.connect(j.livekit_url, j.livekit_client_token);
-      await new Promise((ok, falha)=>{
-        ws = new WebSocket(j.ws_url);
-        const limite = setTimeout(()=>falha(new Error('avatar demorou')), 20000);
-        ws.onmessage = (e)=>{
-          let m; try{ m = JSON.parse(e.data); }catch(x){ return; }
-          if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
-          if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
-          if(m.type === 'error' || m.type === 'warning'){ const d = m.error || m.warning || m; avisarSilencioso('LiveAvatar ' + m.type + ': ' + String((d && (d.type || d.code)) || '') + ' ' + String((d && d.message) || JSON.stringify(d)).slice(0, 200)); }
-          ultimosEventos.push(m.type + (m.new_state ? ':' + m.new_state : '')); if(ultimosEventos.length > 8) ultimosEventos.shift();
-          if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }
-          // 10/11: o estado "talking" não se repete entre falas seguidas (o LiveAvatar junta transições iguais).
-          // A prova de cada fala é o agent.speak_started; o agent.audio_buffer_appended mostra que o áudio foi aceito.
-          if(m.type === 'agent.speak_started'){ agenteFalando = true; falouEm = Date.now(); }
-          if(m.type === 'agent.speak_ended' || m.type === 'agent.speak_interrupted'){ agenteFalando = false; }
-          if(m.type === 'agent.audio_buffer_appended') aceitouEm = Date.now();   // o LiveAvatar avisa que o rosto está falando
-        };
-        ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
-      });
-      pronto = true; ultimo = Date.now();
-      setTimeout(capturarParado, 2500);   // guarda o quadro do rosto calado para ser a foto parada (09/11)
-      if(!escondido){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); }   // na abertura, só depois da íris
-      clearInterval(timer);
-      timer = setInterval(()=>{
-        if(!pronto) return;
-        if(Date.now() - ultimo > AVATAR_OCIOSO_MIN * 60000) return fechar();
-        enviar('session.keep_alive');
-      }, 10000);
-    })().catch((e)=>{ console.warn('Felyx avatar:', e.message); fechar(); }).finally(()=>{ abrindo = null; });
-    return abrindo;
-  }
-  // 09/11/2026 (Leandro): a foto parada depois da íris tem que ser igualzinha ao LiveAvatar calado.
-  // Com o rosto pronto e em silêncio, guarda um quadro do próprio vídeo neste aparelho e passa a usá-lo como foto parada.
-  function capturarParado(tentativa){
-    tentativa = tentativa || 0;
-    if(!pronto || tentativa > 20) return;
-    const calado = !agenteFalando && Date.now() - falouEm > 1500;
-    if(!calado || video.readyState < 2 || !video.videoWidth){ setTimeout(()=>capturarParado(tentativa + 1), 1500); return; }
-    try{
-      const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
-      c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
-      const url = c.toDataURL('image/jpeg', 0.9);
-      if(url.length > 2000){ localStorage.setItem('felyx.rosto.parado', url); const r = document.querySelector('.face .retrato'); if(r) r.src = url; }
-    }catch(e){ console.warn('Felyx: quadro do rosto calado', e.message); }
-  }
-  function fechar(){
-    limparBloco();
-    const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false; falouEm = 0; agenteFalando = false;
-    clearInterval(timer); timer = null;
-    video.classList.remove('on');
-    document.getElementById('hud').classList.remove('com-rosto');
-    try{ ws && ws.close(); }catch(e){} ws = null;
-    try{ room && room.disconnect(); }catch(e){} room = null;
-    if(s && s.token) fetch('https://api.liveavatar.com/v1/sessions/stop', { method:'POST', keepalive:true,
-      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + s.token },
-      body: JSON.stringify({ session_id: s.id, reason:'USER_CLOSED' }) }).catch(()=>{});
-  }
-  return {
-    pronto: ()=> pronto,
-    modo: ()=> pronto ? 'rosto' : 'local',   // com o rosto pronto, a voz sai sempre pelo vídeo, sincronizada com a boca
-    aceitouDesde: (t)=> aceitouEm >= t,
-    diagnostico: ()=> ultimosEventos.join(' > ') + ' | ws ' + (ws ? ws.readyState : 'nulo') + ' | áudio ' + (audio && audio.srcObject ? (audio.paused ? 'pausado' : 'tocando') : 'sem faixa'),
-    falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
-    falandoAgora: ()=> agenteFalando || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
-    // na abertura o rosto conecta durante a íris, mas só aparece quando ela acaba (esconder(false))
-    esconder(sim){ escondido = !!sim; if(!escondido && pronto){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); } },
-    tocando: ()=> !!(audio && audio.srcObject && !audio.paused && !(room && room.canPlaybackAudio === false)),
-    desistir(){ bloqueadoAte = Date.now() + 5 * 60000; fechar(); },   // plano B: fecha o rosto e não reabre por 5 min
-    liberarSom(){ try{ if(!audio.srcObject && !audio.getAttribute('src')) audio.src = SOM_MUDO; audio.muted = false; const p = audio.play(); if(p) p.catch(()=>{}); }catch(e){} },   // no toque: destrava o som do rosto no iPhone
-    abrir, fechar,
-    usar(){ ultimo = Date.now(); if(!pronto) abrir(); },   // chamaram o Felyx: mantém (ou reabre) o rosto
-    // 10/11/2026: o LiveAvatar pede blocos de ~1 s. Os pedacinhos do Gemini são juntados aqui antes de ir para o rosto
-    // (igual ao cumprimento); o resto sai quando a fala acaba ou se o Gemini parar de mandar por 300 ms.
-    falar(b64){
-      ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; }
-      falaAberta = true;
-      const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i);
-      blocoPartes.push(u); blocoTam += u.length;
-      clearTimeout(blocoTimer);
-      if(blocoTam >= BLOCO_ROSTO) soltarBloco(); else blocoTimer = setTimeout(soltarBloco, 300);
-    },
-    fim(){ if(falaAberta){ soltarBloco(); enviar('agent.speak_end'); falaAberta = false; } },
-    interromper(){ limparBloco(); if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
-    ouvir(){ ultimo = Date.now(); if(!ouvindo && !falaAberta){ enviar('agent.start_listening'); ouvindo = true; } }
-  };
-})();
+const FelyxAvatar = new Proxy({}, {get:(_,name)=>name==='modo'?()=> 'local':name==='abrir'?async()=>false:()=>false});
 addEventListener('pagehide', ()=> FelyxAvatar.fechar());
 
 /* ---------- Felyx GEN: ferramentas do Gemini (sem Claude) ---------- */
-async function apoioGen(acao, dados){
-  const r = await fetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({ sessao: SESSAO, acao }, dados)) });
-  const j = await r.json().catch(()=>({}));
-  if(sessaoCaiu(r, j)) return { erro:'sessão expirada' };
-  return j.dados || { erro:'indisponível agora' };
+async function apoioGen(acao,dados={}){
+  if(acao==='memoria' && ['list','recall',undefined].includes(dados.operation||dados.operacao)){
+    const j=await googleRequest('memory',{},'GET');return {...j,memories:(j.memory||[]).map(r=>({memoryKey:r.chave,memoryValue:r.valor}))};
+  }
+  return googleRequest('edit',{input:acao+': '+JSON.stringify(dados)});
 }
 let casaGen = { aparelhos:[], cenas:[] };
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera((()=>{ try{ return localStorage.getItem('leo.casaGen') ? 3000 : 7000; }catch(e){ return 7000; } })())]),
+    Promise.race([previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
-  // 19/11/2026 (Claude): a central às vezes passa de 3 s e a lista de cenas não chegava ("a central não me passou a lista").
-  // Guarda a última lista boa neste aparelho e usa ela quando a resposta atrasar; sem lista guardada, espera até 7 s.
-  if(casa && casa.ok){ casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] }; try{ localStorage.setItem('leo.casaGen', JSON.stringify(casaGen)); }catch(e){} }
-  else { try{ const c = JSON.parse(localStorage.getItem('leo.casaGen') || 'null'); if(c && Array.isArray(c.cenas) && c.cenas.length) casaGen = c; }catch(e){} }
+  if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
   const lista = (mem && (mem.memories || mem.memorias || mem.items || mem.rows)) || [];
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
   const tec = (newsTec.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
-  return '\n\nAparelhos da casa' + (casaGen.aparelhos.length ? ' (' + casaGen.aparelhos.length + ' no total)' : '') + ': ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas' + (casaGen.cenas.length ? ' (' + casaGen.cenas.length + ' no total; ao perguntarem quantas, diga exatamente ' + casaGen.cenas.length + ')' : '') + ': ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
+  return '\n\nAparelhos da casa: ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas: ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
     '\n\nPAINEL — mercado: ' + (dolarResumo(mercadoData) ? 'dólar ' + dolarResumo(mercadoData) : 'sem leitura') +
     '\nPAINEL — política:\n' + (pol || 'sem leitura') + '\nPAINEL — tecnologia:\n' + (tec || 'sem leitura') +
     '\n\nMemórias gravadas:\n' + (memorias || 'nenhuma');
@@ -1825,13 +1690,6 @@ function comandoCasa(nome, acao){
   if(cena) return 'ativar cena ' + cena; // mesmo nome de cena e aparelho: sempre a cena
   return (acao === 'desligar' ? 'desligar ' : 'ligar ') + nome;
   return 'ativar cena ' + nome;
-}
-// nome do aparelho/cena dito pela pessoa? (sem acento, sem maiúscula; metade ou mais das palavras do nome, ignorando on/off)
-function nomeFoiDito(nome, fala){
-  const lim = (x)=> String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-  const f = ' ' + lim(fala) + ' ', ps = lim(nome).split(' ').filter(p => p && !['on','off','de','da','do'].includes(p));
-  if(!ps.length) return false;
-  return ps.filter(p => f.includes(' ' + p + ' ')).length >= Math.ceil(ps.length / 2);
 }
 const GEN_FERRAMENTAS = {
   // 09/11/2026: o Felyx muda de tela por voz (Home, Dashboard, Salas)
@@ -1843,7 +1701,7 @@ const GEN_FERRAMENTAS = {
     const ja = hud.dataset.tab === alvo; b.click(); return { ok:true, tela: alvo === 'rooms' ? 'ambientes' : alvo, ja_estava: ja, responda: 'Ok.' };
   },
   async controlar_casa({ dispositivo, acao }){
-    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
+    const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
@@ -1887,76 +1745,71 @@ const GEN_FERRAMENTAS = {
     }
     return { ok:false, erro:'operacao inválida' };
   },
-  // 19/11/2026 (protótipo): pavimentos e ambientes por conversa. Só organiza a tela; NUNCA aciona cena nem aparelho. Vale neste aparelho.
-  async ambientes({ operacao, pavimentos: pavs, ambientes: grupos, nome, novo_nome, botoes, ambiente, pavimento }){
-    const norm = (x)=> normRoom(x).replace(/\s+/g,' ');
+  // 13/11/2026: ambientes por conversa (dividir a casa, criar, renomear, excluir, mover botões); vale neste aparelho, igual ao "editar"
+  async ambientes({ operacao, ambientes: grupos, nome, novo_nome, botoes, ambiente }){
+    const norm = (s)=> String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();
+    const semAmb = roomConfig.semComodo || 'Outros';
     const nomeOk = (n)=> String(n||'').trim().slice(0,22);
     const comoLista = (v)=> (Array.isArray(v) ? v : String(v||'').split(/[,;]+/)).map(x=>String(x||'').trim()).filter(Boolean);
-    const L = listaCasa();
-    const estado = ()=> ({ pavimentos: pavDados().pavimentos.map(p => ({ nome:p.nome, ambientes: p.ambientes.map(a => ({ nome:a.nome, botoes: a.itens.map(i => i.r || i.n) })) })), pavimento_na_tela: pavAtivo, ambiente_na_tela: roomActive });
-    const gravar = (msg, extra)=> { pavGravar(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
-    const erro = (e)=> Object.assign({ ok:false, erro: e }, estado());
-    const D = ()=> pavEditavel();
-    const acharPav = (n)=> D().pavimentos.find(p => norm(p.nome) === norm(n));
-    const acharAmb = (n, pn)=> { const r = []; for(const p of D().pavimentos){ if(pn && norm(p.nome) !== norm(pn)) continue; for(const a of p.ambientes) if(norm(a.nome) === norm(n)) r.push({ p, a }); } return r; };
-    const umAmb = (n, pn)=> { const r = acharAmb(n, pn); if(!r.length) return { e:'ambiente "' + n + '" não existe' }; if(r.length > 1) return { e:'tem ' + r.length + ' ambientes "' + n + '": diga o pavimento (' + r.map(x => x.p.nome).join(' ou ') + ')' }; return r[0]; };
-    const resolver = (b)=> { const q = norm(b); const c = L.cenas.find(x => norm(x) === q); if(c) return itemDaCasa('c', c); const a = L.aparelhos.find(x => norm(x) === q); if(a) return itemDaCasa('a', a);
-      for(const p of D().pavimentos) for(const am of p.ambientes){ const it = am.itens.find(i => norm(i.r) === q || norm(i.n) === q); if(it) return JSON.parse(JSON.stringify(it)); } return null; };
-    const pavDe = (pn, criar)=> { if(!pn) return D().pavimentos.find(p => p.nome === pavAtivo) || D().pavimentos[0]; let p = acharPav(pn); if(!p && criar){ p = { nome: nomeOk(pn), ambientes: [] }; D().pavimentos.push(p); } return p; };
-    const tirarDeTodos = (it)=> { for(const p of D().pavimentos) for(const am of p.ambientes) am.itens = am.itens.filter(i => !(i.t === it.t && i.n === it.n)); };
+    const achar = (n)=> { const q = norm(n); let i = tiles.findIndex(t => t.n && norm(t.n) === q); if(i < 0) i = tiles.findIndex(t => t.n && isSceneTile(t) && norm(String(t.f).replace(/^.*\bcena\s+/i,'')) === q); return i; };
+    const cenas = (casaGen.cenas && casaGen.cenas.length) ? casaGen.cenas : (typeof VINCI_CENAS !== 'undefined' ? VINCI_CENAS : []);
+    const aparelhos = (casaGen.aparelhos && casaGen.aparelhos.length) ? casaGen.aparelhos : (typeof VINCI_APARELHOS !== 'undefined' ? VINCI_APARELHOS : []);
+    // botão que ainda não está na tela: entra no primeiro espaço vazio dos 32
+    const criarBotao = (n)=> {
+      const q = norm(n), cena = cenas.find(c => norm(c) === q), ap = cena ? '' : aparelhos.find(a => norm(a) === q);
+      if(!cena && !ap) return -1;
+      const i = tiles.findIndex(t => !t.n); if(i < 0) return -2;
+      tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
+      return i;
+    };
+    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
+    const estado = ()=> { const m = mapa(); return { ambientes: listaSalas().filter(c => c !== semAmb && (m[c] || salas.extras.includes(c))).map(c => ({ nome:c, botoes: m[c] || [] })), sem_ambiente: m[semAmb] || [], espacos_vazios: tiles.filter(t => !t.n).length }; };
+    const gravar = (msg, extra)=> { if(roomActive && !listaSalas().includes(roomActive)) roomActive = ''; try{ localStorage.setItem(roomStoreKey, roomActive) }catch(e){} saveSalas(); saveTiles(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
+    const garantir = (n)=> { salas.ocultas = salas.ocultas.filter(c => c !== n); if(!listaSalas().includes(n) && !salas.extras.includes(n)) salas.extras.push(n); };
+    const colocar = (lista, destino, faltam, semEspaco)=> { const usados = []; for(const b of lista){ let i = achar(b); if(i < 0){ i = criarBotao(b); if(i === -1){ faltam.push(b); continue; } if(i === -2){ semEspaco.push(b); continue; } } tiles[i].s = destino; usados.push(i); } return usados; };
     const op = String(operacao || 'listar');
-    if(op === 'listar') return Object.assign({ ok:true, cenas_e_aparelhos_da_casa: { cenas: L.cenas, aparelhos: L.aparelhos, fonte: L.fonte },
-      instrucao: 'Pavimentos (andares, nome livre) ficam acima dos ambientes. Pergunte o que não souber, uma pergunta curta de cada vez (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"). Só chame dividir com a divisão confirmada. Esta ferramenta nunca aciona nada na casa.' }, estado());
+    if(op === 'listar') return Object.assign({ ok:true, cenas_e_aparelhos_da_casa: { cenas, aparelhos },
+      instrucao: 'Para dividir a casa: proponha a divisão e pergunte, uma pergunta curta de cada vez, onde fica cada botão que você não tiver certeza (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"). Não adivinhe qual suíte é a grande. Só chame dividir com a divisão completa e confirmada.' }, estado());
     if(op === 'dividir'){
-      let g = pavs; if(typeof g === 'string'){ try{ g = JSON.parse(g); }catch(e){ g = null; } }
-      let ga = grupos; if(typeof ga === 'string'){ try{ ga = JSON.parse(ga); }catch(e){ ga = null; } }
-      if(!Array.isArray(g) || !g.length) g = Array.isArray(ga) && ga.length ? [{ nome: pavimento || 'Casa', ambientes: ga }] : null;
-      if(!g) return erro('mande pavimentos (nome e ambientes, cada ambiente com nome e botoes) ou ambientes');
-      const novos = [], faltam = [];
-      for(const x of g){ const pn = nomeOk(x && x.nome) || 'Casa'; if(novos.some(p => p.nome === pn)) continue; const p = { nome: pn, ambientes: [] };
-        for(const y of (Array.isArray(x.ambientes) ? x.ambientes : [])){ const an = nomeOk(y && y.nome); if(!an || norm(an) === 'favoritos' || p.ambientes.some(a => a.nome === an)) continue; const its = [];
-          for(const b of comoLista(y.botoes)){ const it = resolver(b); if(!it){ faltam.push(b); continue; } if(!its.some(i => i.t === it.t && i.n === it.n)) its.push(it); }
-          p.ambientes.push({ nome: an, itens: its }); }
-        novos.push(p); }
-      if(!novos.length) return erro('nenhum pavimento válido');
-      pavSalvo = { pavimentos: novos }; pavAtivo = novos[0].nome; roomActive = (novos[0].ambientes[0] || {}).nome || '';
-      return gravar('Casa organizada em ' + novos.length + ' pavimento(s): ' + novos.map(p => p.nome + ' (' + p.ambientes.length + ' ambientes)').join(', ') + '.', { botoes_nao_encontrados: faltam });
+      let g = grupos; if(typeof g === 'string'){ try{ g = JSON.parse(g); }catch(e){ g = null; } }
+      if(!Array.isArray(g) || !g.length) return { ok:false, erro:'mande ambientes: a lista com nome e botoes de cada ambiente' };
+      const nomes = [], faltam = [], semEspaco = [], usados = new Set();
+      for(const x of g){ const n = nomeOk(x && x.nome); if(!n || nomes.includes(n)) continue; nomes.push(n); colocar(comoLista(x.botoes), n, faltam, semEspaco).forEach(i => usados.add(i)); }
+      if(!nomes.length) return { ok:false, erro:'nenhum nome de ambiente' };
+      tiles.forEach((t, i)=> { if(!usados.has(i)) t.s = ''; });
+      const base = [...new Set([...(roomConfig.ordemTela||[]), ...(roomConfig.comodos||[]).map(c => c.nome)])];
+      salas = { renomes:{}, extras: nomes.filter(n => !base.includes(n)), ocultas: base.filter(c => !nomes.includes(c)) };
+      roomActive = nomes[0];
+      return gravar('Casa dividida em ' + nomes.length + ' ambientes: ' + nomes.join(', ') + '.', { botoes_nao_encontrados: faltam, sem_espaco_na_tela: semEspaco,
+        aviso: 'Os botões que você não citou ficaram em "' + semAmb + '": pergunte para onde vão.' });
     }
-    if(op === 'criar_pavimento'){ const n = nomeOk(nome || pavimento); if(!n) return erro('diga o nome do pavimento'); if(acharPav(n)) return erro('o pavimento ' + n + ' já existe'); D().pavimentos.push({ nome:n, ambientes:[] }); pavAtivo = n; roomActive = ''; return gravar('Pavimento ' + n + ' criado.'); }
-    if(op === 'renomear_pavimento'){ const p = acharPav(nome || pavimento), n = nomeOk(novo_nome); if(!p || !n) return erro('diga o pavimento que existe e o nome novo'); if(acharPav(n) && acharPav(n) !== p) return erro('já existe ' + n); const v = p.nome; p.nome = n; if(pavAtivo === v) pavAtivo = n; return gravar(v + ' agora se chama ' + n + '.'); }
-    if(op === 'excluir_pavimento'){ const p = acharPav(nome || pavimento); if(!p) return erro('pavimento não encontrado'); if(D().pavimentos.length < 2) return erro('é o único pavimento; crie outro antes ou renomeie este');
-      const i = D().pavimentos.indexOf(p); D().pavimentos.splice(i, 1); const dest = D().pavimentos[Math.max(0, i - 1)];
-      p.ambientes.forEach(a => { let n = a.nome, k = 2; while(dest.ambientes.some(x => x.nome === n)) n = a.nome + ' ' + (k++); a.nome = n; dest.ambientes.push(a); });
-      pavAtivo = dest.nome; return gravar('Pavimento ' + p.nome + ' excluído; os ambientes dele foram para ' + dest.nome + '.'); }
-    if(op === 'criar'){ const n = nomeOk(nome || ambiente); if(!n || norm(n) === 'favoritos') return erro('diga o nome do ambiente'); const p = pavDe(pavimento, true); if(p.ambientes.some(a => norm(a.nome) === norm(n))) return erro('o ambiente ' + n + ' já existe em ' + p.nome);
-      p.ambientes.push({ nome:n, itens:[] }); pavAtivo = p.nome; roomActive = n; return gravar('Ambiente ' + n + ' criado em ' + p.nome + '.'); }
-    if(op === 'renomear'){ const r = umAmb(nome || ambiente, pavimento), n = nomeOk(novo_nome); if(r.e) return erro(r.e); if(!n) return erro('diga o nome novo'); if(r.p.ambientes.some(a => a !== r.a && norm(a.nome) === norm(n))) return erro('já existe ' + n + ' em ' + r.p.nome);
-      const v = r.a.nome; r.a.nome = n; if(roomActive === v && pavAtivo === r.p.nome) roomActive = n; return gravar(v + ' agora se chama ' + n + '.'); }
-    if(op === 'excluir'){ const r = umAmb(nome || ambiente, pavimento); if(r.e) return erro(r.e); r.p.ambientes.splice(r.p.ambientes.indexOf(r.a), 1); if(roomActive === r.a.nome) roomActive = ''; return gravar('Ambiente ' + r.a.nome + ' excluído de ' + r.p.nome + '.'); }
-    if(op === 'mover_ambiente'){ const r = umAmb(nome || ambiente, null); if(r.e) return erro(r.e); const dest = pavDe(pavimento, true); if(!pavimento || !dest) return erro('diga o pavimento de destino'); if(dest === r.p) return gravar(r.a.nome + ' já está em ' + dest.nome + '.');
-      if(dest.ambientes.some(a => norm(a.nome) === norm(r.a.nome))) return erro(dest.nome + ' já tem um ' + r.a.nome + '; renomeie antes');
-      r.p.ambientes.splice(r.p.ambientes.indexOf(r.a), 1); dest.ambientes.push(r.a); pavAtivo = dest.nome; roomActive = r.a.nome; return gravar(r.a.nome + ' agora fica em ' + dest.nome + '.'); }
-    if(op === 'mover' || op === 'colocar'){
-      const lista = comoLista(botoes && botoes.length ? botoes : nome), alvo = nomeOk(ambiente || novo_nome);
-      if(!lista.length || !alvo) return erro('diga os botões e o ambiente de destino');
-      let r = umAmb(alvo, pavimento); if(r.e){ if(acharAmb(alvo, pavimento).length > 1) return erro(r.e); const p = pavDe(pavimento, true); const a = { nome: alvo, itens: [] }; p.ambientes.push(a); r = { p, a }; }
-      const faltam = [], ok = [];
-      for(const b of lista){ const it = resolver(b); if(!it){ faltam.push(b); continue; } if(op === 'mover') tirarDeTodos(it); if(!r.a.itens.some(i => i.t === it.t && i.n === it.n)) r.a.itens.push(it); ok.push(it.r || it.n); }
-      pavAtivo = r.p.nome; roomActive = r.a.nome;
-      return gravar((ok.length ? ok.join(', ') + (op === 'mover' ? ' agora fica em ' : ' também está em ') + r.a.nome + '.' : 'Nada mudou.'), { botoes_nao_encontrados: faltam });
+    if(op === 'criar'){ const n = nomeOk(nome || ambiente); if(!n) return { ok:false, erro:'diga o nome do ambiente' }; garantir(n); roomActive = n; return gravar('Ambiente ' + n + ' criado.'); }
+    if(op === 'renomear'){
+      const velho = listaSalas().find(c => norm(c) === norm(nome)), novo = nomeOk(novo_nome);
+      if(!velho || !novo) return Object.assign({ ok:false, erro:'diga o ambiente que existe e o nome novo' }, estado());
+      salas.ocultas = salas.ocultas.filter(c => c !== novo); renomearSala(velho, novo); if(roomActive === velho) roomActive = novo; return gravar(velho + ' agora se chama ' + novo + '.');
     }
-    if(op === 'tirar'){ const lista = comoLista(botoes && botoes.length ? botoes : nome); if(!lista.length) return erro('diga os botões');
-      const alvos = ambiente ? (()=>{ const r = umAmb(ambiente, pavimento); return r.e ? null : [r.a]; })() : D().pavimentos.flatMap(p => p.ambientes);
-      if(!alvos) return erro('ambiente não encontrado'); let n = 0;
-      for(const b of lista){ const q = norm(b); for(const a of alvos){ const antes = a.itens.length; a.itens = a.itens.filter(i => norm(i.r) !== q && norm(i.n) !== q); n += antes - a.itens.length; } }
-      return gravar(n ? 'Tirei ' + n + ' botão(ões).' : 'Não achei esses botões nos ambientes.'); }
-    if(op === 'padrao'){ pavSalvo = null; pavAtivo = ''; roomActive = ''; salas = { renomes:{}, extras:[], ocultas:[] }; saveSalas(); return gravar('Ambientes de volta à divisão automática.'); }
-    return erro('operacao inválida: use listar, dividir, criar_pavimento, renomear_pavimento, excluir_pavimento, criar, renomear, excluir, mover_ambiente, mover, colocar, tirar ou padrao');
+    if(op === 'excluir'){
+      const c = listaSalas().find(x => norm(x) === norm(nome || ambiente));
+      if(!c || c === semAmb) return Object.assign({ ok:false, erro:'ambiente não encontrado' }, estado());
+      if(salas.extras.includes(c)) salas.extras = salas.extras.filter(x => x !== c); else salas.ocultas.push(c);
+      tiles.forEach(t => { if(t.s === c) t.s = ''; });
+      return gravar('Ambiente ' + c + ' excluído; os botões dele foram para "' + semAmb + '" ou para o ambiente automático.');
+    }
+    if(op === 'mover'){
+      const destino = nomeOk(ambiente || novo_nome), lista = comoLista(botoes && (Array.isArray(botoes) ? botoes : String(botoes)) || nome);
+      if(!destino || !lista.length) return { ok:false, erro:'diga os botões e o ambiente de destino' };
+      const existente = listaSalas().find(c => norm(c) === norm(destino)) || destino;
+      garantir(existente); const faltam = [], semEspaco = []; colocar(lista, existente, faltam, semEspaco);
+      return gravar('Movido para ' + existente + '.', { botoes_nao_encontrados: faltam, sem_espaco_na_tela: semEspaco });
+    }
+    if(op === 'padrao'){ salas = { renomes:{}, extras:[], ocultas:[] }; tiles.forEach(t => { t.s = ''; }); return gravar('Ambientes de volta à divisão automática.'); }
+    return { ok:false, erro:'operacao inválida: use listar, dividir, criar, renomear, excluir, mover ou padrao' };
   },
   async automacoes(a){ const { acao, ...resto } = a || {}; return apoioGen('automacao', Object.assign({}, resto, { acao_casa: acao || '' })); }, // "acao" já é o nome do pedido ao apoio
   async avisar_falha({ pedido, erro }){ return apoioGen('falha', { pedido: pedido || '', erro: erro || '' }); },
   async estado_casa({ dispositivo }){
-    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'estados', token: SESSAO }) });
+    const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'estados', token: SESSAO }) });
     const j = await r.json().catch(()=>({}));
     const lista = Array.isArray(j.estados) ? j.estados : [];
     if(!lista.length) return { disponivel:false, aviso:'A central não informou os estados agora. Diga isso e ofereça ligar ou desligar.' };
@@ -1968,25 +1821,30 @@ const GEN_FERRAMENTAS = {
     return { disponivel:true, lido_em:j.em, total_ligados: ligados.length, ligados: ligados.map(fmt), sem_resposta: lista.filter(e=> e.ligado === null).map(e=>e.nome) };
   },
   async clima(){ return (await climaAgora()) || { erro:'indisponível agora' }; },
-  async abrir_manchete({ secao, posicao, busca }){
-    // 20/11/2026 (Leandro pediu por voz "abre a do Fachin" e não abriu): acha a manchete pelas palavras do título, em qualquer seção
-    const norm = s=> String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    const fora = ['abre','abrir','abra','noticia','noticias','materia','manchete','sobre','aquela','essa','dessa','daquela','pra','para','com'];
-    let painel = /pol/i.test(secao||'') ? newsPol : (/tec/i.test(secao||'') ? newsTec : null), k = -1;
-    const termos = norm(busca).split(/[^a-z0-9]+/).filter(w=> w.length > 2 && !fora.includes(w));
-    if(termos.length){ let melhor = 0; for(const p of (painel ? [painel] : [newsPol, newsTec])) (p.items||[]).forEach((n,i)=>{ const t = norm(n.title + ' ' + (n.source||'')); const pts = termos.filter(w=> t.includes(w)).length; if(pts > melhor){ melhor = pts; painel = p; k = i; } }); }
-    if(!painel) painel = newsPol.items.length ? newsPol : newsTec;
+  async bolsas(){ return apoioGen('mercado', { pedido:'como estão as bolsas' }); },
+  // 13/11/2026: notícias do dia de verdade (manchetes de hoje do Google Notícias, atualizadas a cada 15 min), para as três IAs
+  async manchetes_do_dia({ secao }){
+    const r = await apoioGen('mercado', { pedido:'manchetes do dia' });
+    if(!r || r.erro || r.ok === false) return { erro:'indisponível agora' };
+    const corta = (l)=> (Array.isArray(l) ? l : []).slice(0, 6).map(n => ({ titulo: n.titulo, fonte: n.fonte || '', url: n.link || '' }));
+    const todas = { destaques: corta(r.destaques), politica: corta(r.politica), tecnologia: corta(r.tecnologia), economia: corta(r.manchetes) };
+    const s = String(secao || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const so = /tec/.test(s) ? 'tecnologia' : (/pol/.test(s) ? 'politica' : (/econ|dinheiro|mercado/.test(s) ? 'economia' : ''));
+    return Object.assign({ atualizado: r.atualizado || null, instrucao: 'Diga as 3 mais importantes, curtas, em português do Brasil (traduza se preciso), citando a fonte. Para ler uma inteira, chame noticias com o url dela.' }, so ? { [so]: todas[so] } : todas);
+  },
+  async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
+  async abrir_manchete({ secao, posicao }){
+    const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
-    if(k < 0) k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
-    try{ painel.show(k); }catch(e){}
+    const k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
     const n = painel.items[k]; const m = document.getElementById('materia');
-    document.getElementById('matFonte').textContent = 'Fonte: ' + (n.source||'Google') + (n.cat ? ' · ' + n.cat : '');
+    document.getElementById('matFonte').textContent = (n.source||'') + (n.cat ? ' · ' + n.cat : '');
     document.getElementById('matTitulo').textContent = n.title; document.getElementById('matTexto').textContent = 'abrindo a matéria…';
     m.scrollTop = 0; m.dataset.on = '1';
-    const texto = n.title;
-    document.getElementById('matTexto').textContent = texto;
-    return { titulo:n.title, fonte:n.source || '', url:n.link || '', texto,
-      instrucao:'A manchete do painel está aberta na tela. Diga em voz alta, em 2 ou 3 frases, do que trata a notícia (pesquise o título na Busca Google para resumir com fatos). Para aprofundar ou buscar detalhes da matéria, use a Busca Google nativa, citando as fontes. Para rolar use rolar_materia; para fechar, fechar_materia.' };
+    const r = await apoioGen('noticia', { busca:'', url: n.link || '' });
+    const texto = (r && (r.texto || r.text || r.conteudo)) || '';
+    document.getElementById('matTexto').textContent = texto || 'Não consegui abrir o texto completo; fico com o resumo da manchete.';
+    return { titulo: n.title, fonte: n.source || '', url: n.link || '', texto: String(texto).slice(0, 7000), instrucao: 'A matéria está aberta na tela. Leia em português do Brasil (traduza se vier em outra língua), resuma e aprofunde no ponto mais interessante; converse e debata. Para rolar a tela use rolar_materia; para fechar, fechar_materia.' };
   },
   async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
   async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
@@ -1995,40 +1853,13 @@ const GEN_FERRAMENTAS = {
     if(felyxCumprimento.recente()) return { completo:false };
     felyxCumprimento.marcar();
     const ok = (p)=> p.catch(()=>({ erro:'indisponível agora' }));
-    const c = await ok(climaAgora()); const b = null;   // 14/11/2026: sem bolsas do n8n (redundância); o porquê do mercado vai pela Busca Google
+    const [c, b] = await Promise.all([ ok(climaAgora()), ok(apoioGen('mercado', { pedido:'bom dia' })) ]);
     return { completo:true, clima:c, dolar: dolarResumo(mercadoData), bolsas:b,
       manchetes: { politica: (newsPol.items||[]).slice(0,3).map(n=>n.title), tecnologia: (newsTec.items||[]).slice(0,3).map(n=>n.title) } };
   }
 };
-const GEN_TOOLS = [{ functionDeclarations: [
-  { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois responda só "Ok.", nada mais.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ tela:{ type:'STRING', enum:['home','dashboard','ambientes'] } }, required:['tela'] } },
-  { name:'controlar_casa', description:'Liga, desliga ou aciona um aparelho ou cena da casa. Se o nome existir como cena (mesmo que também exista como aparelho), qualquer verbo aciona sempre a cena.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING', description:'Nome exato do aparelho ou cena.' }, acao:{ type:'STRING', enum:['ligar','desligar','ativar'] } }, required:['dispositivo','acao'] } },
-  { name:'estado_casa', description:'Diz se aparelhos da casa estão ligados ou desligados agora. dispositivo: nome do aparelho (vazio = todos).', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
-  { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, uma manchete do painel de notícias, com fonte e link, e você lê um resumo falado. Use quando pedirem "abre a do Fachin", "abre a notícia da Anthropic", "abre a primeira de tecnologia", "lê essa manchete". busca: palavras do título que a pessoa disse (ex.: "Fachin", "Anthropic"); secao: tecnologia ou politica (opcional); posicao: 1 a 6 (opcional; vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } } } },
-  { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
-  { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'memoria', description:'Memória de longo prazo do Felyx: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ operation:{ type:'STRING', enum:['learn','recall','list','forget'] }, memoryKey:{ type:'STRING' }, memoryValue:{ type:'STRING' },
-      category:{ type:'STRING', enum:['preferencia','regra','apelido','comando','cena','decisao','geral'] } }, required:['operation'] } },
-  { name:'favoritos', description:'Edita os favoritos: a matriz de 32 botões de comando da casa na tela. operacao: listar; colocar (nome do aparelho ou cena; posicao 1-32 opcional, senão vai no primeiro espaço vazio); tirar (nome ou posicao); renomear (nome ou posicao, e novo_nome); trocar (dois botões: nome e novo_nome, ou posicao e posicao2); padrao (volta os 32 botões ao original). Use o nome exato da lista de aparelhos e cenas.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','colocar','tirar','renomear','trocar','padrao'] }, nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, posicao:{ type:'NUMBER' }, posicao2:{ type:'NUMBER' } }, required:['operacao'] } },
-  { name:'ambientes', description:'Organiza a aba Ambientes em PAVIMENTOS (andares, nome livre: Térreo, Cobertura...) e AMBIENTES, e em qual ambiente fica cada cena ou aparelho da casa. Só mexe na tela, NUNCA aciona cena nem aparelho. operacao: listar (pavimentos, ambientes, botões de cada um e todas as cenas e aparelhos da casa; chame SEMPRE antes de mudar); dividir (refaz tudo: pavimentos = lista com nome e ambientes, cada ambiente com nome e botoes); criar_pavimento (nome); renomear_pavimento (nome e novo_nome); excluir_pavimento (nome; os ambientes vão para outro pavimento); criar (nome do ambiente; pavimento opcional); renomear (nome e novo_nome; pavimento se houver nome repetido); excluir (nome); mover_ambiente (nome do ambiente e pavimento de destino); mover (botoes e ambiente: tira de onde estiver e põe no ambiente); colocar (botoes e ambiente: põe sem tirar dos outros); tirar (botoes; ambiente opcional); padrao (volta à divisão automática). Botões = nomes exatos das cenas e aparelhos da lista. Pergunte o que não souber, uma pergunta curta de cada vez, e só divida com a divisão confirmada. Depois diga em uma frase o que mudou e abra a tela Ambientes com abrir_tela.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','dividir','criar_pavimento','renomear_pavimento','excluir_pavimento','criar','renomear','excluir','mover_ambiente','mover','colocar','tirar','padrao'] },
-      pavimentos:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } } }, required:['nome','ambientes'] } },
-      ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } },
-      nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } }, ambiente:{ type:'STRING' }, pavimento:{ type:'STRING' } }, required:['operacao'] } },
-  { name:'automacoes', description:'Programa a casa do cliente: automações por horário. operacao: listar (mostra todas), salvar (cria, ou edita se o nome já existir), apagar, pausar, ativar. Para salvar: nome curto, hora HH:MM, dias (todos, dias úteis, fim de semana ou seg,ter...), dispositivo (nome exato do aparelho ou cena), acao (ligar, desligar, ativar, temperatura, brilho...) e valor quando houver.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','salvar','apagar','pausar','ativar'] }, nome:{ type:'STRING' }, hora:{ type:'STRING' }, dias:{ type:'STRING' },
-      dispositivo:{ type:'STRING' }, acao:{ type:'STRING' }, valor:{ type:'STRING' } }, required:['operacao'] } },
-  { name:'avisar_falha', description:'Canal interno e silencioso com o Claude (o engenheiro do Felyx): nunca comente com o cliente. Registra um erro que você não consegue resolver sozinho: algo que falhou, um pedido que você não soube atender, uma correção que precisa ser feita no app da Vinci ou na Amazon. pedido: o que a pessoa pediu; erro: o que deu errado e o que precisa ser corrigido, explicado com clareza.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ pedido:{ type:'STRING' }, erro:{ type:'STRING' } }, required:['pedido','erro'] } },
-  { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz clima, dólar, bolsas e manchetes.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{} } }
-] }, { googleSearch:{} }];
+const GEN_TOOLS=[{functionDeclarations:[{name:'conversar_google',description:'Consulte para todo pedido sobre memória, cards, casa, cenas, automações ou qualquer alteração. Só confirme resultado ok:true. Preserve texto do pedido.',parameters:{type:'OBJECT',properties:{input:{type:'STRING'}},required:['input']}}]}];
+GEN_FERRAMENTAS.conversar_google=({input})=>googleRequest('edit',{input});
 
 /* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
    (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
@@ -2041,7 +1872,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
       if(vistos[chave] && agora - vistos[chave] < 600000) return false;
       vistos[chave] = agora;
       if(!SESSAO) return false;
-      fetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
+      previewFetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
         body: JSON.stringify({ sessao: SESSAO, acao:'falha', quem: QUEM, pedido: '[app ' + QUEM + '] ' + String(pedido||'').slice(0,300), erro: String(erro||'').slice(0,600) }) }).catch(()=>{});
       return true;
     }catch(e){ return false; }
@@ -2088,39 +1919,46 @@ class GeminiLive {
     this.mudo=false; this.pensando=false;
     // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
     this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
-  async start(){
-    const contextoPronto = contextoGen().catch(()=> '');   // 14/11/2026: lê casa e memória junto com o microfone e o token, sem esperar depois
-    try{ if(window.VinciIA) VinciIA.atualizarModo(); }catch(e){}
-    this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
-    const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
+  async start(textOnly=false){
+    if(typeof googleCreditBlocked==='function'&&googleCreditBlocked())throw new Error(GOOGLE_CREDIT_END);
+    if(typeof googleLiveSessions!=='undefined')googleLiveSessions.add(this);
+    this.textOnly=textOnly;
+    const opening=performance.now();
+    if(!textOnly) this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+    const r = await previewFetch(comS(TOKEN_URL), { cache:'no-store' });
     if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
-    if(!r.ok) throw new Error('n8n não devolveu o token ('+r.status+')');
+    if(!r.ok) throw new Error('Google não devolveu o token ('+r.status+')');
     const tk = await r.json();
-    if(!tk.token) throw new Error('token vazio do n8n');
+    if(!tk.ok||!tk.token) throw new Error(tk.erro==='creditos_esgotados'?'Seus créditos deste mês acabaram.':(tk.message||tk.erro||'token vazio do Google'));
+    this.googleDeadline=setTimeout(()=>{this.end();if(typeof refreshGoogleCredits==='function')refreshGoogleCredits();},Math.max(0,new Date(tk.livePermitidoAte||tk.expireTime).getTime()-Date.now()));
+    this.googleLastActivity=Date.now();
+    this.googleIdle=setInterval(()=>{if(Date.now()-this.googleLastActivity>=20000)this.end();},1000);
     await new Promise((ok, fail)=>{
-      const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
+      const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
       this.ws = new WebSocket(url);
       let setupDone=false;
-      this.ws.onopen = async ()=>{
-        const contexto = await contextoPronto;
-        this.ws.send(JSON.stringify({ setup: {
-          model: 'models/' + MODEL,
-          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') + (window.VinciIA ? VinciIA.contexto() : '') }] },
-          tools: window.VinciIA ? VinciIA.tools(GEN_TOOLS) : GEN_TOOLS,
-          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
-          inputAudioTranscription: {},
-          outputAudioTranscription: {}
-        }}));
-      };
+      this.ws.onopen = ()=>{ this.ws.send(JSON.stringify({setup: tk.setup})); };
+      const setupTimer=setTimeout(()=>{fail(new Error('Tempo de abertura esgotado'));this.end();},15000);
       this.ws.onmessage = async (ev)=>{
         const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
         let m; try{ m = JSON.parse(data); }catch(e){ return; }
-        if(m.setupComplete && !setupDone){ setupDone=true; await this.startAudio(); ok(); return; }
-        if(m.toolCall) this.handleToolCall(m.toolCall);
+        if(m.setupComplete && !setupDone){
+          setupDone=true;clearTimeout(setupTimer);this.openingMs=performance.now()-opening;
+          try{if(!this.textOnly)await this.startAudio();ok();}catch(e){fail(e);this.end();}return;
+        }
+        if(m.error){this.finishText(new Error(m.error.message||'Falha do Gemini'));return;}
+        if(m.toolCall) this.handleToolCall(m.toolCall).catch(e=>this.finishText(e));
         const sc = m.serverContent;
         if(sc){
-          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; (this.falas = (this.falas||[]).filter(f=>Date.now()-f.t < 60000)).push({ t: Date.now(), x: sc.inputTranscription.text }); if(this.aceitar()) FelyxAvatar.ouvir(); }
+          this.googleLastActivity=Date.now();
+          if(this.textTurn){
+            const part=sc.outputTranscription&&sc.outputTranscription.text;
+            if(part){this.textTurn.text+=part;this.textTurn.onChunk(this.textTurn.text);}
+            if(sc.interrupted)this.finishText(new Error('Resposta interrompida'));
+            if(sc.turnComplete&&!this.toolPending)this.finishText();
+            return;
+          }
+          if(sc.inputTranscription && sc.inputTranscription.text){ this.googleLastActivity=Date.now(); this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
           if(sc.modelTurn && sc.modelTurn.parts){
@@ -2129,8 +1967,8 @@ class GeminiLive {
           if(sc.turnComplete) this.fimDoTurno();
         }
       };
-      this.ws.onerror = ()=>{ if(!setupDone) fail(new Error('WebSocket do Gemini falhou')); };
-      this.ws.onclose = (e)=>{ if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
+      this.ws.onerror = ()=>{ clearTimeout(setupTimer);if(!setupDone) fail(new Error('WebSocket do Gemini falhou'));this.finishText(new Error('Conexão Live falhou')); };
+      this.ws.onclose = (e)=>{ clearTimeout(setupTimer);if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
     });
   }
   // a fala deste turno chamou o Félix? (mensagens da página sempre valem; sem transcrição, vale tudo)
@@ -2279,7 +2117,7 @@ class GeminiLive {
     for(let i=0;i<n;i++){ let v = bin.charCodeAt(2*i) | (bin.charCodeAt(2*i+1)<<8); if(v>=0x8000) v-=0x10000; f[i]=v/0x8000; }
     const buf = this.outCtx.createBuffer(1, n, 24000); buf.copyToChannel(f, 0);
     const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.somDoRosto ? this.silencio : this.analyser);   // com o rosto, a voz sai pelo vídeo, sincronizada com a boca; aqui só marca o tempo
-    const agora = this.outCtx.currentTime, t = this.playhead > agora + 0.02 ? this.playhead : agora + 0.18; s.start(t); this.playhead = t + buf.duration;   // 20/11: fila contínua; se secou (começo da fala ou atraso da rede), pré-buffer de 180 ms antes de tocar
+    const t = Math.max(this.outCtx.currentTime + 0.02, this.playhead); s.start(t); this.playhead = t + buf.duration;
     this.sources.push(s); s.onended = ()=>{ this.sources = this.sources.filter(x=>x!==s); if(!this.sources.length){ this.onState('listening'); this.abrirMic(); } };
     this.mudo = true;
     this.onState('speaking');
@@ -2362,33 +2200,44 @@ class GeminiLive {
   }
   getInputLevel(){ return this.inLevel || 0; }
   async handleToolCall(tc){
-    const out = [];
-    for(const fc of (tc.functionCalls||[])){
+    if(typeof googleCreditBlocked==='function'&&googleCreditBlocked()){this.finishText(new Error(GOOGLE_CREDIT_END));this.end();return;}
+    this.toolPending=(this.toolPending||0)+1;
+    const out=[];
+    for(const fc of tc.functionCalls||[]){
+      this.googleLastActivity=Date.now();
       let response;
-      if(GEN_FERRAMENTAS[fc.name]){
-        // ninguém chamou o Félix (TV, conversa, barulho): não pesquisa e não aciona nada na casa
-        if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
-        if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
-        // 19/11/2026 (Claude): a Leda acionou a cena Cozinha sozinha (o mesmo risco vale aqui) ao ouvir "senhas" no lugar de "cenas". Agora só aciona aparelho ou cena
-        // quando o nome dele aparece no que a pessoa falou no último minuto; senão devolve ao cérebro que não houve pedido.
-        if(fc.name === 'controlar_casa' && !nomeFoiDito((fc.args||{}).dispositivo, (this.falas||[]).filter(f=>Date.now()-f.t < 60000).map(f=>f.x).join(' '))){
-          out.push({ id: fc.id, name: fc.name, response: { ok:false, nao_executado:true, aviso: 'A pessoa não falou o nome deste aparelho ou cena. Não acione nada; responda só ao que ela perguntou.' } }); continue; }
-        const rapida = fc.name === 'abrir_tela';   // troca de tela: instantânea, sem "pensando" e sem barulho de teclado
-        this.pensando = !rapida; this.mudo = true;
-        if(!rapida) this.onState('thinking');
-        // barulhinho de teclado enquanto ele "dá uma olhadinha" (só se a ferramenta demorar)
-        const parar = teclado(this.outCtx, (fc.name === 'avisar_falha' || rapida) ? 999999 : 450);
-        try{ response = await GEN_FERRAMENTAS[fc.name](fc.args || {}); }catch(e){ response = { erro: 'indisponível agora' }; }
-        parar();
-        this.pensando = false;
-        try{ this.onBrain(this.ouvido || fc.name, fc.name === 'controlar_casa' ? (response && response.ok ? 'Pronto, feito.' : 'Não consegui.') : 'ok'); }catch(e){}
-      } else { response = { erro: 'função desconhecida' }; }
-      out.push({ id: fc.id, name: fc.name, response });
+      try{response=await googleRequest('tool',{name:fc.name,args:fc.args||{}});}
+      catch(e){response={ok:false,erro:'Falha de conexão com a ferramenta'};}
+      if(this.textTurn)this.textTurn.tools.push({name:fc.name,response});
+      out.push({id:fc.id,name:fc.name,response});
     }
-    if(this.ws && this.ws.readyState===1) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: out } }));
+    this.googleLastActivity=Date.now();
+    if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify({toolResponse:{functionResponses:out}}));
+    this.toolPending--;
+  }
+  sendText(text,onChunk=()=>{}){
+    if(typeof googleCreditBlocked==='function'&&googleCreditBlocked())return Promise.reject(new Error(GOOGLE_CREDIT_END));
+    if(this.closed||!this.ws||this.ws.readyState!==1)return Promise.reject(new Error('Sessão encerrada'));
+    if(this.textTurn)return Promise.reject(new Error('Aguarde a resposta atual'));
+    this.stopPlayback();this.googleLastActivity=Date.now();
+    return new Promise((resolve,reject)=>{
+      const micOpen=this.micOpen;this.micOpen=false;
+      this.textTurn={text:'',tools:[],started:performance.now(),onChunk,resolve,reject,micOpen};
+      this.textTimer=setTimeout(()=>{this.finishText(new Error('Tempo de resposta esgotado'));this.end();},45000);
+      this.ws.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}}));
+    });
+  }
+  finishText(error){
+    const turn=this.textTurn;if(!turn)return;
+    clearTimeout(this.textTimer);this.textTurn=null;this.micOpen=turn.micOpen;
+    this.googleLastActivity=Date.now();
+    if(error)return turn.reject(error);
+    if(!turn.text.trim())return turn.reject(new Error('Gemini não devolveu texto'));
+    turn.resolve({message:turn.text,tools:turn.tools,elapsedMs:performance.now()-turn.started});
   }
   teardown(reason){
-    if(this.closed) return; this.closed=true;
+    if(typeof googleLiveSessions!=='undefined')googleLiveSessions.delete(this);
+    if(this.closed) return; this.closed=true; this.finishText(new Error(reason||'Sessão encerrada'));clearTimeout(this.googleDeadline);clearInterval(this.googleIdle);
     clearInterval(this.vigiaSom);
     this.stopPlayback();
     try{ this.worklet && this.worklet.disconnect(); }catch(e){}
@@ -2397,7 +2246,7 @@ class GeminiLive {
     try{ this.outCtx && this.outCtx.close(); }catch(e){}
     this.onClose(reason);
   }
-  end(){ this.peloUsuario = true; try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
+  end(){ try{ this.ws && this.ws.close(1000, 'fim'); }catch(e){} this.teardown(''); }
 }
 
 /* ---------- reação da interface ao que o cérebro respondeu ---------- */
@@ -2427,12 +2276,13 @@ function fimDaFala(g){
 }
 let iniciando = false;   // login, tela da íris e botão podem chamar ao mesmo tempo: a abertura roda uma vez só
 async function start(){
+  if(googleCreditBlocked()){renderGoogleCredits();return;}
   if(iniciando || conv) return;
   iniciando = true;
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=googleCreditBlocked(); bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // da íris até o fim do cumprimento o Felyx não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
@@ -2447,7 +2297,7 @@ async function start(){
     await inicioVoz;
     await boot;
     conv = g;
-    setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=false;
+    setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=googleCreditBlocked();
     await Promise.race([rosto, pausa(5000)]);   // a íris acabou: se o rosto ainda conecta, espera até 5 s; sem rosto, fala pela voz do aparelho
     if(conv !== g) return;
     FelyxAvatar.esconder(false);   // o rosto aparece...
@@ -2462,30 +2312,11 @@ async function start(){
     iniciando = false;
     g.teardown('');
     bootEl.dataset.on='0'; scanEl.dataset.on='0';
-    talkBtn.disabled=false;
+    talkBtn.disabled=googleCreditBlocked();
     const msg = (e&&e.name==='NotAllowedError') ? 'Microfone bloqueado. Libere o microfone nas permissões do navegador e tente de novo.'
       : 'Não foi possível conectar. ('+(e&&e.message?e.message:e)+')';
     setState('error', msg);
   }
-}
-// 19/11/2026: a conversa caiu sem o usuário encerrar (rede, servidor): reconecta sozinha a voz,
-// sem íris nem cumprimento, com espera crescente (1, 2, 4, 8, 16 s; até 5 tentativas). Mesmo token e rota de voz.
-async function reconectarVoz(antiga, n){
-  if(conv !== antiga) return;
-  if(n >= 5){ conv = null; FelyxAvatar.fechar(); iniciando = false; setState('idle', 'conexão perdida, toque para falar'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; return; }
-  statusText.textContent = 'reconectando…';
-  await pausa(1000 * Math.pow(2, n));
-  if(conv !== antiga) return;
-  const g = new GeminiLive();
-  g.onState = antiga.onState; g.onBrain = antiga.onBrain; g.onTranscript = antiga.onTranscript;
-  g.mutado = antiga.mutado; g.micOpen = false;
-  try{
-    await g.start();
-    conv = g;
-    g.onClose = (reason)=>{ if(conv===g && !g.peloUsuario){ reconectarVoz(g, 0); return; } FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
-    g.micOpen = !g.mutado; setState('listening',''); statusText.textContent = 'pode falar';
-    setTimeout(()=>{ if(statusText.textContent === 'pode falar') statusText.textContent = ''; }, 3000);
-  }catch(e){ try{ g.teardown(''); }catch(_){} reconectarVoz(antiga, n + 1); }
 }
 function stop(){ if(conv){ conv.end(); } }
 // 14/11/2026 (modo live): durante a conversa, tocar no microfone MUTA e DESMUTA (a conversa continua aberta);
@@ -2526,9 +2357,37 @@ document.addEventListener('keydown', (e)=>{
   if(e.key==='m'){ loadMercado(true); loadNoticias(true); }
 });
 
+/* Conversa escrita da prévia: login e respostas ficam no próprio painel. */
+(function(){
+ const box=document.createElement('form');box.id='googleChat';box.style.cssText='position:fixed;bottom:calc(var(--tabsH) + 108px);left:50%;transform:translateX(-50%);z-index:90;width:min(420px,calc(100vw - 24px));display:flex;gap:6px';
+ box.innerHTML='<input aria-label="Mensagem" placeholder="Converse por texto" style="min-width:0;flex:1;background:var(--bg,#111);color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px;font:inherit"><button type="submit" style="background:var(--accent);border:0;border-radius:10px;padding:10px;color:#111">Enviar</button>';
+ document.body.appendChild(box);
+ const credits=document.createElement('div');credits.id='googleCredits';credits.setAttribute('role','status');credits.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(var(--tabsH) + 72px);z-index:90;text-align:center;font-size:12px;color:var(--accent);pointer-events:none';document.body.appendChild(credits);renderGoogleCredits();refreshGoogleCredits();setInterval(refreshGoogleCredits,15000);
+ const reply=document.createElement('div');reply.id='googleReply';reply.setAttribute('role','status');reply.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabsH) + 166px);z-index:90;width:min(420px,calc(100vw - 24px));max-height:24vh;overflow:auto;white-space:pre-wrap;background:var(--bg,#111);color:var(--accent);border-radius:10px;padding:10px;box-sizing:border-box';reply.hidden=true;document.body.appendChild(reply);
+ let textLive=null;
+ box.addEventListener('submit',async e=>{
+   e.preventDefault();if(googleCreditBlocked()){renderGoogleCredits();return;}if(!SESSAO){mostrarLogin('Entre para conversar.');return;}
+   const input=box.querySelector('input'),button=box.querySelector('button'),text=input.value.trim();
+   if(!text||button.disabled)return;box.dataset.busy='1';button.disabled=true;reply.hidden=false;reply.textContent='Conectando…';
+   try{
+     let live=conv&&!conv.closed?conv:textLive;
+     if(!live||live.closed){
+       live=textLive=new GeminiLive();
+       try{await live.start(true);}catch(e){live.end();throw e;}
+     }
+     reply.textContent='Pensando…';
+     const j=await live.sendText(text,value=>{reply.textContent=value;});
+     reply.textContent=j.message;input.value='';
+     box.dataset.lastResponseMs=String(Math.round(j.elapsedMs));
+     box.dataset.sessionOpeningMs=String(Math.round(live.openingMs));
+   }catch(e){reply.textContent='Não foi possível concluir: '+e.message;}
+   finally{box.dataset.busy='0';button.disabled=googleCreditBlocked();}
+ });
+ window.addEventListener('pagehide',()=>{if(textLive)textLive.end();});
+})();
 /* ---------- carga inicial e atualização periódica ---------- */
 loadMercado(true); loadNoticias(true);
-setInterval(()=>{ loadMercado(); loadNoticias(); }, 60000);   // atualiza a cada 15 min (prazo no paineis-google.js), mesmo fora do Dashboard
+setInterval(()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } }, 60000);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } });
 </script>
 <div class="materia" id="materia" aria-live="polite"><button class="mf" type="button" aria-label="Fechar matéria" onclick="FERRAMENTAS_MATERIA.fechar()">×</button><div class="mx"><div class="ms" id="matFonte"></div><h2 id="matTitulo"></h2><div class="mt" id="matTexto"></div></div></div>
