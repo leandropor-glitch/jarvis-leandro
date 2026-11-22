@@ -1723,6 +1723,18 @@ async function apoioGen(acao, dados){
   return j.dados || { erro:'indisponível agora' };
 }
 let casaGen = { aparelhos:[], cenas:[] };
+// 22/11 (Leandro): a lista de cenas e aparelhos só é relida na central quando o cliente pede (sem agendamento).
+async function atualizarCenas(){
+  const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO, atualizar:true }) }).then(x=>x.json()).catch(()=>null);
+  if(!r || !r.ok) return { ok:false, erro:'não consegui ler a central agora' };
+  const antes = new Set(casaGen.cenas || []);
+  window.felyxCOAllScenes = (r.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||''));
+  casaGen = { aparelhos:(r.aparelhos||[]).map(a=>a.nome), cenas:window.felyxCOAllScenes.filter(c=>!VinciCO.isCO(c)) };
+  try{ localStorage.setItem('felyx.casa', JSON.stringify({ cenas:r.cenas, aparelhos:r.aparelhos })); }catch(e){}
+  if(window.felyxCO) await window.felyxCO.reload(false).catch(()=>{});
+  const novas = casaGen.cenas.filter(c=>!antes.has(c)), sairam = [...antes].filter(c=>!casaGen.cenas.includes(c));
+  return { ok:true, atualizada: r.atualizada === true, total_cenas: casaGen.cenas.length, total_aparelhos: casaGen.aparelhos.length, novas, sairam };
+}
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
@@ -1890,6 +1902,7 @@ const GEN_FERRAMENTAS = {
     return Object.assign({ atualizado: r.atualizado || null, instrucao: 'Diga as 3 mais importantes, curtas, em português do Brasil (traduza se preciso), citando a fonte. Para ler uma inteira, chame noticias com o url dela.' }, so ? { [so]: todas[so] } : todas);
   },
   async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
+  async atualizar_cenas(){ return atualizarCenas(); },
   async abrir_manchete({ secao, posicao }){
     const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
@@ -1931,6 +1944,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'manchetes_do_dia', description:'Notícias de HOJE: manchetes do Google Notícias atualizadas a cada 15 minutos, com fonte e url. secao: destaques, politica, tecnologia ou economia (vazio = todas). Use sempre que pedirem as notícias do dia, as manchetes, o que está acontecendo ou notícias de tecnologia. Para um assunto específico use noticias com busca.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' } } } },
   { name:'noticias', description:'Com busca (assunto em poucas palavras): manchetes recentes com fonte e url. Com url: o texto completo da matéria.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, url:{ type:'STRING' } } } },
+  { name:'atualizar_cenas', description:'Relê agora, na central da casa, a lista de cenas e aparelhos (entra o que o cliente criou no aplicativo e sai o que ele apagou). Use quando pedirem para atualizar, buscar ou sincronizar as cenas. Depois diga quantas cenas novas entraram e quais, e quais saíram.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a matéria de uma manchete do painel e traz o texto completo para você ler. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
   { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
   { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
