@@ -1430,9 +1430,11 @@ async function _bootComIris(avisos){
 const MOTOR_GOOGLE = 'https://script.google.com/macros/s/AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen/exec';
 const pausa = (ms)=> new Promise((ok)=> setTimeout(ok, ms));
 async function dolarDoGoogle(){
+  // 22/11 (Leandro): a voz fala o MESMO dólar do card da tela (Binance), nunca outro número.
+  try{ const m = mercadoData || await loadMercado(true); const a = ASSETS.find((x)=> x.id === 'usd'); const v = a && m && a.pick(m); if(v && Number(v.brl) > 0) return Number(v.brl); }catch(e){}
   try{ const p = await fetch(MOTOR_GOOGLE, { cache:'no-store' }).then((r)=> r.json()); const v = p && p.cotacoes && p.cotacoes.usd_brl && Number(p.cotacoes.usd_brl.valor); if(v > 0) return v; }catch(e){}
   try{ const m = mercadoData || await loadMercado(true); const v = m && m.cambio && Number(m.cambio.usdbrl); if(v > 0) return v; }catch(e){}
-  return null;   // sem o dólar oficial ele não fala de dólar (nunca a cotação do USDT)
+  return null;
 }
 async function dadosDoCumprimento(){
   const [clima, dolar] = await Promise.all([climaAgora().catch(()=> null), dolarDoGoogle()]);
