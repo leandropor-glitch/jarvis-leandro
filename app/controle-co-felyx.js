@@ -18,7 +18,6 @@ window.felyxCO=VinciRemoteCO.create({getControls:async()=>SESSAO?importScenes():
 GEN_FERRAMENTAS.listarControles=()=>window.felyxCO.reload(true);GEN_FERRAMENTAS.importarControles=()=>request('importarControles',{});GEN_FERRAMENTAS.controleRemoto=args=>window.felyxCO.execute(args);GEN_FERRAMENTAS.abrirControle=async args=>{if(!args.ambiente){window.felyxCO.showList();return {ok:true};}return {ok:!!window.felyxCO.open(args)};};
 const original=GEN_FERRAMENTAS.automacoes;GEN_FERRAMENTAS.automacoes=async a=>VinciCO.isCO(a&&a.dispositivo)?{ok:false,mensagem:'Esse botão fica nos controles remotos.'}:original(a);
 GEN_FERRAMENTAS.apagarCena=async()=>({ok:false,mensagem:'A central ainda não permite mover a cena para Outros; mantive a cena.'});window.felyxCO.reload(false).catch(()=>{});
-})();
-
 /* 22/11 (Leandro): controle remoto próprio. O cliente dá o nome; ele não aciona cena nenhuma; os botões ele atrela às cenas quando quiser. */
 window.felyxCOCriar=async function(nome){nome=String(nome||'').trim().slice(0,30);if(!nome)return null;const rs=rooms();const amb=rs.slice().sort((a,b)=>b.length-a.length).find(r=>norm(nome).endsWith(' '+norm(r))||norm(nome)===norm(r));const c={aparelho:amb&&norm(nome)!==norm(amb)?nome.slice(0,nome.length-amb.length).trim():nome,ambiente:amb||(typeof roomActive==='string'&&roomActive&&roomActive!=='Favoritos'?roomActive:'Casa')};const r=await apoioGen('memoria',{operation:'learn',memoryKey:'controle-proprio:'+norm(c.aparelho+'|'+c.ambiente),memoryValue:JSON.stringify(c),category:'comando'});if(r.erro||r.ok===false)return null;await loadBindings();window.felyxCO.setControls(groups());return c;};
+})();

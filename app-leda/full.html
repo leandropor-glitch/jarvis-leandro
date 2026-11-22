@@ -2254,6 +2254,22 @@ const GEN_FERRAMENTAS = {
     return { titulo:n.title, fonte:n.source || '', url:n.link || '', texto,
       instrucao:'A manchete do painel está aberta na tela. Diga em voz alta, em 2 ou 3 frases, do que trata a notícia (pesquise o título na Busca Google para resumir com fatos). Para aprofundar ou buscar detalhes da matéria, use a Busca Google nativa, citando as fontes. Para rolar use rolar_materia; para fechar, fechar_materia.' };
   },
+  // 22/11 (Leandro): rolar a tela de verdade (dashboard, ambientes ou a matéria aberta) e só dizer que rolou se rolou.
+  async rolar_tela({ para }){
+    const dir = String(para||'baixo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const mat = document.querySelector('.materia:not([hidden]), #materia:not([hidden])');
+    if(mat && window.FERRAMENTAS_MATERIA) return window.FERRAMENTAS_MATERIA.rolar(dir);
+    const vis = (el)=>{ const r = el.getBoundingClientRect(); return r.width > 40 && r.height > 40 && r.bottom > 0 && r.top < innerHeight && getComputedStyle(el).visibility !== 'hidden'; };
+    const cands = [document.scrollingElement, ...document.querySelectorAll('main, section, aside, div, nav')].filter((el)=> el && el.scrollHeight - el.clientHeight > 8 && (el === document.scrollingElement || (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && vis(el))));
+    if(!cands.length) return { ok:false, rolou:false, responda:'Esta tela já cabe inteira, não há o que rolar.' };
+    const el = cands.sort((a,b)=> (b.clientHeight*b.clientWidth) - (a.clientHeight*a.clientWidth))[0];
+    const antes = el.scrollTop, passo = Math.round(el.clientHeight * 0.8);
+    const alvo = /topo|inicio|comeco/.test(dir) ? 0 : (/fim|final|fundo/.test(dir) ? el.scrollHeight : (/cima|sobe|subir/.test(dir) ? antes - passo : antes + passo));
+    el.scrollTo({ top: alvo, behavior:'smooth' });
+    await new Promise((ok)=> setTimeout(ok, 450));
+    const moveu = Math.abs(el.scrollTop - antes) > 4;
+    return moveu ? { ok:true, rolou:true, responda:'Ok.' } : { ok:false, rolou:false, responda: alvo > antes ? 'Já estou no fim da tela.' : 'Já estou no topo da tela.' };
+  },
   async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
   async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
   async memoria(a){ return apoioGen('memoria', a); },
@@ -2275,6 +2291,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
   { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, uma manchete do painel de notícias, com fonte e link, e você lê um resumo falado. Use quando pedirem "abre a do Fachin", "abre a notícia da Anthropic", "abre a primeira de tecnologia", "lê essa manchete". busca: palavras do título que a pessoa disse (ex.: "Fachin", "Anthropic"); secao: tecnologia ou politica (opcional); posicao: 1 a 6 (opcional; vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } } } },
+  { name:'rolar_tela', description:'Rola a tela que está aberta agora (dashboard, ambientes ou a matéria aberta). para: baixo, cima, fim ou topo. Só diga que rolou se a resposta trouxer rolou:true; se vier rolou:false, diga o motivo que veio em responda.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
   { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
   { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'memoria', description:'Memória de longo prazo da Leda: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',
@@ -2828,5 +2845,9 @@ window.FERRAMENTAS_MATERIA = {
 })();
 
 </script>
+<script src="../app-assets/controle-co-parser.js?v=20261122b"></script>
+<script src="../app-assets/controle-co-ui.js?v=20261122b"></script>
+<script src="controle-co-leda.js?v=20261122b"></script>
+<script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
 </body>
 </html>

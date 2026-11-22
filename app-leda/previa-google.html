@@ -2109,6 +2109,22 @@ const GEN_FERRAMENTAS = {
     document.getElementById('matTexto').textContent = texto || 'Não consegui abrir o texto completo; fico com o resumo da manchete.';
     return { titulo: n.title, fonte: n.source || '', url: n.link || '', texto: String(texto).slice(0, 7000), instrucao: 'A matéria está aberta na tela. Leia em português do Brasil (traduza se vier em outra língua), resuma e aprofunde no ponto mais interessante; converse e debata. Para rolar a tela use rolar_materia; para fechar, fechar_materia.' };
   },
+  // 22/11 (Leandro): rolar a tela de verdade (dashboard, ambientes ou a matéria aberta) e só dizer que rolou se rolou.
+  async rolar_tela({ para }){
+    const dir = String(para||'baixo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const mat = document.querySelector('.materia:not([hidden]), #materia:not([hidden])');
+    if(mat && window.FERRAMENTAS_MATERIA) return window.FERRAMENTAS_MATERIA.rolar(dir);
+    const vis = (el)=>{ const r = el.getBoundingClientRect(); return r.width > 40 && r.height > 40 && r.bottom > 0 && r.top < innerHeight && getComputedStyle(el).visibility !== 'hidden'; };
+    const cands = [document.scrollingElement, ...document.querySelectorAll('main, section, aside, div, nav')].filter((el)=> el && el.scrollHeight - el.clientHeight > 8 && (el === document.scrollingElement || (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && vis(el))));
+    if(!cands.length) return { ok:false, rolou:false, responda:'Esta tela já cabe inteira, não há o que rolar.' };
+    const el = cands.sort((a,b)=> (b.clientHeight*b.clientWidth) - (a.clientHeight*a.clientWidth))[0];
+    const antes = el.scrollTop, passo = Math.round(el.clientHeight * 0.8);
+    const alvo = /topo|inicio|comeco/.test(dir) ? 0 : (/fim|final|fundo/.test(dir) ? el.scrollHeight : (/cima|sobe|subir/.test(dir) ? antes - passo : antes + passo));
+    el.scrollTo({ top: alvo, behavior:'smooth' });
+    await new Promise((ok)=> setTimeout(ok, 450));
+    const moveu = Math.abs(el.scrollTop - antes) > 4;
+    return moveu ? { ok:true, rolou:true, responda:'Ok.' } : { ok:false, rolou:false, responda: alvo > antes ? 'Já estou no fim da tela.' : 'Já estou no topo da tela.' };
+  },
   async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
   async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
   async memoria(a){ return apoioGen('memoria', a); },
@@ -2699,5 +2715,6 @@ window.FERRAMENTAS_MATERIA = {
 })();
 
 </script>
+<script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
 </body>
 </html>
