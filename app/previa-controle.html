@@ -163,7 +163,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .matrix[data-edit="1"] .tile::after{content:"✎";position:absolute;right:4px;top:2px;font-size:.6rem;color:var(--accent);opacity:.8}
 .editor{margin:0 10px 10px;padding:10px 10px 8px;border-radius:8px;border:1px solid rgba(var(--accent-rgb),.45);background:rgba(0,0,0,.45)}
 .editor[hidden]{display:none}
-.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.editor .edTipoLinha{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;align-items:end;margin-bottom:4px}.editor .edTipoLinha #edAtualizar{grid-column:1 / -1;justify-self:start}.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .editor input{display:block;width:100%;margin-top:3px;font:inherit;font-size:.86rem;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:6px 8px;outline:none}
 .editor input:focus{border-color:var(--accent)}
 .editor .eb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
@@ -592,9 +592,10 @@ input,select,textarea{font-size:16px!important}
 
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
-        <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
+        <div class="ph"><span class="k"><i></i>favoritos</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
         <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
+          <div class="edTipoLinha"><label>tipo<select id="edTipo"><option value="cena">cena</option><option value="aparelho">dispositivo</option><option value="controle">controle remoto</option><option value="frase">frase livre</option></select></label><label>qual<select id="edAlvo"></select></label><button class="pb" id="edAtualizar" type="button">atualizar lista</button></div>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
           <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
@@ -1255,12 +1256,38 @@ document.getElementById('rmDel').addEventListener('click', excluirSala);
 document.getElementById('rmCancel').addEventListener('click', fecharSala);
 function openEditor(i, temp){
   editing = i; if(temp && !editMode){ matrixEl.dataset.edit = '1'; }
-  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
+  edName.value = tiles[i].n || ''; edName.dataset.auto = tiles[i].n ? '0' : '1'; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; { const tp = tipoDoTile(tiles[i]); document.getElementById('edTipo').value = tp; edPreencherAlvos(tp, alvoDoTile(tiles[i], tp)); } renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
   editorEl.hidden = false; edName.focus();
   editorEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
+// 22/11 (Leandro): favoritos aceitam cena, dispositivo ou controle remoto, do jeito que o Google enxerga.
+function edAlvos(tipo){
+  if(tipo === 'cena') return (casaGen.cenas || []).slice().sort((a,b)=>a.localeCompare(b));
+  if(tipo === 'aparelho') return (casaGen.aparelhos || []).slice().sort((a,b)=>a.localeCompare(b));
+  if(tipo === 'controle') return ((window.felyxCO && window.felyxCO.getControls && window.felyxCO.getControls()) || []).map(c=> c.aparelho + ' · ' + c.ambiente);
+  return [];
+}
+function edPreencherAlvos(tipo, atual){
+  const sel = document.getElementById('edAlvo'), lista = edAlvos(tipo);
+  sel.disabled = tipo === 'frase';
+  sel.innerHTML = '<option value="">escolha…</option>' + lista.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(atual && lista.includes(atual)) sel.value = atual;
+}
+function edAplicarAlvo(){
+  const tipo = document.getElementById('edTipo').value, alvo = document.getElementById('edAlvo').value; if(!alvo) return;
+  if(!edName.value.trim() || edName.dataset.auto === '1'){ edName.value = alvo.slice(0,22); edName.dataset.auto = '1'; }
+  if(tipo === 'cena'){ edPhrase.value = 'ativar a cena ' + alvo; edPhrase2.value = ''; }
+  else if(tipo === 'aparelho'){ edPhrase.value = 'ligar ' + alvo; edPhrase2.value = 'desligar ' + alvo; }
+  else if(tipo === 'controle'){ edPhrase.value = 'abrir o controle ' + alvo; edPhrase2.value = ''; document.getElementById('edRc').value = 'nao'; }
+}
+function tipoDoTile(t){ if(t.ctl) return 'controle'; if(isSceneTile(t)) return 'cena'; if(/^(ligar|desligar)\s/i.test(String(t.f||''))) return 'aparelho'; return t.f ? 'frase' : 'cena'; }
+function alvoDoTile(t, tipo){ const f = String(t.f||''); if(tipo === 'controle') return t.ctl; if(tipo === 'cena') return f.replace(/^.*\bcena\s+/i,'').trim(); if(tipo === 'aparelho') return f.replace(/^ligar\s+/i,'').trim(); return ''; }
+document.getElementById('edTipo').addEventListener('change', (e)=>{ edPreencherAlvos(e.target.value, ''); });
+document.getElementById('edAlvo').addEventListener('change', edAplicarAlvo);
+edName.addEventListener('input', ()=>{ edName.dataset.auto = '0'; });
+document.getElementById('edAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ok:false})); b.disabled = false; b.textContent = r.ok ? ('atualizada · ' + r.total_cenas + ' cenas') : 'não consegui ler a central'; edPreencherAlvos(document.getElementById('edTipo').value, document.getElementById('edAlvo').value); setTimeout(()=>{ b.textContent = 'atualizar lista'; }, 3500); });
 function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
-document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; const tp = document.getElementById('edTipo').value, al = document.getElementById('edAlvo').value; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; if(tp === 'controle' && al) tiles[editing].ctl = al; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'', f2:'' }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edCancel').addEventListener('click', closeEditor);
 document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; saveOn(); saveTiles(); renderMatrix(); closeEditor(); } });
@@ -1297,6 +1324,7 @@ async function runTile(i, btn){
   const t = tiles[i]; if(!t || !t.f) return;
   const cena = isSceneTile(t);
   if(VinciCO.normalize(t.n)==='controle remoto'){window.felyxCO.showList();return;}
+  if(t.ctl){ const [ap, amb] = String(t.ctl).split(' · '); const c = ((window.felyxCO.getControls && window.felyxCO.getControls()) || []).find(x=> x.aparelho === ap && x.ambiente === amb); if(c) window.felyxCO.open(c); else window.felyxCO.showList(); return; }
   // Abre somente depois de a central confirmar.   // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
