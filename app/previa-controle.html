@@ -1759,6 +1759,8 @@ async function atualizarCenas(){
   window.felyxCOAllScenes = (r.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||''));
   casaGen = { aparelhos:(r.aparelhos||[]).map(a=>a.nome), cenas:window.felyxCOAllScenes.filter(c=>!VinciCO.isCO(c)) };
   try{ localStorage.setItem('felyx.casa', JSON.stringify({ cenas:r.cenas, aparelhos:r.aparelhos })); }catch(e){}
+  // 22/11 (Leandro): o Google Home sincroniza junto, sempre a pedido do cliente. Sem esperar e sem erro na tela.
+  try{ fetch('https://palanteerhq.com/felyx-home/app/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: SESSAO }), keepalive:true }).then(x=>x.json()).then(j=>{ window.felyxGoogleSync = j; }).catch(()=>{}); }catch(e){}
   if(window.felyxCO) await window.felyxCO.reload(false).catch(()=>{});
   const novas = casaGen.cenas.filter(c=>!antes.has(c)), sairam = [...antes].filter(c=>!casaGen.cenas.includes(c));
   return { ok:true, atualizada: r.atualizada === true, total_cenas: casaGen.cenas.length, total_aparelhos: casaGen.aparelhos.length, novas, sairam };
