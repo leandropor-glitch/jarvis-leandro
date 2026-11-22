@@ -2,11 +2,11 @@
 (function(){'use strict';
 const scenes=()=>window.felyxCOAllScenes||[];
 const rooms=()=>[...new Set([...(roomConfig.comodos||[]).map(r=>r.nome),...(roomConfig.ordemTela||[]),...salas.extras])];
-let bindings=[];const norm=VinciCO.normalize;
-async function loadBindings(){const r=await apoioGen('memoria',{operation:'list'});if(r.erro||r.ok===false)throw Error('memoria');const items=r.memories||r.memorias||r.items||r.rows;if(!Array.isArray(items))throw Error('memoria');bindings=items.filter(x=>String(x.memoryKey||'').startsWith('controle-co:')).map(x=>{try{return JSON.parse(x.memoryValue);}catch{return null;}}).filter(Boolean);}
+let bindings=[],proprios=[];const norm=VinciCO.normalize;
+async function loadBindings(){const r=await apoioGen('memoria',{operation:'list'});if(r.erro||r.ok===false)throw Error('memoria');const items=r.memories||r.memorias||r.items||r.rows;if(!Array.isArray(items))throw Error('memoria');proprios=items.filter(x=>String(x.memoryKey||'').startsWith('controle-proprio:')).map(x=>{try{return JSON.parse(x.memoryValue);}catch{return null;}}).filter(Boolean);bindings=items.filter(x=>String(x.memoryKey||'').startsWith('controle-co:')).map(x=>{try{return JSON.parse(x.memoryValue);}catch{return null;}}).filter(Boolean);}
 function groups(){const gs=VinciCO.group(scenes().map(nome=>({nome,cenaId:nome})),rooms());function get(c){let g=gs.find(g=>norm(g.ambiente)===norm(c.ambiente)&&norm(g.aparelho)===norm(c.aparelho));if(!g){g={ambiente:c.ambiente,aparelho:c.aparelho,botoes:[]};gs.push(g);}return g;}
 scenes().filter(n=>!VinciCO.isCO(n)).forEach(n=>{const m=n.match(/^(Apple\s+TV|TV|Ar|AC|Som|Receiver|Projetor)\s+(.+)$/i);if(m)get({aparelho:/^(ar|ac)$/i.test(m[1])?'Ar':m[1],ambiente:m[2]});});
-bindings.forEach(b=>{const g=get(b);g.botoes=g.botoes.filter(x=>x.funcao!==b.funcao);if(b.cenaId&&scenes().includes(b.cenaId))g.botoes.push({funcao:b.funcao,rotulo:b.funcao,cenaId:b.cenaId,manual:true});});return gs;}
+proprios.forEach(p=>get(p));bindings.forEach(b=>{const g=get(b);g.botoes=g.botoes.filter(x=>x.funcao!==b.funcao);if(b.cenaId&&scenes().includes(b.cenaId))g.botoes.push({funcao:b.funcao,rotulo:b.funcao,cenaId:b.cenaId,manual:true});});return gs;}
 async function importScenes(){const r=await fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})});const j=await r.json();if(!j.ok||sessaoCaiu(r,j))throw Error('casa');window.felyxCOAllScenes=(j.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||''));casaGen={aparelhos:(j.aparelhos||[]).map(a=>a.nome),cenas:scenes().filter(c=>!VinciCO.isCO(c))};renderMatrix();await loadBindings();return groups();}
 async function request(action,args){
 if(action==='cenasControle')return {ok:true,scenes:scenes().map(nome=>({nome,cenaId:nome}))};
@@ -19,3 +19,6 @@ GEN_FERRAMENTAS.listarControles=()=>window.felyxCO.reload(true);GEN_FERRAMENTAS.
 const original=GEN_FERRAMENTAS.automacoes;GEN_FERRAMENTAS.automacoes=async a=>VinciCO.isCO(a&&a.dispositivo)?{ok:false,mensagem:'Esse botão fica nos controles remotos.'}:original(a);
 GEN_FERRAMENTAS.apagarCena=async()=>({ok:false,mensagem:'A central ainda não permite mover a cena para Outros; mantive a cena.'});window.felyxCO.reload(false).catch(()=>{});
 })();
+
+/* 22/11 (Leandro): controle remoto próprio. O cliente dá o nome; ele não aciona cena nenhuma; os botões ele atrela às cenas quando quiser. */
+window.felyxCOCriar=async function(nome){nome=String(nome||'').trim().slice(0,30);if(!nome)return null;const rs=rooms();const amb=rs.slice().sort((a,b)=>b.length-a.length).find(r=>norm(nome).endsWith(' '+norm(r))||norm(nome)===norm(r));const c={aparelho:amb&&norm(nome)!==norm(amb)?nome.slice(0,nome.length-amb.length).trim():nome,ambiente:amb||(typeof roomActive==='string'&&roomActive&&roomActive!=='Favoritos'?roomActive:'Casa')};const r=await apoioGen('memoria',{operation:'learn',memoryKey:'controle-proprio:'+norm(c.aparelho+'|'+c.ambiente),memoryValue:JSON.stringify(c),category:'comando'});if(r.erro||r.ok===false)return null;await loadBindings();window.felyxCO.setControls(groups());return c;};
