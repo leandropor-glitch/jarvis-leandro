@@ -163,7 +163,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .matrix[data-edit="1"] .tile::after{content:"✎";position:absolute;right:4px;top:2px;font-size:.6rem;color:var(--accent);opacity:.8}
 .editor{margin:0 10px 10px;padding:10px 10px 8px;border-radius:8px;border:1px solid rgba(var(--accent-rgb),.45);background:rgba(0,0,0,.45)}
 .editor[hidden]{display:none}
-.editor .edTipoLinha{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;align-items:end;margin-bottom:4px}.editor .edTipoLinha #edAtualizar{grid-column:1 / -1;justify-self:start}.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.editor .edTipoLinha{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.4fr);gap:8px;align-items:end;margin-bottom:4px}.editor .edTipoLinha #edAtualizar{grid-column:1 / -1;justify-self:start}.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .editor input{display:block;width:100%;margin-top:3px;font:inherit;font-size:.86rem;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:6px 8px;outline:none}
 .editor input:focus{border-color:var(--accent)}
 .editor .eb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
@@ -595,7 +595,7 @@ input,select,textarea{font-size:16px!important}
         <div class="ph"><span class="k"><i></i>favoritos</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
         <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
-          <div class="edTipoLinha"><label>tipo<select id="edTipo"><option value="cena">cena</option><option value="aparelho">dispositivo</option><option value="controle">controle remoto</option><option value="frase">frase livre</option></select></label><label>qual<select id="edAlvo"></select></label><button class="pb" id="edAtualizar" type="button">atualizar lista</button></div>
+          <div class="edTipoLinha"><label>tipo<select id="edTipo"><option value="cena">cena</option><option value="aparelho">aparelho</option><option value="controle">controle remoto</option><option value="frase">frase livre</option></select></label><label>qual<select id="edAlvo"></select></label><button class="pb" id="edAtualizar" type="button">atualizar lista</button></div>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
           <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
@@ -1256,7 +1256,7 @@ document.getElementById('rmDel').addEventListener('click', excluirSala);
 document.getElementById('rmCancel').addEventListener('click', fecharSala);
 function openEditor(i, temp){
   editing = i; if(temp && !editMode){ matrixEl.dataset.edit = '1'; }
-  edName.value = tiles[i].n || ''; edName.dataset.auto = tiles[i].n ? '0' : '1'; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; { const tp = tipoDoTile(tiles[i]); document.getElementById('edTipo').value = tp; edPreencherAlvos(tp, alvoDoTile(tiles[i], tp)); } renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
+  edName.value = tiles[i].n || ''; edName.dataset.auto = '1'; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; { const tp = tipoDoTile(tiles[i]); document.getElementById('edTipo').value = tp; edPreencherAlvos(tp, alvoDoTile(tiles[i], tp)); } renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
   editorEl.hidden = false; edName.focus();
   editorEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
