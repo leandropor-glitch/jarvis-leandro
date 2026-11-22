@@ -475,6 +475,7 @@ input,select,textarea{font-size:16px!important}
 .pavBar button{padding:6px 12px;border-radius:999px;border:1px solid #ffffff22;background:transparent;color:var(--muted);font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
 .pavBar button[aria-selected="true"]{border-color:var(--accent);color:var(--accent)}
 .pavBar button.addPav{border-style:dashed}
+.c4dBtn{display:block;margin:2px 12px 12px;padding:11px 12px;border-radius:10px;text-align:center;font-weight:700;font-size:14px;background:rgb(var(--accent-rgb));color:#06070a;text-decoration:none;min-height:44px;line-height:22px}
 </style>
 <script>
 /* 09/11/2026 (Leandro): app não dá zoom. Trava pinça, toque duplo e o zoom do iPhone ao focar um campo; mede a área segura (ilha e cantos). */
@@ -597,6 +598,10 @@ input,select,textarea{font-size:16px!important}
       <section class="panel clima" id="climaP" aria-label="Clima">
         <div class="ph"><span class="k"><i></i>clima · rio de janeiro</span><span class="pr" id="climaWhen">carregando</span></div>
         <div class="climaBox"><b id="climaT">—</b><div><span id="climaD">—</span><small id="climaX"></small></div></div>
+      </section>
+      <section class="panel casa4d" id="casa4dP" aria-label="Casa 4D">
+        <div class="ph"><span class="k"><i></i>casa 4d</span><span class="pr">sua planta em 3D</span></div>
+        <a class="c4dBtn" href="https://palanteerhq.com/login/?marca=felyx&amp;next=%2Fcasa4d%2F" target="_blank" rel="noopener">Abrir minha Casa 4D</a>
       </section>
       <section class="panel news" id="newsPol" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
