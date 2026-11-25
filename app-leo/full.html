@@ -553,7 +553,7 @@ input,select,textarea{font-size:16px!important}
 #hud[data-tab="dashboard"] #matrix::-webkit-scrollbar{display:none}
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para continuar">
   <div class="box"><div class="eye"></div><div class="t1">toque para continuar</div><div class="t2">leo · iA vinci</div></div>
@@ -2552,7 +2552,7 @@ window.FERRAMENTAS_MATERIA = {
 })();
 </script>
 <script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
-<script src="../vinci/onboarding.js?v=20261124refazer"></script>
+<script src="../vinci/onboarding.js?v=20261125google"></script>
 <script>
 // 24/11/2026 (Leandro): onboarding do Léo igual ao da Leda (como chamar, casa pelo Google, informações relevantes), guardado neste aparelho e no servidor do Léo.
 try{ VinciOnboarding.iniciar({ ia:'leo', local:true, sessao: ()=> (typeof SESSAO !== 'undefined' ? SESSAO : ''), salas: ()=>[],

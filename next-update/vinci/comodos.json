@@ -209,5 +209,29 @@
     ]
    }
   }
- ]
+ ],
+ "categorias": {
+  "3wACFelipe": "Iluminação",
+  "3wMesaFel": "Tomadas",
+  "Corda": "Tomadas",
+  "OFFs Felipe": "Tomadas",
+  "3wCortFelipe": "Iluminação",
+  "Blackout do Felipe": "Outros",
+  "Estante": "Iluminação",
+  "TomadaFelipe": "Tomadas",
+  "Abajur": "Tomadas",
+  "Indireta": "Iluminação",
+  "Nespresso": "Tomadas",
+  "Tomada Adega": "Tomadas",
+  "Ventilador": "Iluminação",
+  "Cozinha": "Iluminação",
+  "Luminária Varanda": "Tomadas",
+  "Sala de estar Lights": "Iluminação",
+  "TV Frame": "TVs",
+  "3wCloset": "Iluminação",
+  "Cama": "Iluminação",
+  "3wToalheiro": "Iluminação",
+  "Closet": "Iluminação"
+ },
+ "_categorias": "Categoria de cada aparelho como o Google classifica (Google Link da casa, 25/11/2026). Cenas e controles entram como 'Cenas'/'TVs' pela tela."
 }

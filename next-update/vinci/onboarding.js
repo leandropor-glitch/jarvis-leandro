@@ -283,8 +283,10 @@
   }
 
   function resumoImportado(j){
-    const linhas = j.comodos.map(c=>`<li><b>${esc(c.nome)}</b>: ${c.aparelhos.map(a=>esc(a.nome)).join(', ')}</li>`).join('');
-    return `<p><b>${esc(j.casa || 'Sua casa')}</b>: ${j.comodos.length} cômodos e ${j.total} aparelhos.</p><ul class="gl">${linhas}</ul>`;
+    const por = {}; j.comodos.forEach(c=>c.aparelhos.forEach(a=>{ const k = a.categoria || 'Outros'; (por[k] = por[k] || []).push(a.nome); }));
+    const ordem = ['Iluminação','Ar-condicionado','TVs','Tomadas','Persianas','Outros'];
+    const linhas = Object.keys(por).sort((x,y)=>ordem.indexOf(x)-ordem.indexOf(y)).map(k=>`<li><b>${esc(k)}</b>: ${por[k].map(esc).join(', ')}</li>`).join('');
+    return `<p><b>${esc(j.casa || 'Sua casa')}</b>: ${j.comodos.length} cômodos (${j.comodos.map(c=>esc(c.nome)).join(', ')}) e ${j.total} aparelhos.</p><ul class="gl">${linhas}</ul>`;
   }
 
   function atualizarBotao(ok){ const b = document.getElementById('vonbSeguir'); if(b) b.disabled = !ok; }
