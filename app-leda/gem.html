@@ -1091,8 +1091,8 @@ const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 /* ===================== acesso (login) ===================== */
 const LOGIN_URL = N8N + '/felix/login';
 let SESSAO = '';
-try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
-function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
+try{ SESSAO = localStorage.getItem('leda_sessao') || ''; }catch(e){}
+function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('leda_sessao', t); else localStorage.removeItem('leda_sessao'); }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
 (function montarLogin(){
@@ -1523,7 +1523,7 @@ async function runCena(i, btn, t){
   try{
     const r = await fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: t.f }) });
     const j = await r.json(); const perdeu=sessaoCaiu(r, j);
-    texto = !perdeu && j.ok ? String(j.text || 'Pronto, feito.').replace(/\balexa\b/gi, 'Vinci') : '';
+    texto = !perdeu && j.ok ? String(j.text || 'Pronto, feito.') : '';
   }catch(e){ texto = ''; }
   const ok = !!texto && !FAIL_RX.test(texto);
   if(ok) return;
@@ -1544,7 +1544,7 @@ async function runTile(i, btn, item){
   try{
     const r = await fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
     const j = await r.json(); if(sessaoCaiu(r, j)){ btn.dataset.busy='0'; return; }
-    texto = j.ok ? String(j.text || 'Pronto, feito.').replace(/\balexa\b/gi, 'Vinci') : '';
+    texto = j.ok ? String(j.text || 'Pronto, feito.') : '';
   }catch(e){ texto = ''; }
   btn.dataset.busy = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
@@ -1673,7 +1673,7 @@ function boasVindasLocal(sd){
 }
 // Nunca sai a palavra proibida na fala (reserva local; o n8n já filtra também) e nunca o segmento de comandos da casa.
 function filtrarSegmentos(segs){
-  return (segs || []).filter(s=> s && s.texto && s.alvo !== 'comandos').map(s=> ({ ...s, texto: String(s.texto).replace(/\balexa\b/gi, 'Vinci') }));
+  return (segs || []).filter(s=> s && s.texto && s.alvo !== 'comandos').map(s=> ({ ...s, texto: String(s.texto) }));
 }
 async function pedirBoasVindas(){   // Leda: cumprimento, o tempo pensando na casa e a pergunta de sempre; sem mercado e sem notícias
   const sd = saudacaoAgora(); let c = null; try{ c = await climaAgora(); }catch(e){}
@@ -1741,7 +1741,7 @@ Valor das mulheres: você é moderna. Nunca diga nem insinue que lugar de mulher
 A sua missão é ajudar na casa: deixar a vida da família mais leve, cuidar do conforto, da rotina e da segurança do lar. A sua pergunta de sempre é "Como é que eu posso te ajudar aqui na sua casa?".
 Como chamar a pessoa: chame todo mundo de "jovem" ("Bom dia, jovem!", "Olha, jovem..."), com carinho, tratando por "você". NUNCA diga "chefe", nem apelidos (querida, meu bem), e nunca chame a pessoa pelo nome, nem mesmo se souber quem é.
 Nomes: o seu nome é Leda e só Leda. Nunca diga, soletre ou escreva a palavra "Jarvis". Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci": sempre em italiano, "Víntchi". Nunca diga "Vince", "Vínsi" nem "Vinssi". O Felyx (fala-se "Félix") é o seu colega mais sério da Vinci: se perguntarem por ele, fale dele com carinho. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
-Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
+O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci".
 COTAÇÕES: você NÃO sabe e NÃO fala de cotação de nada (dólar, euro, bitcoin, cripto, bolsa, ações, petróleo, mercado). Se perguntarem, responda com humor de vó e volte para a casa ("Ih, jovem, disso de bitcoin eu não entendo nada. Agora, se quiser, eu te ensino um bolo que nunca desvaloriza!").
 Painel: nunca comente que os comandos da casa estão na tela, ao toque ou à disposição; a pessoa já sabe.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como uma grande especialista (receitas, saúde, organização da casa, plantas, crianças, história, ciência, direito, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa é o seu foco, mas nunca diga que só serve para isso, e nunca recuse uma pergunta.
@@ -1962,7 +1962,7 @@ const GEN_FERRAMENTAS = {
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
-    return { ok: !!j.ok, resposta: String(j.text || j.mensagem || '').replace(/\balexa\b/gi, 'Vinci') };
+    return { ok: !!j.ok, resposta: String(j.text || j.mensagem || '') };
   },
   // favoritos = a matriz de 32 botões de comando da tela (fica salva neste aparelho)
   async favoritos({ operacao, nome, novo_nome, posicao, posicao2 }){
@@ -2069,7 +2069,7 @@ const GEN_TOOLS = [{ googleSearch: {} }, { functionDeclarations: [
   { name:'automacoes', description:'Programa a casa do cliente: automações por horário. operacao: listar (mostra todas), salvar (cria, ou edita se o nome já existir), apagar, pausar, ativar. Para salvar: nome curto, hora HH:MM, dias (todos, dias úteis, fim de semana ou seg,ter...), dispositivo (nome exato do aparelho ou cena), acao (ligar, desligar, ativar, temperatura, brilho...) e valor quando houver.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','salvar','apagar','pausar','ativar'] }, nome:{ type:'STRING' }, hora:{ type:'STRING' }, dias:{ type:'STRING' },
       dispositivo:{ type:'STRING' }, acao:{ type:'STRING' }, valor:{ type:'STRING' } }, required:['operacao'] } },
-  { name:'avisar_falha', description:'Canal interno e silencioso com o Claude (a equipe da Vinci): nunca comente com o cliente. Registra um erro que você não consegue resolver sozinho: algo que falhou, um pedido que você não soube atender, uma correção que precisa ser feita no app da Vinci ou na Amazon. pedido: o que a pessoa pediu; erro: o que deu errado e o que precisa ser corrigido, explicado com clareza.', behavior:'BLOCKING',
+  { name:'avisar_falha', description:'Canal interno e silencioso com o Claude (a equipe da Vinci): nunca comente com o cliente. Registra um erro que você não consegue resolver sozinho: algo que falhou, um pedido que você não soube atender, uma correção que precisa ser feita no app da Vinci ou no Google. pedido: o que a pessoa pediu; erro: o que deu errado e o que precisa ser corrigido, explicado com clareza.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ pedido:{ type:'STRING' }, erro:{ type:'STRING' } }, required:['pedido','erro'] } },
   { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz o clima de agora.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{} } }

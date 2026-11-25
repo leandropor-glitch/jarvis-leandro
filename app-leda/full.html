@@ -768,9 +768,19 @@ function _pedirParaLeda(texto){
   }catch(e){}
   return false;
 }
+// 24/11/2026 (ordem do Leandro): recados da Leda no tom da escola da vida, 62 opções, sem repetir até passar por todos.
+const RECADOS_ESCOLA = ["Isso aí eu aprendi na escola da vida: quem guarda, tem.", "Na escola da vida, a primeira lição é levantar cedo e arrumar a cama.", "A escola da vida não dá diploma, mas dá juízo.", "Aprendi na escola da vida que panela vigiada não queima.", "Na escola da vida, quem ouve mais erra menos.", "A escola da vida me ensinou: não se gasta o que ainda não se ganhou.", "Isso eu aprendi na escola da vida: casa arrumada, cabeça arrumada.", "Na escola da vida, paciência vale mais que pressa.", "A escola da vida ensina devagar, mas ensina pra sempre.", "Aprendi na escola da vida que um obrigado abre mais portas que chave.", "Na escola da vida, quem semeia gentileza colhe amigo.", "A escola da vida me mostrou que tropeço não é queda.", "Isso aí é matéria da escola da vida: palavra dada é palavra cumprida.", "Na escola da vida, o recreio é a família reunida na mesa.", "A escola da vida ensina que pouco com Deus é muito.", "Aprendi na escola da vida: quem tem pressa come cru.", "Na escola da vida não tem cola, jovem: cada um faz a sua prova.", "A escola da vida me ensinou a fazer render o arroz e o salário.", "Isso eu aprendi na escola da vida: depois da tempestade vem a bonança.", "Na escola da vida, a lição mais difícil é pedir desculpas. E a mais bonita também.", "A escola da vida ensina que o tempo cura quase tudo. O resto, a gente aprende a carregar.", "Aprendi na escola da vida que água mole em pedra dura tanto bate até que fura.", "Na escola da vida, quem não arrisca não petisca.", "A escola da vida me ensinou a não deixar a louça pra amanhã.", "Isso aí é lição da escola da vida: cada coisa no seu lugar.", "Na escola da vida, a nota mais alta é dormir de consciência tranquila.", "A escola da vida mostra que amizade se rega como planta.", "Aprendi na escola da vida que é melhor prevenir do que remediar.", "Na escola da vida, o caderno é o coração: anota tudo.", "A escola da vida ensina que o mais forte é quem sabe recomeçar.", "Isso eu aprendi na escola da vida: devagar se vai ao longe.", "Na escola da vida, quem cuida do pouco ganha o muito.", "A escola da vida me ensinou que sorriso não custa nada e vale muito.", "Aprendi na escola da vida que mentira tem perna curta.", "Na escola da vida, a lição de casa é cuidar de quem a gente ama.", "A escola da vida ensina que não se chora pelo leite derramado: limpa e segue.", "Isso aí é da escola da vida: o combinado não sai caro.", "Na escola da vida, cada ruga é uma matéria aprendida.", "A escola da vida me mostrou que a gente aprende mais errando do que acertando.", "Aprendi na escola da vida que quem planta tâmaras planta pros netos.", "Na escola da vida, a professora mais exigente é a necessidade.", "A escola da vida ensina a dizer não sem perder a doçura.", "Isso eu aprendi na escola da vida: o barato às vezes sai caro.", "Na escola da vida, quem tem boca vai a Roma. Pergunta, jovem.", "A escola da vida me ensinou que casa cheia é casa feliz.", "Aprendi na escola da vida que não se mede ninguém pelo sapato.", "Na escola da vida, a matéria do dia é ter calma.", "A escola da vida ensina que o que é seu está guardado.", "Isso aí é lição da escola da vida: quem avisa amigo é.", "Na escola da vida, o melhor tempero é o carinho.", "A escola da vida me mostrou que coragem é ir com medo mesmo.", "Aprendi na escola da vida que roupa suja se lava em casa.", "Na escola da vida, a gente se forma todo dia e nunca termina o curso.", "A escola da vida ensina que a gratidão deixa o pão mais gostoso.", "Isso eu aprendi na escola da vida: não deixe pra amanhã o abraço de hoje.", "Na escola da vida, quem respeita é respeitado.", "A escola da vida me ensinou que pão de ontem vira rabanada. Nada se perde.", "Aprendi na escola da vida que uma andorinha só não faz verão. Junta a turma.", "Na escola da vida, a lição final é simples: ser bom compensa.", "A escola da vida ensina que, com jeito, tudo se ajeita.", "Isso aí eu aprendi na escola da vida: quem tem fé não anda só.", "Na escola da vida, o boletim é o jeito como a gente trata os outros."];
+function recadoEscola(){
+  let bag = []; try{ bag = JSON.parse(localStorage.getItem('leda.recados.bag') || '[]'); }catch(e){}
+  bag = (Array.isArray(bag) ? bag : []).filter(i => Number.isInteger(i) && i >= 0 && i < RECADOS_ESCOLA.length);
+  if(!bag.length){ bag = RECADOS_ESCOLA.map((_, i) => i); for(let i = bag.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; } }
+  const i = bag.shift(); try{ localStorage.setItem('leda.recados.bag', JSON.stringify(bag)); }catch(e){}
+  const ap = (window.VinciOnboarding && VinciOnboarding.apelido) ? VinciOnboarding.apelido() : 'jovem';
+  return RECADOS_ESCOLA[i].replace(/\bjovem\b/g, ap || 'jovem');
+}
 function montarReceitas(){
   const sec = document.getElementById('receitas'); if(!sec || sec.dataset.ok) return; sec.dataset.ok = '1';
-  const frase = _sorteia(FRASES_LEDA.fecho);
+  const frase = recadoEscola();
   sec.innerHTML = '<div class="rcTopo"><div class="rcK"><i></i>receitas · boas práticas do lar</div><h2>Da cozinha da Leda</h2><p class="rcFrase">Me dá um ovo e uma colher de açúcar que eu te ensino um bolo. Toque em "Ensina, Leda" e eu explico em voz alta.</p></div>'
     + '<div class="rcForca"><b>Recado da Leda:</b> ' + frase + '</div>'
     + '<div class="rcFiltro" data-noswipe>' + TIPOS_RECEITA.map(([k,n],i)=> '<button type="button" data-k="' + k + '" aria-pressed="' + (i===0) + '">' + n + '</button>').join('') + '</div>'
@@ -821,7 +831,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-</head>
+<script src="../vinci/noticias-fotos.js?v=20261124" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para falar com a Leda">
   <div class="box"><div class="eye"></div><div class="t1">toque para falar com a Leda</div><div class="t2">leda · vinci</div></div>
@@ -910,9 +920,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 // Félix GEN dentro do app (iPhone, iPad, Mac, Android): o login é o do app; a sessão chega pelo localStorage (mesmo endereço).
 // Sessão inválida = volta para o login do app. O app nativo espera o aviso "pronto".
 (function(){
-  try{ const s = JSON.parse(localStorage.getItem('felyx.sessao') || 'null'); if(s && s.token) localStorage.setItem('felyx_sessao', s.token); }catch(e){}
+  try{ const nativo = !!((window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.felyx)||window.FelyxAndroid); const s = nativo ? JSON.parse(localStorage.getItem('felyx.sessao') || 'null') : null; if(s && s.token) localStorage.setItem('leda_sessao', s.token); }catch(e){}
   const aviso = (tipo) => { try{ window.webkit.messageHandlers.felyx.postMessage({ tipo }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo })); }catch(e){} };
-  window.felyxVoltarAoLogin = function(){ try{ localStorage.removeItem('felyx.sessao'); localStorage.removeItem('felyx_sessao'); }catch(e){} aviso('logout'); try{ if(typeof mostrarLogin === 'function'){ mostrarLogin(''); return; } }catch(e){} location.replace('./' + location.search); };
+  window.felyxVoltarAoLogin = function(){ try{ if((window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.felyx)||window.FelyxAndroid) localStorage.removeItem('felyx.sessao'); localStorage.removeItem('leda_sessao'); }catch(e){} aviso('logout'); try{ if(typeof mostrarLogin === 'function'){ mostrarLogin(''); return; } }catch(e){} location.replace('./' + location.search); };
   addEventListener('DOMContentLoaded', () => aviso('pronto'));
 })();
 </script>
@@ -920,9 +930,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js?v=20261120local"></script>
-<script src="../vinci/onboarding.js?v=20261120local"></script>
-<script src="../vinci/ia-padrao.js?v=20261120local" data-ia="leda"></script>
-<script src="../vinci/paineis-google.js?v=20261120a"></script>
+<script src="../vinci/onboarding.js?v=20261124refazer"></script>
+<script src="../vinci/ia-padrao.js?v=20261125google" data-ia="leda"></script>
+<script src="../vinci/paineis-google.js?v=20261124fotos"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1187,8 +1197,8 @@ const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 /* ===================== acesso (login) ===================== */
 const LOGIN_URL = N8N + '/felix/login';
 let SESSAO = '';
-try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
-function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
+try{ SESSAO = localStorage.getItem('leda_sessao') || ''; }catch(e){}
+function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('leda_sessao', t); else localStorage.removeItem('leda_sessao'); }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
 try{ VinciOnboarding.iniciar({ ia:'leda', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
@@ -1200,7 +1210,7 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
   el.innerHTML = '<div class="cx"><h1>LEDA</h1><p>vinci</p>'
     + '<input id="flTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="telefone com DDD">'
     + '<input id="flSenha" type="password" autocomplete="current-password" placeholder="senha (a mesma do app Felyx)">'
-    + '<button id="flEntrar">Entrar</button><button id="flEsqueci" type="button" style="background:none;color:#8a8d86;font-weight:400;margin-top:6px">Esqueci a senha</button><div class="er" id="flErro"></div></div>';
+    + '<button id="flEntrar">Entrar</button><button id="flEsqueci" type="button" style="background:none;color:#8a8d86;font-weight:400;margin-top:6px">Primeiro acesso ou esqueci a senha</button><div class="er" id="flErro"></div></div>';
   document.body.appendChild(el);
   const entrar = document.getElementById('flEntrar'), erro = document.getElementById('flErro');
   async function tentar(){
@@ -1641,7 +1651,7 @@ async function runTile(i, btn, item){
   try{
     const r = await fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
     const j = await r.json(); if(sessaoCaiu(r, j)){ btn.dataset.busy='0'; return; }
-    texto = j.ok ? String(j.text || 'Pronto, feito.').replace(/\balexa\b/gi, 'Vinci') : '';
+    texto = j.ok ? String(j.text || 'Pronto, feito.') : '';
   }catch(e){ texto = ''; }
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
@@ -1818,7 +1828,7 @@ function boasVindasLocal(sd){
 }
 // Nunca sai a palavra proibida na fala (reserva local; o n8n já filtra também) e nunca o segmento de comandos da casa.
 function filtrarSegmentos(segs){
-  return (segs || []).filter(s=> s && s.texto && s.alvo !== 'comandos').map(s=> ({ ...s, texto: String(s.texto).replace(/\balexa\b/gi, 'Vinci') }));
+  return (segs || []).filter(s=> s && s.texto && s.alvo !== 'comandos').map(s=> ({ ...s, texto: String(s.texto) }));
 }
 async function pedirBoasVindas(){   // Leda: cumprimento, o tempo pensando na casa e a pergunta de sempre; sem mercado e sem notícias
   const sd = saudacaoAgora(); let c = null; try{ c = await climaAgora(); }catch(e){}
@@ -1886,7 +1896,7 @@ Valor das mulheres: você é moderna. Nunca diga nem insinue que lugar de mulher
 A sua missão é ajudar na casa: deixar a vida da família mais leve, cuidar do conforto, da rotina e da segurança do lar. A sua pergunta de sempre é "Como é que eu posso te ajudar aqui na sua casa?".
 Como chamar a pessoa: chame todo mundo de "jovem" ("Bom dia, jovem!", "Olha, jovem..."), com carinho, tratando por "você". NUNCA diga "chefe", nem apelidos (querida, meu bem), e nunca chame a pessoa pelo nome, nem mesmo se souber quem é.
 Nomes: o seu nome é Leda e só Leda. Nunca diga, soletre ou escreva a palavra "Jarvis". Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci": sempre em italiano, "Víntchi". Nunca diga "Vince", "Vínsi" nem "Vinssi". O Felyx (fala-se "Félix") é o seu colega mais sério da Vinci: se perguntarem por ele, fale dele com carinho. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
-Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
+O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci".
 COTAÇÕES (regra de 13/11/2026): quando perguntarem de dólar, euro, Bitcoin, bolsa, ações ou economia, pesquise na Busca Google nativa (poucas palavras, por exemplo "dólar hoje") e responda curto, com o seu jeito de vó, só o que a pessoa perguntou (valor e se subiu ou desceu hoje). Nunca invente valor: se a busca não trouxer o número, diga que a cotação não chegou agora. No cumprimento você continua sem falar de mercado.
 Painel: nunca comente que os comandos da casa estão na tela, ao toque ou à disposição; a pessoa já sabe.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como uma grande especialista (receitas, saúde, organização da casa, plantas, crianças, história, ciência, direito, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa é o seu foco, mas nunca diga que só serve para isso, e nunca recuse uma pergunta.
@@ -2114,7 +2124,7 @@ const GEN_FERRAMENTAS = {
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
     const controle = !!j.ok && !/deslig|apag|off|fech|parar|para\b/i.test(String(acao||'')) && rcDaCena(dispositivo);   // 14/11/2026: o controle remoto abre na tela
-    return Object.assign({ ok: !!j.ok, resposta: String(j.text || j.mensagem || '').replace(/\balexa\b/gi, 'Vinci') }, controle ? { controle_remoto: 'abriu na tela; diga só que o controle está na tela' } : {});
+    return Object.assign({ ok: !!j.ok, resposta: String(j.text || j.mensagem || '') }, controle ? { controle_remoto: 'abriu na tela; diga só que o controle está na tela' } : {});
   },
   // favoritos = a matriz de 32 botões de comando da tela (fica salva neste aparelho)
   async favoritos({ operacao, nome, novo_nome, posicao, posicao2 }){
@@ -2307,7 +2317,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'automacoes', description:'Programa a casa do cliente: automações por horário. operacao: listar (mostra todas), salvar (cria, ou edita se o nome já existir), apagar, pausar, ativar. Para salvar: nome curto, hora HH:MM, dias (todos, dias úteis, fim de semana ou seg,ter...), dispositivo (nome exato do aparelho ou cena), acao (ligar, desligar, ativar, temperatura, brilho...) e valor quando houver.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','salvar','apagar','pausar','ativar'] }, nome:{ type:'STRING' }, hora:{ type:'STRING' }, dias:{ type:'STRING' },
       dispositivo:{ type:'STRING' }, acao:{ type:'STRING' }, valor:{ type:'STRING' } }, required:['operacao'] } },
-  { name:'avisar_falha', description:'Canal interno e silencioso com o Claude (a equipe da Vinci): nunca comente com o cliente. Registra um erro que você não consegue resolver sozinho: algo que falhou, um pedido que você não soube atender, uma correção que precisa ser feita no app da Vinci ou na Amazon. pedido: o que a pessoa pediu; erro: o que deu errado e o que precisa ser corrigido, explicado com clareza.', behavior:'BLOCKING',
+  { name:'avisar_falha', description:'Canal interno e silencioso com o Claude (a equipe da Vinci): nunca comente com o cliente. Registra um erro que você não consegue resolver sozinho: algo que falhou, um pedido que você não soube atender, uma correção que precisa ser feita no app da Vinci ou no Google. pedido: o que a pessoa pediu; erro: o que deu errado e o que precisa ser corrigido, explicado com clareza.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ pedido:{ type:'STRING' }, erro:{ type:'STRING' } }, required:['pedido','erro'] } },
   { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz o clima de agora.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{} } }
@@ -2849,5 +2859,5 @@ window.FERRAMENTAS_MATERIA = {
 <script src="../app-assets/controle-co-ui.js?v=20261122b"></script>
 <script src="controle-co-leda.js?v=20261122b"></script>
 <script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
-</body>
+<script src="../vinci/tiles-ajuste.js?v=6" data-forma="retangulo"></script></body>
 </html>

@@ -553,7 +553,7 @@ input,select,textarea{font-size:16px!important}
 #hud[data-tab="dashboard"] #matrix::-webkit-scrollbar{display:none}
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-</head>
+<script src="../vinci/noticias-fotos.js?v=20261124" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para continuar">
   <div class="box"><div class="eye"></div><div class="t1">toque para continuar</div><div class="t2">leo · iA vinci</div></div>
@@ -998,26 +998,37 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
   st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#d6ff1a}#felyxLogin button{width:100%;margin-top:14px;background:#d6ff1a;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
   document.head.appendChild(st);
   const el = document.createElement('div'); el.id = 'felyxLogin';
-  el.innerHTML = '<div class="cx"><h1>LEO</h1><p>iA · vinci</p><input id="flTel" type="email" autocomplete="email" placeholder="seu e-mail"><input id="flSenha" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="código de 6 dígitos" hidden><button id="flEntrar">Enviar código</button><button id="flEsqueci" type="button" hidden>Enviar outro código</button><div class="er" id="flErro" role="status"></div></div>';
+  el.innerHTML = '<div class="cx"><h1>LEO</h1><p>iA · vinci</p><input id="flTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="telefone com DDD"><input id="flSenha" type="password" autocomplete="current-password" placeholder="senha"><button id="flEntrar">Entrar</button><button id="flEsqueci" type="button" style="background:none;color:#8a8d86;font-weight:400;margin-top:6px">Primeiro acesso ou esqueci a senha</button><div class="er" id="flErro" role="status"></div></div>';
   document.body.appendChild(el);
-  const entrar=document.getElementById('flEntrar'),erro=document.getElementById('flErro'),email=document.getElementById('flTel'),code=document.getElementById('flSenha');
-  let sent=false;
+  // 24/11 (ordem do Leandro): login do Leo = telefone + senha, igual a Felyx, Leda e Palanteer.
+  const entrar=document.getElementById('flEntrar'),erro=document.getElementById('flErro'),tel=document.getElementById('flTel'),senha=document.getElementById('flSenha');
+  const ERROS={login_invalido:'Telefone ou senha não conferem.',nao_autorizado:'Este número ainda não está liberado no Leo.',sem_senha:'Você ainda não criou a senha. Toque em Primeiro acesso ou esqueci a senha.'};
   async function tentar(){
-    if(!email.validity.valid||!email.value.trim()){erro.textContent='Informe seu e-mail.';return;}
-    if(sent&&!/^\d{6}$/.test(code.value.trim())){erro.textContent='Informe o código de 6 dígitos.';return;}
+    const t=tel.value.replace(/\D/g,'');
+    if(t.length<10){erro.textContent='Digite o telefone com DDD.';return;}
+    if(!senha.value){erro.textContent='Digite a sua senha.';return;}
     entrar.disabled=true;erro.textContent='Aguarde…';
-    try{const j=await googleRequest('login',sent?{email:email.value.trim(),code:code.value.trim()}:{email:email.value.trim()});
-      if(!j.ok)throw Error(j.erro);
-      if(j.token){salvarSessao(j.token);esconderLogin();googleCardsCache=null;loadMercado(true);loadNoticias(true);}
-      else {sent=true;email.readOnly=true;code.hidden=false;document.getElementById('flEsqueci').hidden=false;entrar.textContent='Entrar';erro.textContent='Código enviado por e-mail.';code.focus();}
-    }catch(e){erro.textContent=String(e.message||'Falha ao conectar.').replaceAll('_',' ');}finally{entrar.disabled=false;}
+    try{const j=await googleRequest('login',{telefone:t,senha:senha.value});
+      if(!j.ok||!j.token)throw Error(j.erro||'login_invalido');
+      senha.value='';salvarSessao(j.token);esconderLogin();setTimeout(()=>{ try{ VinciOnboarding.talvezAbrir(); }catch(e){} }, 800);googleCardsCache=null;loadMercado(true);loadNoticias(true);
+    }catch(e){const k=String(e.message||'');erro.textContent=ERROS[k]||'Não deu certo. Tente de novo.';}finally{entrar.disabled=false;}
   }
   entrar.addEventListener('click',tentar);
-  code.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
-  email.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
-  document.getElementById('flEsqueci').addEventListener('click',()=>{sent=false;email.readOnly=false;code.value='';code.hidden=true;entrar.textContent='Enviar código';});
+  senha.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
+  tel.addEventListener('keydown',e=>{if(e.key==='Enter')senha.focus();});
+  document.getElementById('flEsqueci').addEventListener('click',()=>{
+    const abrir=()=>window.felyxEsqueciSenha({telefone:tel.value,aoEntrar:(j)=>{ if(j && j.token){ salvarSessao(j.token);esconderLogin();googleCardsCache=null;loadMercado(true);loadNoticias(true);setTimeout(()=>{ try{ VinciOnboarding.talvezAbrir(); }catch(e){} }, 800); } else { erro.textContent='Senha criada. Agora entre com o telefone e a senha nova.'; senha.focus(); } }});
+    if(window.felyxEsqueciSenha)return abrir();
+    const s=document.createElement('script');s.src='esqueci-senha.js?v=20261124b';s.onload=abrir;document.head.appendChild(s);
+  });
+  // 24/11: voltou do WhatsApp e a pagina recarregou? reabre direto na etapa do codigo (vale 10 min)
+  window.vinciRetomarCodigo=function(){let p=null;try{p=JSON.parse(localStorage.getItem('vinci_codigo_pendente')||'null');}catch(e){}
+    if(!p||!p.tel||!(p.ate>Date.now())||document.getElementById('felyxEsqueci'))return;
+    const abrir=()=>window.felyxEsqueciSenha({telefone:p.tel,etapa:'codigo',aoEntrar:()=>{erro.textContent='Senha criada. Agora entre com o telefone e a senha nova.';tel.value=String(p.tel).replace(/^55/,'');senha.focus();}});
+    if(window.felyxEsqueciSenha)return abrir();
+    const s=document.createElement('script');s.src='esqueci-senha.js?v=20261124b';s.onload=abrir;document.head.appendChild(s);};
 })();
-function mostrarLogin(msg){  const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
+function mostrarLogin(msg){  const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); try{ window.vinciRetomarCodigo && window.vinciRetomarCodigo(); }catch(e){} } }
 function esconderLogin(){ const el = document.getElementById('felyxLogin'); if(el) el.dataset.on = '0'; }
 
 /* ===================== mercado (em real) ===================== */
@@ -2522,5 +2533,13 @@ window.FERRAMENTAS_MATERIA = {
 })();
 </script>
 <script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
-</body>
+<script src="../vinci/onboarding.js?v=20261124refazer"></script>
+<script>
+// 24/11/2026 (Leandro): onboarding do Léo igual ao da Leda (como chamar, casa pelo Google, informações relevantes), guardado neste aparelho e no servidor do Léo.
+try{ VinciOnboarding.iniciar({ ia:'leo', local:true, sessao: ()=> (typeof SESSAO !== 'undefined' ? SESSAO : ''), salas: ()=>[],
+  aoSalvar: (p)=>{ try{ googleRequest('memory', { key:'como_chamar', value: p.chamar || '' }); }catch(e){} } });
+  setTimeout(()=>{ try{ VinciOnboarding.talvezAbrir(); }catch(e){} }, 1500);
+}catch(e){}
+</script>
+<script src="../vinci/tiles-ajuste.js?v=6" data-forma="retangulo"></script></body>
 </html>

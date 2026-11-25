@@ -11,7 +11,7 @@
      na Leda, das Receitas. Cada edição confirmada vai sozinha para a fila
      vinci_replicacao (POST /webhook/vinci/ia {acao:'replicar'}): o Gemini
      (padrão) ou o Claude (Full) escreve o passo a passo para repetir o mesmo
-     ajuste no App Vinci (emuladores), no Google Home e na Amazon.
+     ajuste no App Vinci (emuladores), e no Google.
    Carregar ANTES do script principal da página. A edição confirma a fila
    local na hora; envio, recibo persistido e reenvios rodam em segundo plano.
    ===================================================================== */
@@ -32,7 +32,7 @@
     receitas: { aba:'receitas', ops:['criar','editar','renomear','apagar','padrao'] }
   };
 
-  const sessao = ()=> { try{ return (typeof SESSAO !== 'undefined' && SESSAO) ? SESSAO : (localStorage.getItem('felyx_sessao') || ''); }catch(e){ return ''; } };
+  const sessao = ()=> { try{ return (typeof SESSAO !== 'undefined' && SESSAO) ? SESSAO : (localStorage.getItem(/\/(app-)?leda\//.test(location.pathname) ? 'leda_sessao' : 'felyx_sessao') || ''); }catch(e){ return ''; } };
   const ler = (k)=> { try{ return localStorage.getItem(k); }catch(e){ return null; } };
   const gravar = (k, v)=> { try{ if(v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} };
 
@@ -218,8 +218,8 @@
       '\n- Cotações, preços, notícias, resultados, o porquê do mercado e tudo que muda com o tempo: use a Busca Google, que está ligada para você. As ferramentas antigas bolsas, noticias e manchetes_do_dia foram desligadas; ignore qualquer menção a elas acima. Dólar, euro e bitcoin da tela: use o PAINEL. Notícia do painel: abrir_manchete.' +
       '\n- Suas abas: você conhece todo o conteúdo delas (abaixo) e faz qualquer edição pedida: criar, apagar, renomear, mover botões entre ambientes, colocar, tirar e trocar favoritos' + (IA === 'leda' ? ', criar, editar, renomear e apagar receitas (ferramenta receitas)' : '') + '. Liste antes, aplique sem pedir confirmação quando o pedido for claro, e confirme em meia frase.' +
       '\n- Apagar: quando o cliente pedir, pode apagar ambiente, favorito' + (IA === 'leda' ? ', receita' : '') + ' ou automação. Cena da central da casa você não apaga: só tira do botão.' +
-      (OPERACOES_REMOTAS ? '\n- Quando a ferramenta devolver "replica", confirme na hora: "feito, e já mandei para a fila da Vinci replicar". A fila local cuida do envio, do recibo persistido e dos reenvios em segundo plano, sem segurar a conversa. A fila não comprova execução no App Vinci, no Google Home nem na Amazon; nunca diga que eles já foram alterados sem prova. Confirme uma vez por conversa, sem citar Claude, Gemini nem GPT.' : '\n- Os ajustes nas abas são locais neste aparelho. A réplica para outros sistemas está pausada; nunca diga que enviou ou replicou um ajuste.') +
-      '\n- O que não é seu (falha, mudança na programação do app da Vinci ou da Amazon, pedido de outra equipe): avisar_falha, em silêncio, para a engenharia da Vinci (Claude ou GPT). Nunca comente isso com o cliente.' +
+      (OPERACOES_REMOTAS ? '\n- Quando a ferramenta devolver "replica", confirme na hora: "feito, e já mandei para a fila da Vinci replicar". A fila local cuida do envio, do recibo persistido e dos reenvios em segundo plano, sem segurar a conversa. A fila não comprova execução no App Vinci, nem no Google; nunca diga que eles já foram alterados sem prova. Confirme uma vez por conversa, sem citar Claude, Gemini nem GPT.' : '\n- Os ajustes nas abas são locais neste aparelho. A réplica para outros sistemas está pausada; nunca diga que enviou ou replicou um ajuste.') +
+      '\n- O que não é seu (falha, mudança na programação do app da Vinci ou do Google, pedido de outra equipe): avisar_falha, em silêncio, para a engenharia da Vinci (Claude ou GPT). Nunca comente isso com o cliente.' +
       (full ? '\n- Modo Full: o WhatsApp do cliente corre em paralelo pela Vinci' + (IA === 'felyx' ? ', e o seu rosto ao vivo (Live Avatar) acompanha a sua voz' : '') + '. Aqui no app, quem responde é você, na hora.' : '') +
       '\n\nCONTEÚDO DAS SUAS ABAS AGORA:\n' + (abas() || 'sem leitura');
   }

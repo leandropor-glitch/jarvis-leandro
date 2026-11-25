@@ -4,10 +4,19 @@
 (function () {
   const APP_URL = 'https://ia.uservinci.com/api/felix/app';
   const digitos = (s) => String(s || '').replace(/\D/g, '');
-  async function api(acao, dados) {
-    const r = await fetch(APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ acao }, dados)) });
-    if (!r.ok) throw new Error('n8n ' + r.status);
+  // 24/11/2026 (ordem do Leandro): a senha do Leo é só do Leo. O código vai pelo WhatsApp;
+  // a senha nova é guardada no servidor Google do Leo, sem mexer na senha do Felyx nem da Leda.
+  const LEO_GAS = 'https://script.google.com/macros/s/AKfycbwV5hQDg6pPGIxYPCrty-avnemWZEBHnatYP8xxEJ9a0iKqECyEKfi45JckWHMEKAZilw/exec';
+  let codigoDigitado = '';
+  async function gas(corpo) {
+    const r = await fetch(LEO_GAS, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(Object.assign({ produto: 'leo' }, corpo)) });
     return r.json();
+  }
+  async function api(acao, dados) {
+    if (acao === 'codigo') return gas({ acao: 'leoCodigo', telefone: dados.telefone });
+    if (acao === 'verificar') { codigoDigitado = String(dados.codigo || ''); return /^\d{6}$/.test(codigoDigitado) ? { ok: true, ticket: codigoDigitado } : { ok: false, mensagem: 'O código tem 6 números.' }; }
+    if (acao === 'senha') return gas({ acao: 'leoSenha', telefone: dados.telefone, codigo: dados.ticket || codigoDigitado, senha: dados.senha });
+    return { ok: false };
   }
   const CSS = '#felyxEsqueci{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:#050505;padding:16px;font-family:-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif}'
     + '#felyxEsqueci .cx{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}'
@@ -25,6 +34,8 @@
     const el = document.createElement('div'); el.id = 'felyxEsqueci';
     document.body.appendChild(el);
     let tel = digitos(opcoes.telefone), ticket = '';
+    const PEND = 'vinci_codigo_pendente';  // 24/11: a etapa do codigo sobrevive a ida ao WhatsApp
+    const limparPend = () => { try { localStorage.removeItem(PEND); } catch (x) {} };
     const fechar = () => el.remove();
     const msg = (t, ok) => { const e = el.querySelector('.er'); if (e) { e.textContent = t || ''; e.classList.toggle('ok', !!ok); } };
 
@@ -48,13 +59,14 @@
       };
     }
 
-    function passoCodigo(texto) {
+    function passoCodigo(texto, retomando) {
+      if (!retomando) { try { localStorage.setItem(PEND, JSON.stringify({ tel, ate: Date.now() + 600000 })); } catch (x) {} }
       el.innerHTML = '<form class="cx"><h2>Código do WhatsApp</h2><p></p>'
         + '<input id="feCod" inputmode="numeric" autocomplete="one-time-code" placeholder="6 dígitos" maxlength="6" required>'
         + '<button type="submit">Confirmar</button><button type="button" class="sec" id="feReenviar">reenviar o código</button>'
         + '<button type="button" class="sec" id="feCancelar">voltar</button><div class="er"></div></form>';
       el.querySelector('p').textContent = texto;
-      el.querySelector('#feCancelar').onclick = fechar;
+      el.querySelector('#feCancelar').onclick = () => { limparPend(); fechar(); };
       el.querySelector('#feReenviar').onclick = async () => {
         msg('Reenviando…', true);
         try { const j = await api('codigo', { telefone: tel }); msg(j.ok ? 'Código reenviado.' : (j.mensagem || 'Não deu certo.'), j.ok); } catch (err) { msg('Sem conexão.'); }
@@ -65,13 +77,13 @@
         e.preventDefault();
         try {
           const j = await api('verificar', { telefone: tel, codigo: campo.value });
-          if (j.ok) { ticket = j.ticket; passoSenha(); } else { msg(j.mensagem || 'Código incorreto.'); campo.value = ''; }
+          if (j.ok) { ticket = j.ticket; limparPend(); passoSenha(); } else { msg(j.mensagem || 'Código incorreto.'); campo.value = ''; }
         } catch (err) { msg('Sem conexão.'); }
       };
     }
 
     function passoSenha() {
-      el.innerHTML = '<form class="cx"><h2>Senha nova</h2><p>Vale para o app, o GEM e o FULL.</p>'
+      el.innerHTML = '<form class="cx"><h2>Senha nova</h2><p>Esta senha é só do Leo.</p>'
         + '<input id="feS1" type="password" autocomplete="new-password" placeholder="Senha nova (mínimo 6)" required>'
         + '<input id="feS2" type="password" autocomplete="new-password" placeholder="Repita a senha" required>'
         + '<button type="submit">Salvar e entrar</button><div class="er"></div></form>';
@@ -87,6 +99,7 @@
       };
     }
 
-    passoTelefone();
+    if (opcoes.etapa === 'codigo' && tel) passoCodigo('Digite o código de 6 dígitos que mandei no seu WhatsApp. Vale por 10 minutos.', true);
+    else passoTelefone();
   };
 })();
