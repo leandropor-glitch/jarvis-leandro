@@ -10,7 +10,7 @@
     + '.tile{padding-left:7%!important;padding-right:7%!important}'
     + (forma === 'quadrado'
       ? '.matrix .grid{grid-template-columns:repeat(auto-fill,min(calc((100vw - 72px) / 4),104px))!important;gap:6px!important;justify-content:center!important}.matrix .grid,.amb .grid,.tiles{align-content:start}.tile{aspect-ratio:1/1;height:auto!important;min-height:0!important;font-size:.95rem!important}.tile span{font-size:1em!important;line-height:1.12!important;-webkit-line-clamp:2}'
-      : '.matrix .grid{grid-auto-rows:auto!important;align-content:start!important}.matrix .tile,.tile{aspect-ratio:auto!important;height:auto!important;min-height:44px!important}');
+      : '.matrix .grid{grid-auto-rows:auto!important;align-content:start!important}.matrix .tile,.tile{aspect-ratio:auto!important;height:auto!important;min-height:44px!important}.tile .rcIco{top:auto!important;bottom:5px!important;right:6px!important;width:12px!important;height:12px!important}');
   document.head.appendChild(css);
   const cv = document.createElement('canvas').getContext('2d');
   function largura(txt, fs, base){ cv.font = base.replace(/\d+(\.\d+)?px/, fs + 'px'); return cv.measureText(txt).width; }
