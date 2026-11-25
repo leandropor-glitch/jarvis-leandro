@@ -14,7 +14,8 @@
     'MudoSM': 'Mudo suíte', 'CortDir': 'Cortina direita', 'OFF_Sala': 'Desligar sala', 'OFF Sala': 'Desligar sala'
   };
   const TECNICOS = /^(Switch \d+|Restart\d+s?|backlight switch|Cozinha switch \d+|Cab Leandro switch \d+|Interruptor desconhecido|Fita \d+|Ar)$/i;
-  const ORDEM = ['Tudo', 'Iluminação', 'Ar-condicionado', 'TVs', 'Tomadas', 'Persianas', 'Cenas', 'Outros'];
+  const ORDEM = ['Tudo', 'Cenas', 'Dispositivos', 'Controles'];  // 25/11 Leandro: só Cena, Dispositivo e Controle
+  const TRES = (c) => c === 'Cenas' ? 'Cenas' : (c === 'TVs' || c === 'Ar-condicionado' || c === 'Controles') ? 'Controles' : 'Dispositivos';
   let filtro = 'Tudo';
   const nomeDe = (s) => (s && (s.dataset.nomeOriginal || s.textContent) || '').trim();
   const cfg = () => (typeof roomConfig !== 'undefined' && roomConfig) ? roomConfig : {};
@@ -46,7 +47,7 @@
     document.querySelectorAll('#grid .tile').forEach(t => {
       const n = nomeDe(t.querySelector('span'));
       if(TECNICOS.test(n)){ t.style.display = 'none'; return; }
-      const c = categoria(n, t); t.dataset.cat = c; presentes.add(c);
+      const c = TRES(categoria(n, t)); t.dataset.cat = c; presentes.add(c);
       t.style.display = (!emAmbientes || filtro === 'Tudo' || filtro === c) ? '' : 'none';
     });
     const b = barra();
