@@ -1092,6 +1092,14 @@ const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 const LOGIN_URL = N8N + '/felix/login';
 let SESSAO = '';
 try{ SESSAO = localStorage.getItem('leda_sessao') || ''; }catch(e){}
+// 25/11/2026 (Leandro): quem entrou na Leda antes da sessão própria (24/11) não perde o login.
+// Se não há sessão da Leda mas há a antiga, confere no servidor da Leda; se valer, passa a ser a da Leda. Nunca apaga a antiga.
+(function(){ try{
+  if(SESSAO) return; const antiga = localStorage.getItem('felyx_sessao'); if(!antiga || sessionStorage.getItem('leda.migrou')) return;
+  sessionStorage.setItem('leda.migrou', '1');
+  fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: antiga }) })
+    .then(r => r.json()).then(j => { if(j && j.ok){ localStorage.setItem('leda_sessao', antiga); location.reload(); } }).catch(()=>{});
+}catch(e){} })();
 function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('leda_sessao', t); else localStorage.removeItem('leda_sessao'); }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
