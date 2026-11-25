@@ -231,12 +231,13 @@
     } else if(id === 'casa'){
       rascunho.casa = 'google';
       const imp = rascunho.importado;
-      corpo = `<h2>Google Link da casa</h2>
-        <p>É por ele que eu conheço os seus cômodos e aparelhos, do jeito que você já organizou.</p>
-        <input type="url" id="vonbLink" inputmode="url" autocomplete="off" placeholder="Cole aqui o Google Link da casa" value="${esc(rascunho.contaCasa)}" maxlength="300">
-        <p><small>É o link da sua casa no Google. O manual da Vinci mostra onde copiar.</small></p>
-        <input type="password" id="vonbSenhaCasa" autocomplete="current-password" placeholder="Senha" value="${esc(rascunho.senhaCasa || '')}" maxlength="128">
-        <button type="button" class="sec" id="vonbImportar">Importar</button>
+      corpo = `<h2>Google Link</h2>
+        <p>Eu trago os seus cômodos e aparelhos do jeito que você já organizou no Google.</p>
+        <input type="email" id="vonbLink" inputmode="email" autocomplete="username" placeholder="Seu Gmail" value="${esc(rascunho.contaCasa)}" maxlength="120">
+        <p><small>A conta do Google onde a sua casa está cadastrada.</small></p>
+        <input type="password" id="vonbSenhaCasa" autocomplete="current-password" placeholder="Senha da conta do Google" value="${esc(rascunho.senhaCasa || '')}" maxlength="128">
+        <button type="button" class="pri" id="vonbImportar">Importar</button>
+        <p class="st" id="vonbStatus" role="status" aria-live="polite"></p>
         <div id="vonbImportado">${imp ? resumoImportado(imp) : ''}</div>`;
       podeSeguir = !!(imp && imp.ok);
     } else if(id === 'ambientes'){
@@ -306,17 +307,21 @@
       const val = ()=>{ rascunho.contaCasa = c.value.trim(); rascunho.senhaCasa = sc.value; };
       c.oninput = val; sc.oninput = val;
       bi.onclick = async ()=>{
-        val(); const er = document.getElementById('vonbErro'); er.textContent = '';
-        if(!/^https:\/\//.test(rascunho.contaCasa)){ er.textContent = 'Cole o Google Link da casa, começando com https://'; return; }
-        if(!rascunho.senhaCasa){ er.textContent = 'Digite a senha.'; return; }
-        bi.disabled = true; bi.textContent = 'Importando…';
+        val(); const er = document.getElementById('vonbErro'), st = document.getElementById('vonbStatus'); er.textContent = ''; st.textContent = '';
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rascunho.contaCasa)){ er.textContent = 'Digite o seu Gmail.'; c.focus(); return; }
+        if(!rascunho.senhaCasa){ er.textContent = 'Digite a senha da conta do Google.'; sc.focus(); return; }
+        bi.disabled = true; bi.textContent = 'Importando…'; st.textContent = 'Entrando no Google e lendo a sua casa. Isso leva uns 10 segundos.';
         try{
           const tk = (typeof SESSAO !== 'undefined' && SESSAO) ? SESSAO : '';
-          const r = await fetch('https://ia.uservinci.com/api/vinci/google-link', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: tk, link: rascunho.contaCasa }) });
+          // a senha não sai deste aparelho: o servidor só recebe o Gmail
+          const r = await fetch('https://ia.uservinci.com/api/vinci/google-link', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: tk, email: rascunho.contaCasa }) });
           const j = await r.json().catch(()=>({}));
-          if(j.ok){ rascunho.importado = j; out.innerHTML = resumoImportado(j); atualizarBotao(true); }
-          else er.textContent = j.mensagem || (j.erro === 'google_sem_sessao' ? 'O Google pediu para entrar de novo nessa casa. Fale com a Vinci.' : 'Não consegui ler a casa por esse link. Confira o link.');
-        }catch(e){ er.textContent = 'Sem conexão agora. Tente de novo.'; }
+          st.textContent = '';
+          if(j.ok){ rascunho.importado = j; out.innerHTML = resumoImportado(j); st.textContent = 'Pronto, importei a sua casa.'; atualizarBotao(true); }
+          else if(r.status === 401){ er.textContent = 'Sua sessão caiu. Entre de novo no aplicativo e volte aqui.'; }
+          else if(r.status === 429){ er.textContent = 'Muitas tentativas seguidas. Espere um minuto e toque em Importar de novo.'; }
+          else { er.textContent = j.mensagem || 'Não consegui ler a sua casa agora. Tente de novo.'; atualizarBotao(true); }
+        }catch(e){ st.textContent = ''; er.textContent = 'Sem conexão agora. Tente de novo.'; }
         bi.disabled = false; bi.textContent = 'Importar';
       };
     }
