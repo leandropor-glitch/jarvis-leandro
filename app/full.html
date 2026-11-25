@@ -933,8 +933,8 @@ const N8N = 'https://ia.uservinci.com/api';   // 25/11: Felyx Full no n8n do Mac
 const TOKEN_URL = N8N + '/felix/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/felix/gemini-apoio';
-const MERCADO_URL = N8N + '/felix/mercado';
-const NOTICIAS_URL = N8N + '/felix/noticias';
+const MERCADO_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/mercado';   // 25/11: cotações e notícias (só leitura) seguem no feed da nuvem
+const NOTICIAS_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/noticias';
 const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
 /* ===================== acesso (login) ===================== */
