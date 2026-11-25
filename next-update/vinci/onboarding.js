@@ -84,7 +84,7 @@
     const txt = (v, n)=> String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f<>`{}\[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
     const lista = (v, n)=> Array.isArray(v) ? v.map(x=>txt(x, 40)).filter(Boolean).slice(0, n) : [];
     return { concluido: p.concluido === true, versao: txt(p.versao, 20), momento: txt(p.momento, 30), chamar: txt(p.chamar, 40), casa: txt(p.casa, 20),
-      contaCasa: txt(p.contaCasa, 80), ambientes: lista(p.ambientes, 30), recursos: lista(p.recursos, 20), email: txt(p.email, 80), whatsapp: txt(p.whatsapp, 20),
+      contaCasa: txt(p.contaCasa, 300), comodos: Array.isArray(p.comodos) ? p.comodos.slice(0, 40).map(c=>({ nome: txt(c && c.nome, 40), aparelhos: lista(c && c.aparelhos, 80) })).filter(c=>c.nome) : [], ambientes: lista(p.ambientes, 30), recursos: lista(p.recursos, 20), email: txt(p.email, 80), whatsapp: txt(p.whatsapp, 20),
       aceiteEm: txt(p.aceiteEm, 40), termos: txt(p.termos, 60) };
   }
   // "Fazer depois" vale por 3 dias neste aparelho
@@ -230,21 +230,17 @@
       podeSeguir = opt.ia === 'leda' || rascunho.chamar.trim().length > 0;
     } else if(id === 'casa'){
       rascunho.casa = 'google';
-      corpo = `<h2>Ligue o Google com esta casa</h2>
-        <p>É por ele que eu acendo luzes, ligo a TV e ativo as cenas.</p>
-        <input type="email" id="vonbConta" autocomplete="email" placeholder="Seu e-mail Google ligado à casa" value="${esc(rascunho.contaCasa)}" maxlength="80">
+      const imp = rascunho.importado;
+      corpo = `<h2>Google Link da casa</h2>
+        <p>É por ele que eu conheço os seus cômodos e aparelhos, do jeito que você já organizou.</p>
+        <input type="url" id="vonbLink" inputmode="url" autocomplete="off" placeholder="Cole aqui o Google Link da casa" value="${esc(rascunho.contaCasa)}" maxlength="300">
+        <p><small>É o link da sua casa no Google. O manual da Vinci mostra onde copiar.</small></p>
         <input type="password" id="vonbSenhaCasa" autocomplete="current-password" placeholder="Senha" value="${esc(rascunho.senhaCasa || '')}" maxlength="128">
-        <p><small>É a senha do usuário deste e-mail no aplicativo da Vinci, não a senha do e-mail. Não lembra? Abra o aplicativo da Vinci, entre com esse usuário e toque em <b>Esqueci a senha</b>.</small></p>
-        <details><summary>Como ligar o Google com a casa</summary><ol>
-          <li>Abra o aplicativo do Google no celular.</li>
-          <li>Toque em <b>+</b> e depois em <b>Funciona com o Google</b>.</li>
-          <li>Procure <b>Vinci</b> e toque nele.</li>
-          <li>Entre com este e-mail e a senha do aplicativo da Vinci.</li>
-          <li>Pronto: as cenas e os aparelhos da casa aparecem para mim.</li>
-        </ol></details>`;
-      podeSeguir = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(rascunho.contaCasa || '').trim()) && !!rascunho.senhaCasa;
+        <button type="button" class="sec" id="vonbImportar">Importar</button>
+        <div id="vonbImportado">${imp ? resumoImportado(imp) : ''}</div>`;
+      podeSeguir = !!(imp && imp.ok);
     } else if(id === 'ambientes'){
-      const amb = ambientesDisponiveis();
+      const amb = (rascunho.importado && rascunho.importado.ok && rascunho.importado.comodos.length) ? rascunho.importado.comodos.map(c=>c.nome) : ambientesDisponiveis();
       corpo = `<h2>Em quais ambientes eu vou atuar?</h2>
         <p>Você pode ter outra IA da Vinci em outro cômodo. Cada uma cuida do seu espaço.</p>
         <div class="chips">${amb.map(a=>`<button type="button" class="chip" data-amb="${esc(a)}" aria-pressed="${rascunho.ambientes.includes(a)}">${esc(a)}</button>`).join('')}
@@ -286,6 +282,11 @@
     ligar(id);
   }
 
+  function resumoImportado(j){
+    const linhas = j.comodos.map(c=>`<li><b>${esc(c.nome)}</b>: ${c.aparelhos.map(a=>esc(a.nome)).join(', ')}</li>`).join('');
+    return `<p><b>${esc(j.casa || 'Sua casa')}</b>: ${j.comodos.length} cômodos e ${j.total} aparelhos.</p><ul class="gl">${linhas}</ul>`;
+  }
+
   function atualizarBotao(ok){ const b = document.getElementById('vonbSeguir'); if(b) b.disabled = !ok; }
 
   function ligar(id){
@@ -299,9 +300,23 @@
       setTimeout(()=>{ try{ i.focus(); }catch(e){} }, 300);
     }
     if(id === 'casa'){
-      const c = document.getElementById('vonbConta'), sc = document.getElementById('vonbSenhaCasa');
-      const val = ()=>{ rascunho.contaCasa = c.value.trim(); rascunho.senhaCasa = sc.value; atualizarBotao(/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rascunho.contaCasa) && !!rascunho.senhaCasa); };
+      const c = document.getElementById('vonbLink'), sc = document.getElementById('vonbSenhaCasa'), bi = document.getElementById('vonbImportar'), out = document.getElementById('vonbImportado');
+      const val = ()=>{ rascunho.contaCasa = c.value.trim(); rascunho.senhaCasa = sc.value; };
       c.oninput = val; sc.oninput = val;
+      bi.onclick = async ()=>{
+        val(); const er = document.getElementById('vonbErro'); er.textContent = '';
+        if(!/^https:\/\//.test(rascunho.contaCasa)){ er.textContent = 'Cole o Google Link da casa, começando com https://'; return; }
+        if(!rascunho.senhaCasa){ er.textContent = 'Digite a senha.'; return; }
+        bi.disabled = true; bi.textContent = 'Importando…';
+        try{
+          const tk = (typeof SESSAO !== 'undefined' && SESSAO) ? SESSAO : '';
+          const r = await fetch('https://ia.uservinci.com/api/vinci/google-link', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: tk, link: rascunho.contaCasa }) });
+          const j = await r.json().catch(()=>({}));
+          if(j.ok){ rascunho.importado = j; out.innerHTML = resumoImportado(j); atualizarBotao(true); }
+          else er.textContent = j.mensagem || (j.erro === 'google_sem_sessao' ? 'O Google pediu para entrar de novo nessa casa. Fale com a Vinci.' : 'Não consegui ler a casa por esse link. Confira o link.');
+        }catch(e){ er.textContent = 'Sem conexão agora. Tente de novo.'; }
+        bi.disabled = false; bi.textContent = 'Importar';
+      };
     }
     if(id === 'ambientes'){
       el.querySelectorAll('[data-amb]').forEach(b=> b.onclick = ()=>{
@@ -334,7 +349,7 @@
     const p = {
       concluido: true, versao: CONFIG.versao, momento: CONFIG.momento,
       chamar: (rascunho.chamar.trim() || (opt.ia === 'leda' ? 'jovem' : '')).slice(0, 40),
-      casa: rascunho.casa, contaCasa: rascunho.contaCasa.slice(0, 80),
+      casa: rascunho.casa, contaCasa: rascunho.contaCasa.slice(0, 300), comodos: (rascunho.importado && rascunho.importado.ok) ? rascunho.importado.comodos.map(c=>({ nome: c.nome, aparelhos: c.aparelhos.map(a=>a.nome) })) : [],
       ambientes: rascunho.ambientes.includes('*') ? ['A casa toda'] : rascunho.ambientes.slice(0, 30),
       recursos: [...new Set(todosRecursos().filter(r=>r.fixo).map(r=>r.id).concat(rascunho.recursos))],
       email: rascunho.email.trim().slice(0, 80), whatsapp: rascunho.whatsapp.replace(/[^\d+]/g, '').slice(0, 20),
