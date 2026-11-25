@@ -163,7 +163,7 @@
 #vonb p{margin:0;color:var(--muted,#8a8d86);font-size:15px;line-height:1.5;text-align:center;text-wrap:pretty}
 #vonb .tela{display:grid;gap:14px;animation:vonbEntra .5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes vonbEntra{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
-#vonb input[type=text],#vonb input[type=email],#vonb input[type=tel],#vonb input[type=password]{width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:inherit;border-radius:14px;padding:15px 16px;font:inherit;font-size:17px;outline:none}
+#vonb input[type=text],#vonb input[type=email],#vonb input[type=url],#vonb input[type=tel],#vonb input[type=password]{width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:inherit;border-radius:14px;padding:15px 16px;font:inherit;font-size:17px;outline:none}
 #vonb details{margin-top:12px;color:var(--muted,#8a8d86);font-size:14px}#vonb summary{cursor:pointer;color:inherit}#vonb details ol{margin:8px 0 0;padding-left:20px;line-height:1.5}#vonb small{color:var(--muted,#8a8d86);font-size:13px}
 #vonb input:focus{border-color:var(--accent,#d6ff1a)}
 #vonb .ops{display:grid;gap:10px}
