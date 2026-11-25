@@ -31,7 +31,15 @@
     img.onload = () => { if(vazio.parentNode) vazio.replaceWith(img); };
     img.src = f;
   }
-  function varrer(){ document.querySelectorAll('.news .slide').forEach(tratar); }
+  // 25/11/2026 (Leandro): a checagem é no card da tela. Foto que não carrega volta a ser "sem foto" e recebe a da matéria.
+  function quebradas(){
+    document.querySelectorAll('.news .slide img').forEach(img => {
+      if(img.dataset.vigia) return; img.dataset.vigia = '1';
+      const falhou = () => { const s = img.closest('.slide'); if(!s) return; const d = document.createElement('div'); d.className = 'noimg'; img.replaceWith(d); delete s.dataset.fotoVista; if(fotos) tratar(s); };
+      if(img.complete && img.naturalWidth === 0 && img.src) falhou(); else img.addEventListener('error', falhou, { once: true });
+    });
+  }
+  function varrer(){ document.querySelectorAll('.news .slide').forEach(tratar); quebradas(); }
   function iniciar(){
     carregar().then(varrer);
     new MutationObserver(() => { if(fotos) varrer(); else carregar().then(varrer); }).observe(document.body, { childList: true, subtree: true });

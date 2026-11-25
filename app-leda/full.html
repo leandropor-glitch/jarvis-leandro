@@ -719,7 +719,7 @@ function _manchete(){
 async function dadosDoCumprimentoLeda(){ const clima = await climaAgora().catch(()=> null); return { clima }; }
 // frase de vó, o tempo, uma manchete, outra frase e a pergunta de sempre ("jovem", nunca "chefe" nem nome)
 function textoDoCumprimentoLeda(d){
-  const c = d && d.clima, partes = [saudacaoAgora() + ', jovem!', _fraseDoMomento()];
+  const c = d && d.clima, partes = [saudacaoAgora() + ', ' + ((window.VinciOnboarding && VinciOnboarding.apelido && VinciOnboarding.apelido()) || 'jovem') + '!', _fraseDoMomento()];
   if(c && typeof c.temperatura === 'number') partes.push('Aqui no Rio estão ' + fmt(c.temperatura, 0) + ' graus' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
   const fc = _fraseDoClima(c); if(fc) partes.push(fc);
   const m = _manchete(); if(m) partes.push('Nas notícias: ' + m);
@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261124" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para falar com a Leda">
   <div class="box"><div class="eye"></div><div class="t1">toque para falar com a Leda</div><div class="t2">leda · vinci</div></div>
@@ -1915,7 +1915,7 @@ Ferramentas: para fatos que mudam com o tempo (resultados, acontecimentos recent
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem a criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com um cuidado. Um pesquisador apaixonado por Leonardo da Vinci passou anos estudando a mente do maior gênio da humanidade e descobriu uma coisa que quase ninguém comenta: por trás de cada invenção havia atenção às pessoas. Leonardo desenhava máquinas para voar, mas também anotava o jeito de uma criança sorrir e o caminho da luz dentro de uma casa. Dessa parte mais gentil da mente dele nasceu a Leda: curiosa, paciente e sempre por perto. Eu não vim para mandar em nada, vim para cuidar. Eu sou a Leda, da Vinci, a companhia inteligente do seu lar."
 Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "não tenho acesso" ou "não consigo". Assunto difícil pede tempo, não desculpa: diga algo como "Deixa eu ver isso direitinho para você." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
-Cumprimentos: quando a pessoa disser bom dia, boa tarde, boa noite ou oi, chame dados_do_cumprimento. Responda nesta ordem, curto: "Bom dia, jovem!" (ou boa tarde/boa noite), uma frase de vó que combine com a hora; o tempo numa frase pensando na casa (frio: casaco; chuva: guarda-chuva se for sair; calor: água); se quiser, uma notícia leve em meia frase; outra frase de vó, motivadora; e termine com "Como é que eu posso te ajudar aqui na sua casa?". Nada de mercado ou cotação.
+Cumprimentos (regra do Leandro, 25/11): quando a pessoa disser bom dia, boa tarde, boa noite ou oi, chame dados_do_cumprimento. Responda nesta ordem, curto: "Bom dia, <como chamar>. Estou aqui à sua disposição no Rio." (ou boa tarde/boa noite; use o nome de COMO CHAMAR; sem ele, "jovem"); a temperatura e a previsão do tempo do Rio de Janeiro; leia pelo menos uma manchete de jornal; a cotação atualizada do dólar; e termine com o recado da escola da vida que vem em dados_do_cumprimento (recado), dito do seu jeito.
 NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase gentil (ex.: "A central não me passou esse estado agora, mas posso ligar ou desligar para você.").
 O que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.
 FAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos. Confirme em meia frase.
@@ -2296,7 +2296,9 @@ const GEN_FERRAMENTAS = {
     felyxCumprimento.marcar();
     const ok = (p)=> p.catch(()=>({ erro:'indisponível agora' }));
     const c = await ok(climaAgora()); const b = null;
-    return { completo:true, clima:c, 
+    let dolar = null; try{ const v = document.querySelector('#marketRows .row[data-id="usd"] [data-val]'); dolar = v ? v.textContent.trim() : null; }catch(e){}
+    let recado = ''; try{ recado = recadoEscola(); }catch(e){}
+    return { completo:true, clima:c, dolar, recado, 
       manchetes: { politica: (newsPol.items||[]).slice(0,3).map(n=>n.title), tecnologia: (newsTec.items||[]).slice(0,3).map(n=>n.title) } };
   }
 };

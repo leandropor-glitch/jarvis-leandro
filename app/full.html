@@ -565,7 +565,7 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261124" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
   <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
@@ -1105,7 +1105,7 @@ const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
 function loadNoticias(force){
   if(noticiasVoo) return noticiasVoo;
-  if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
+  if(!force && Date.now() - noticiasAt < 14*60000) return Promise.resolve();
   if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
   noticiasVoo = buscarNoticias().finally(()=>{ noticiasVoo = null; });
   return noticiasVoo;
@@ -1570,7 +1570,7 @@ async function dadosDoCumprimento(){
   return { clima, dolar };
 }
 function textoDoCumprimento(d){
-  const partes = [saudacaoAgora() + ', Chefe.'];   // regra de 03/11: sempre "Chefe", nunca o nome
+  const partes = [saudacaoAgora() + ', ' + ((window.VinciOnboarding && VinciOnboarding.apelido && VinciOnboarding.apelido()) || 'Chefe') + '.'];   // regra de 03/11: sempre "Chefe", nunca o nome
   const c = d && d.clima;
   if(c && typeof c.temperatura === 'number') partes.push('No Rio, ' + fmt(c.temperatura, 0) + ' graus agora' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
   const v = d && d.dolar;

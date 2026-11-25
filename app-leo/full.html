@@ -553,7 +553,7 @@ input,select,textarea{font-size:16px!important}
 #hud[data-tab="dashboard"] #matrix::-webkit-scrollbar{display:none}
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261124" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para continuar">
   <div class="box"><div class="eye"></div><div class="t1">toque para continuar</div><div class="t2">leo · iA vinci</div></div>
@@ -959,11 +959,30 @@ async function googleCards(){
   if(!googleCardsFlight)googleCardsFlight=googleRequest('cards',{},'GET').then(j=>{if(!j.ok)throw Error(j.erro);googleCardsCache=Array.isArray(j.cards)?{cards:j.cards}:j.cards;googleCardsTime=Date.now();return googleCardsCache;}).finally(()=>googleCardsFlight=null);
   return googleCardsFlight;
 }
+
+/* 25/11/2026 (Leandro): o Leo recebe junto com a voz o nome escolhido no onboarding, a regra do bom dia,
+   os dados de agora (tempo do Rio, uma manchete, dólar) e o que a tela dele tem. Só texto; não muda o controle da casa. */
+async function leoContexto(){
+  let s = '';
+  try{ s += (window.VinciOnboarding ? VinciOnboarding.contexto() : ''); }catch(e){}
+  let nome = ''; try{ nome = (window.VinciOnboarding && VinciOnboarding.apelido) ? (VinciOnboarding.apelido() || '') : ''; }catch(e){}
+  let clima = '';
+  try{
+    const j = await window.fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+    clima = 'agora ' + Math.round(j.current.temperature_2m) + ' graus' + ((typeof WMO !== 'undefined' && WMO[j.current.weather_code]) ? ', ' + WMO[j.current.weather_code] : '') + '; mínima ' + Math.round(j.daily.temperature_2m_min[0]) + ' e máxima ' + Math.round(j.daily.temperature_2m_max[0]) + '; chance de chuva ' + j.daily.precipitation_probability_max[0] + '%';
+  }catch(e){}
+  const manchete = [...document.querySelectorAll('.news .slide .tt')].map(x=>x.textContent.trim()).filter(Boolean)[0] || '';
+  let dolar = ''; try{ const v = document.querySelector('#marketRows .row[data-id="usd"] [data-val]'); dolar = v ? v.textContent.trim() : ''; }catch(e){}
+  if(nome) s += '\n\nCOMO CHAMAR: chame a pessoa exatamente de "' + nome + '", em todo cumprimento e resposta. Não troque por outro nome nem por "Chefe".';
+  s += '\n\nBOM DIA (regra do Leandro): quando a pessoa disser bom dia, boa tarde ou boa noite, responda nesta ordem, curto: "Bom dia' + (nome ? ', ' + nome : '') + '. Estou aqui à sua disposição no Rio." (ou boa tarde/boa noite). Depois a temperatura e a previsão do tempo do Rio de Janeiro' + (clima ? ' (' + clima + ')' : '') + '. Depois leia pelo menos uma manchete de jornal' + (manchete ? ' (por exemplo: ' + manchete + ')' : '') + '. Só no final, a cotação atualizada do dólar' + (dolar ? ' (R$ ' + dolar + ')' : '') + '. Não abra com cotação.';
+  s += '\n\nSUA TELA: o app do Leo tem as abas Leo, Dashboard (cotações, notícias com foto e Favoritos), Notícias e Ambientes (os cômodos da casa com os botões das cenas e dos aparelhos). Para editar um ambiente: tocar em Ambientes e depois em Editar; ali dá para renomear, criar ou excluir um cômodo e mover os botões. Se pedirem para editar, explique esse caminho em uma frase. Tocar numa cotação abre a Binance; tocar numa notícia abre a matéria.';
+  return s.slice(0, 6000);
+}
 async function previewFetch(url,options={}){
   const u=String(url), b=options.body?JSON.parse(options.body):{};
   let j;
   if(u.startsWith('google-compat:')){
-    if(u.includes('/token'))j=await googleRequest('token');
+    if(u.includes('/token'))j=await googleRequest('token',{contexto: await leoContexto()});
     else if(u.includes('/mercado')){const p=await googleCards();const c=p.cotacoes||{};j={ok:true,cambio:{usdbrl:Number(c.usd_brl?.valor),eurbrl:Number(c.eur_brl?.valor)},cripto:{bitcoin:{usdt:Number(c.btc_usd?.valor)}},updatedAt:p.updatedAt};}
     else if(u.includes('/noticias')){const p=await googleCards();const cards=(p.cards||[]).map(c=>({title:c.titulo,link:c.fonteUrl,image:c.fotoUrl,source:'G1',cat:c.categoria}));j={ok:true,politica:cards.filter(c=>['politica','destaques'].includes(c.cat)),tecnologia:cards.filter(c=>['tecnologia','economia'].includes(c.cat))};}
     else if(b.acao==='casa'){const r=await googleRequest('scenes',{},'GET');if(window.coRemote)window.coRemote.reload().catch(()=>{});j={...r,cenas:(r.scenes||[]).map(x=>x.nome),aparelhos:[]};}
