@@ -3,18 +3,18 @@
 <head><script>/* NEXT UPDATE (25/11/2026): área de testes. Tudo que esta cópia guarda no navegador fica separado da versão oficial (prefixo nu:). */
 (function(){try{var P='nu:',S=Storage.prototype,g=S.getItem,s=S.setItem,r=S.removeItem;
 S.getItem=function(k){return g.call(this,P+k)};S.setItem=function(k,v){return s.call(this,P+k,v)};S.removeItem=function(k){return r.call(this,P+k)};
-document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('div');b.textContent='NEXT UPDATE · TESTE';b.style.cssText='position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#ff3b30;color:#fff;font:700 10px/1 system-ui;letter-spacing:.12em;padding:4px 8px;border-radius:6px;pointer-events:none;opacity:.85';document.body.appendChild(b);});
+document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('div');b.textContent='BETA · TESTE';b.style.cssText='position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#ff3b30;color:#fff;font:700 10px/1 system-ui;letter-spacing:.12em;padding:4px 8px;border-radius:6px;pointer-events:none;opacity:.85';document.body.appendChild(b);});
 }catch(e){}})();</script>
-<meta charset="utf-8"><script src="../app-assets/controle-co-parser.js"></script><script src="../app-assets/controle-co-ui.js"></script><script src="limite-pedidos.js"></script>
+<meta charset="utf-8"><script src="../app-assets/controle-co-parser.js"></script><script src="limite-pedidos.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Leo iA Vinci</title>
+<title>Felyx FULL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#000000; --ink:#e9eae6; --muted:#8a8d86; --line:rgba(255,255,255,.08);
-  --accent:#d6ff1a; --accent-rgb:214,255,26; --accent-ink:#000; --led:var(--accent); --down:#ff6a62; --down-rgb:255,106,98;
+  --bg:#06070a; --ink:#e9eae6; --muted:#8a8d86; --line:rgba(255,255,255,.08);
+  --accent:#d6ff1a; --accent-rgb:214,255,26; --accent-ink:#000; --led:#4fa8ff; --down:#ff6a62; --down-rgb:255,106,98;
   --grid:rgba(255,255,255,.035);
   --mono:"Share Tech Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --sans:"Saira",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -44,12 +44,12 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .stateLabel{font-family:var(--mono);font-size:.78rem;letter-spacing:.42em;color:var(--ink);text-transform:uppercase;transition:color .3s,text-shadow .3s;padding-left:.42em}
 .hud[data-state="speaking"] .stateLabel{color:var(--accent);text-shadow:0 0 14px rgba(var(--accent-rgb),.6)}
 .hud[data-state="listening"] .stateLabel{color:#dfe3dc}
-.hud[data-state="thinking"] .stateLabel{color:var(--led);text-shadow:0 0 14px rgba(var(--accent-rgb),.5)}
+.hud[data-state="thinking"] .stateLabel{color:var(--led);text-shadow:0 0 14px rgba(79,168,255,.5)}
 .hud[data-state="error"] .stateLabel{color:var(--down)}
 .ticks{display:flex;justify-content:center;align-items:flex-end;gap:3px;height:14px;margin-top:6px}
 .ticks i{display:block;width:2px;height:3px;background:rgba(255,255,255,.22);border-radius:1px;transition:height .08s linear,background .2s}
 .hud[data-state="speaking"] .ticks i{background:rgba(var(--accent-rgb),.85)}
-.hud[data-state="thinking"] .ticks i{background:rgba(var(--accent-rgb),.8)}
+.hud[data-state="thinking"] .ticks i{background:rgba(79,168,255,.8)}
 
 /* ---------- palco: três colunas ---------- */
 .stage{display:grid;grid-template-columns:minmax(236px,296px) minmax(0,1fr) minmax(300px,372px);gap:14px;min-height:0}
@@ -61,7 +61,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 .face{position:relative;width:62%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 60px rgba(var(--accent-rgb),.08),inset 0 0 40px rgba(0,0,0,.8);transition:box-shadow .5s}
 .hud[data-state="speaking"] .face{box-shadow:0 0 0 1px rgba(var(--accent-rgb),.55),0 0 90px rgba(var(--accent-rgb),.22),inset 0 0 40px rgba(0,0,0,.6)}
 .hud[data-state="listening"] .face{box-shadow:0 0 0 1px rgba(255,255,255,.18),0 0 60px rgba(var(--accent-rgb),.1),inset 0 0 40px rgba(0,0,0,.7)}
-.hud[data-state="thinking"] .face{box-shadow:0 0 0 1px rgba(var(--accent-rgb),.5),0 0 80px rgba(var(--accent-rgb),.18),inset 0 0 40px rgba(0,0,0,.7)}
+.hud[data-state="thinking"] .face{box-shadow:0 0 0 1px rgba(79,168,255,.5),0 0 80px rgba(79,168,255,.18),inset 0 0 40px rgba(0,0,0,.7)}
 .face canvas{display:block;width:100%;height:100%}
 .face video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;pointer-events:none}
 .face video.on{opacity:1}
@@ -159,15 +159,15 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 @keyframes scenePulse{0%,100%{background:transparent;color:inherit;box-shadow:none}18%,58%{background:rgba(225,254,6,.5);color:#111;box-shadow:0 0 16px rgba(225,254,6,.28)}38%,78%{background:transparent;color:inherit;box-shadow:none}}
 @media(prefers-reduced-motion:reduce){.tile.scene-command.scene-pulse{animation:scenePulseReduced 300ms ease-out both}@keyframes scenePulseReduced{0%,100%{background:transparent;box-shadow:none}35%,65%{background:rgba(225,254,6,.4);box-shadow:0 0 12px rgba(225,254,6,.25)}}}
 .tile[data-empty="1"]{color:#55584f;border-style:dashed;font-family:var(--mono);font-size:.8rem}
-.tile[data-busy="1"]{border-color:var(--led);color:var(--led);box-shadow:0 0 14px rgba(var(--accent-rgb),.35);animation:busy 1s ease-in-out infinite}
-@keyframes busy{50%{box-shadow:0 0 4px rgba(var(--accent-rgb),.15)}}
+.tile[data-busy="1"]{border-color:var(--led);color:var(--led);box-shadow:0 0 14px rgba(79,168,255,.35);animation:busy 1s ease-in-out infinite}
+@keyframes busy{50%{box-shadow:0 0 4px rgba(79,168,255,.15)}}
 .tile[data-res="ok"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:0 0 22px rgba(var(--accent-rgb),.55)}
 .tile[data-res="fail"]{border-color:var(--down);color:var(--down);box-shadow:0 0 16px rgba(var(--down-rgb),.4)}
 .matrix[data-edit="1"] .tile{border-style:dashed;border-color:rgba(var(--accent-rgb),.5);cursor:text}
 .matrix[data-edit="1"] .tile::after{content:"✎";position:absolute;right:4px;top:2px;font-size:.6rem;color:var(--accent);opacity:.8}
 .editor{margin:0 10px 10px;padding:10px 10px 8px;border-radius:8px;border:1px solid rgba(var(--accent-rgb),.45);background:rgba(0,0,0,.45)}
 .editor[hidden]{display:none}
-.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.editor .edTipoLinha{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.4fr);gap:8px;align-items:end;margin-bottom:4px}.editor .edTipoLinha #edAtualizar{grid-column:1 / -1;justify-self:start}.editor label{display:block;font-family:var(--mono);font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .editor input{display:block;width:100%;margin-top:3px;font:inherit;font-size:.86rem;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:6px 8px;outline:none}
 .editor input:focus{border-color:var(--accent)}
 .editor .eb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
@@ -450,6 +450,36 @@ input,select,textarea{font-size:16px!important}
 #hud[data-tab="home"]{background:#000}
 #hud[data-tab="home"] .face{inset:0 0 calc(var(--tabsH) + var(--micZ)) 0}
 @media (orientation:landscape) and (max-height:560px){ #hud[data-tab="home"] .face{inset:0 0 var(--tabsH) 0} }
+
+/* 22/11 (Leandro): favoritos só no dashboard; ambientes com editor próprio; "+" para adicionar; controle remoto com cara própria; rolar com o dedo no modo editar */
+#matrix .k b{font:inherit;color:inherit}
+#hud[data-tab="rooms"] #matrix .lbDash,#hud:not([data-tab="rooms"]) #matrix .lbSala{display:none}
+#hud[data-tab="dashboard"] .matrix[data-edit="1"] .tile{touch-action:pan-y}
+#matrix .co-entry{display:none!important}
+.tile.addTile{border-style:dashed!important;border-color:rgba(var(--accent-rgb),.55)!important;color:var(--accent);font-size:1.6rem;font-weight:300;background:transparent}
+.matrix[data-edit="1"] .tile.addTile::after{content:none}
+.tile.ctl{border-style:dashed;border-color:rgba(var(--accent-rgb),.75);background:linear-gradient(180deg,rgba(var(--accent-rgb),.10),transparent)}
+.tile.ctl .ctlTag{position:absolute;left:6px;top:4px;font-family:var(--mono);font-size:.42rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);opacity:.85}
+#addSheet{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center}
+#addSheet[hidden]{display:none}
+#addSheet .box{width:100%;max-width:520px;max-height:86dvh;display:flex;flex-direction:column;gap:12px;background:#121417;border:1px solid rgba(var(--accent-rgb),.45);border-radius:26px 26px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));box-sizing:border-box;color:#f3f3ef}
+#addSheet h3{margin:0;font-size:1.1rem;font-weight:600}
+#addSheet .tabs{display:flex;gap:6px}
+#addSheet .tabs button{flex:1;padding:10px 6px;border-radius:999px;border:1px solid #ffffff2a;background:transparent;color:inherit;font:inherit;font-size:.82rem}
+#addSheet .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+#addSheet input{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid #ffffff26;background:#ffffff0d;color:inherit;font:inherit}
+#addSheet .lista{overflow:auto;display:flex;flex-direction:column;gap:6px;min-height:120px;-webkit-overflow-scrolling:touch}
+#addSheet .lista button{display:flex;align-items:center;gap:10px;text-align:left;padding:12px 14px;border-radius:14px;border:1px solid #ffffff14;background:#ffffff08;color:inherit;font:inherit;font-size:.95rem}
+#addSheet .lista button .tag{margin-left:auto;font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+#addSheet .lista button.ja{opacity:.45}
+#addSheet .rod{display:flex;gap:8px;justify-content:space-between;align-items:center}
+#addSheet .rod button{padding:11px 16px;border-radius:999px;border:1px solid #ffffff33;background:transparent;color:inherit;font:inherit;font-size:.85rem}
+#addSheet .novoCtl{display:flex;gap:8px}#addSheet .novoCtl input{flex:1}#addSheet .novoCtl button{padding:0 16px;border-radius:14px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;white-space:nowrap}#addSheet .vazio{opacity:.6;font-size:.85rem;padding:8px 2px}
+.pavBar{display:flex;gap:6px;overflow-x:auto;margin:0 10px 6px}
+.pavBar button{padding:6px 12px;border-radius:999px;border:1px solid #ffffff22;background:transparent;color:var(--muted);font-family:var(--mono);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
+.pavBar button[aria-selected="true"]{border-color:var(--accent);color:var(--accent)}
+.pavBar button.addPav{border-style:dashed}
+.c4dBtn{display:block;margin:2px 12px 12px;padding:11px 12px;border-radius:10px;text-align:center;font-weight:700;font-size:14px;background:rgb(var(--accent-rgb));color:#06070a;text-decoration:none;min-height:44px;line-height:22px}
 </style>
 <script>
 /* 09/11/2026 (Leandro): app não dá zoom. Trava pinça, toque duplo e o zoom do iPhone ao focar um campo; mede a área segura (ilha e cantos). */
@@ -486,81 +516,63 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 
-<style id="leoLogo">/* Leo iA Vinci (13/11/2026): sem rosto; no lugar, o logo do Léo (nuvem de partículas + LEO) */
-.face .retrato,.face #cv,#avatarVideo,.face .scan{display:none!important}
-.face .leoMarca{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin;pointer-events:none}
-.face .leoMarca canvas{width:min(76vw,44dvh,440px);height:auto;aspect-ratio:1}
-.face .leoMarca b{font:300 clamp(22px,4.6vmin,40px)/1 inherit;letter-spacing:.55em;margin-right:-.55em;color:var(--accent);text-shadow:0 0 18px rgba(var(--accent-rgb),.35)}
-</style>
-<style id="leoLayout">
-/* 13/11/2026 (Leandro): Leo com 4 abas. Leo = holograma no meio, barra e microfone. Dashboard = cotação, cenas e notícias do dia
-   ocupando a tela inteira em qualquer formato. Notícias = os dois painéis de manchetes em tela cheia. Ambientes = cenas por cômodo. */
-#hud .appTabs{grid-template-columns:repeat(4,minmax(0,1fr))}
-#hud[data-tab="dashboard"],#hud[data-tab="news"]{height:100vh;height:100dvh;min-height:0;overflow:hidden;grid-template-rows:0 minmax(0,1fr) 0 0 auto;gap:0}
-#hud[data-tab="dashboard"]>.top,#hud[data-tab="dashboard"]>.bottom,#hud[data-tab="dashboard"] .center,#hud[data-tab="dashboard"] .deck{display:none!important}
-#hud[data-tab="dashboard"]>.stage,#hud[data-tab="news"]>.stage{display:grid!important;min-height:0;height:100%;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:12px;padding:2px 12px 12px;align-content:start;grid-template-columns:minmax(0,1fr);grid-template-areas:none}
-#hud[data-tab="dashboard"]>.stage::-webkit-scrollbar,#hud[data-tab="news"]>.stage::-webkit-scrollbar{display:none}
-#hud[data-tab="dashboard"] .col,#hud[data-tab="news"] .col{display:contents!important}
-#hud[data-tab="dashboard"] .panel,#hud[data-tab="news"] .panel.news{display:flex!important;width:auto;max-width:none;min-width:0;margin:0;align-self:stretch}
-#hud[data-tab="dashboard"] #market{grid-area:mk}#hud[data-tab="dashboard"] #matrix{grid-area:mx}#hud[data-tab="dashboard"] #newsPol{grid-area:np}#hud[data-tab="dashboard"] #newsTec{grid-area:nt}
-#hud[data-tab="dashboard"] .news,#hud[data-tab="news"] .news{min-height:210px}
-#hud[data-tab="dashboard"] .news .slides,#hud[data-tab="news"] .news .slides{flex:1 1 auto;min-height:150px}
-/* celular em pé: uma coluna que rola por cima da faixa do microfone */
-#hud[data-tab="dashboard"]>.stage{grid-template-areas:"mk" "mx" "np" "nt";grid-auto-rows:max-content}
-/* tablet e dobrável em pé: cotação e manchetes à esquerda, cenas à direita, tudo na altura da tela */
-@media (orientation:portrait) and (min-width:600px){
-  #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:max-content minmax(210px,1fr) minmax(210px,1fr);grid-template-areas:"mk mx" "np mx" "nt mx";align-content:stretch}
-  #hud[data-tab="dashboard"] #matrix{align-self:stretch;min-height:0;overflow:hidden}
-  #hud[data-tab="dashboard"] #matrix .grid{flex:1 1 auto;min-height:0;grid-auto-rows:minmax(40px,1fr);align-content:stretch}
-  #hud[data-tab="dashboard"] #matrix .tile{height:auto;min-height:40px;aspect-ratio:auto}
-}
-/* deitado: três colunas (cotação e política | cenas | tecnologia) */
+<style id="dash1311">/* 13/11/2026: Dashboard que aproveita a tela deitada (rosto pequeno + clima + mercado | cenas | notícias), rolagem com o dedo; microfone com a frase centralizada embaixo dele */
+.clima .climaBox{display:flex;align-items:center;gap:14px;padding:8px 12px 12px}
+.clima .climaBox b{font:600 2.1rem/1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;color:var(--ink)}
+.clima .climaBox span{display:block;font-size:.92rem;color:var(--ink)}
+.clima .climaBox span::first-letter{text-transform:uppercase}
+.clima .climaBox small{display:block;margin-top:3px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#hud:not([data-tab="dashboard"]) #climaP{display:none}
+#hud[data-tab="dashboard"]>.stage{overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 @media (orientation:landscape){
-  #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);grid-template-rows:max-content minmax(170px,1fr);grid-template-areas:"mk mx nt" "np mx nt";align-content:stretch}
-  #hud[data-tab="dashboard"] #matrix{align-self:stretch;min-height:0;overflow:hidden}
-  #hud[data-tab="dashboard"] #matrix .grid{flex:1 1 auto;min-height:0;grid-auto-rows:minmax(34px,1fr);align-content:stretch}
-  #hud[data-tab="dashboard"] #matrix .tile{height:auto;min-height:34px;aspect-ratio:auto}
-  #hud[data-tab="news"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:stretch;grid-template-rows:minmax(0,1fr)}
+ html:has(#hud[data-tab="dashboard"]),html:has(#hud[data-tab="dashboard"]) body{height:100%;overflow:hidden}
+ #hud[data-tab="dashboard"]{height:100dvh;min-height:0}
+ #hud[data-tab="dashboard"]>.top{display:none}
+ #hud[data-tab="dashboard"]>.stage{display:grid;overflow-y:auto;align-content:start;align-items:start;gap:12px;padding:0 2px 12px;
+   grid-template-columns:minmax(210px,.9fr) minmax(250px,1.25fr) minmax(220px,1fr);
+   grid-template-rows:max-content max-content max-content minmax(max-content,1fr);
+   grid-template-areas:"center cmd n1" "clima cmd n1" "market cmd n2" ". cmd n2";
+   height:calc(100dvh - var(--sTop) - var(--tabsH) - 22px);max-height:none}
+ #hud[data-tab="dashboard"] .col{display:contents}
+ #hud[data-tab="dashboard"] .center{grid-area:center;min-height:0;display:flex;justify-content:center;padding:0}
+ #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(100%,24dvh,190px);position:relative;top:auto}
+ #hud[data-tab="dashboard"] .deck{display:none}
+ #hud[data-tab="dashboard"] #climaP{grid-area:clima}
+ #hud[data-tab="dashboard"] #market{grid-area:market}
+ #hud[data-tab="dashboard"] #matrix{grid-area:cmd}
+ #hud[data-tab="dashboard"] #newsPol{grid-area:n1;min-height:230px}
+ #hud[data-tab="dashboard"] #newsTec{grid-area:n2;min-height:230px}
 }
 @media (orientation:landscape) and (max-height:560px){
-  #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1.7fr) minmax(0,1fr);grid-template-rows:max-content minmax(150px,max-content);align-content:start;padding-top:6px}
-  #hud[data-tab="dashboard"] #matrix{align-self:start;overflow:visible}
-  #hud[data-tab="dashboard"] #matrix .grid{flex:0 0 auto;grid-auto-rows:auto}
-  #hud[data-tab="dashboard"] #matrix .tile{font-size:.74rem;min-height:40px}
-  #hud[data-tab="dashboard"] .news,#hud[data-tab="news"] .news{min-height:150px}
-  #hud[data-tab="dashboard"] .news .slides,#hud[data-tab="news"] .news .slides{min-height:110px}
+ #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(190px,.85fr) minmax(230px,1.2fr) minmax(200px,1fr)}
+ #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{width:min(100%,30dvh,130px)}
+ #hud[data-tab="dashboard"] #newsPol,#hud[data-tab="dashboard"] #newsTec{min-height:200px}
 }
-/* deitado mas estreito (dobrável aberto, tablet pequeno): duas colunas, como em pé */
-@media (orientation:landscape) and (min-height:561px) and (max-width:1000px){
-  #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:max-content minmax(170px,1fr) minmax(170px,1fr);grid-template-areas:"mk mx" "np mx" "nt mx"}
+@media (orientation:landscape) and (max-width:1020px){
+ #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1fr) minmax(0,1.45fr);grid-template-rows:repeat(5,max-content);grid-template-areas:"center cmd" "clima cmd" "market cmd" "n1 n1" "n2 n2"}
 }
-#hud[data-tab="dashboard"] #matrix .tile,#hud[data-tab="dashboard"] #matrix .tile *{word-break:normal!important;overflow-wrap:normal!important;hyphens:none}
-@media (max-width:380px){#hud[data-tab="dashboard"] #matrix .tile{font-size:.62rem;letter-spacing:0;padding:5px 2px}}
-/* Ambientes: botões do tamanho da tela (não miúdos no tablet) e o microfone nunca em cima de um botão */
-#hud[data-tab="rooms"] .matrix .grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
-@media (min-width:700px){
-  #hud[data-tab="rooms"] .matrix .grid{grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;padding:6px 14px 14px}
-  #hud[data-tab="rooms"] .matrix .tile{min-height:66px;font-size:.95rem}
-  #hud[data-tab="rooms"] .roombar button{font-size:.8rem;padding:10px 18px}
+@media (orientation:landscape){
+ #hud[data-tab="dashboard"]{padding-bottom:calc(var(--tabsH) + 8px)!important}
+ #hud[data-tab="dashboard"] .center{height:auto;align-self:start}
+ #hud[data-tab="dashboard"] .orbWrap,#hud[data-tab="dashboard"].com-rosto .orbWrap{flex:none;height:auto;margin:0 auto}
+ #hud[data-tab="dashboard"] .boot{display:none}
 }
-@media (orientation:landscape) and (max-height:560px){#hud[data-tab="rooms"]{padding-right:calc(max(16px,env(safe-area-inset-right)) + 70px)!important}}
-@media (orientation:landscape) and (min-height:561px){#hud[data-tab="rooms"]{padding-right:calc(max(32px,env(safe-area-inset-right)) + 92px)!important}}
-@media (orientation:landscape) and (max-height:560px){
-  #hud[data-tab="dashboard"]>.stage{grid-template-columns:minmax(0,1.15fr) minmax(0,1.75fr) minmax(0,1fr)}
-  #hud[data-tab="dashboard"] #matrix .tile{font-size:.68rem;letter-spacing:0;padding:4px 2px}
+/* frase "Fale com ..." sempre centralizada logo abaixo do microfone; deitado, o microfone se afasta da borda para a frase caber */
+@media (orientation:landscape){
+ html body #hud[data-tab="home"]>.mic[data-on="0"]::after{left:50%!important;right:auto!important;transform:translateX(-50%)!important;text-align:center!important}
+ html body #hud>.mic{right:max(52px,calc(env(safe-area-inset-right) + 28px))!important}
+ #hud:not([data-tab="home"]){padding-right:calc(max(52px,env(safe-area-inset-right) + 28px) + 70px)}
 }
-/* Notícias em pé: os dois painéis dividem a altura inteira */
-@media (orientation:portrait){
-  #hud[data-tab="news"]>.stage{grid-template-rows:minmax(230px,1fr) minmax(230px,1fr);align-content:stretch}
+@media (orientation:landscape) and (min-height:561px){
+ html body #hud>.mic{right:max(72px,calc(env(safe-area-inset-right) + 36px))!important}
+ #hud:not([data-tab="home"]){padding-right:calc(max(72px,env(safe-area-inset-right) + 36px) + 92px)}
 }
-#hud[data-tab="news"] .news{width:auto;align-self:stretch}
-#hud[data-tab="dashboard"] #matrix::-webkit-scrollbar{display:none}
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
 <meta name="robots" content="noindex,nofollow"></head>
 <body>
-<div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para continuar">
-  <div class="box"><div class="eye"></div><div class="t1">toque para continuar</div><div class="t2">leo · iA vinci</div></div>
+<div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
+  <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
 </div>
 <div class="remote" id="remote" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitulo"><div class="rc">
   <header><h3 id="rcTitulo">Controle</h3><button class="pb" type="button" id="rcEditar">editar botões</button><button class="x" type="button" id="rcFechar" aria-label="Fechar">✕</button></header>
@@ -575,7 +587,7 @@ input,select,textarea{font-size:16px!important}
 </div></div>
 <div class="hud" id="hud" data-state="idle" data-tab="home">
   <header class="top">
-    <div class="meta left"><span class="dot" id="dotHouse"></span><span id="houseLabel">leo · iA vinci</span></div>
+    <div class="meta left"><span class="dot" id="dotHouse"></span><span id="houseLabel">felyx · vinci ai</span></div>
     <div class="state"><div class="stateLabel" id="stateLabel">aguardando</div><div class="ticks" id="ticks" aria-hidden="true"></div></div>
     <div class="meta right"><span id="dateLabel"></span><span id="clock">--:--</span></div>
   </header>
@@ -587,6 +599,14 @@ input,select,textarea{font-size:16px!important}
         <div class="rows" id="marketRows"></div>
         <div class="pf" id="marketFoot">pares binance · spot e futuros</div>
       </section>
+      <section class="panel clima" id="climaP" aria-label="Clima">
+        <div class="ph"><span class="k"><i></i>clima · rio de janeiro</span><span class="pr" id="climaWhen">carregando</span></div>
+        <div class="climaBox"><b id="climaT">—</b><div><span id="climaD">—</span><small id="climaX"></small></div></div>
+      </section>
+      <section class="panel casa4d" id="casa4dP" aria-label="Casa 4D">
+        <div class="ph"><span class="k"><i></i>casa 4d</span><span class="pr">sua planta em 3D</span></div>
+        <a class="c4dBtn" href="https://palanteerhq.com/login/?marca=felyx&amp;next=%2Fcasa4d%2F" target="_blank" rel="noopener">Abrir minha Casa 4D</a>
+      </section>
       <section class="panel news" id="newsPol" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
         <div class="slides"><div class="empty">carregando manchetes</div></div>
@@ -595,11 +615,10 @@ input,select,textarea{font-size:16px!important}
     </aside>
 
     <section class="center">
-      <section class="orbWrap" aria-label="Leo">
+      <section class="orbWrap" aria-label="Felyx">
         <canvas id="rings" aria-hidden="true"></canvas>
         <div class="face">
-          <canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
-          <div class="leoMarca" aria-hidden="true"><canvas id="leoCv" width="600" height="600"></canvas></div>
+          <img class="retrato" src="felyx-retrato-16x9.jpg" alt="" aria-hidden="true"><canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
           <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
           <audio id="avatarAudio" autoplay></audio>
           <div class="scan" id="scan" data-on="0" aria-hidden="true"><div class="line"></div><div class="ret l"></div><div class="ret r"></div></div>
@@ -611,11 +630,12 @@ input,select,textarea{font-size:16px!important}
 
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
-        <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <div class="ph"><span class="k"><i></i><b class="lbDash">favoritos</b><b class="lbSala">ambientes</b></span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
+        <nav class="pavBar" id="pavBar" aria-label="Pavimentos" hidden></nav><nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><label>pavimento<select id="rmPav"></select></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
+          <div class="edTipoLinha"><label>tipo<select id="edTipo"><option value="cena">cena</option><option value="aparelho">aparelho</option><option value="controle">controle remoto</option><option value="frase">frase livre</option></select></label><label>qual<select id="edAlvo"></select></label><button class="pb" id="edAtualizar" type="button">atualizar lista</button></div>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
-          <label>frase para o Leo<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
+          <label>frase para o felyx<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
           <label>frase para desligar (opcional: o botão vira liga/desliga)<input id="edPhrase2" list="phrases" autocomplete="off" placeholder="ex.: desligar o interruptor Café"></label>
           <label>sala<select id="edRoom"></select></label>
           <label>controle remoto depois da cena<select id="edRc"><option value="">automático (TV e ar pelo nome)</option><option value="tv">televisão</option><option value="ar">ar-condicionado</option><option value="som">som</option><option value="nao">nenhum</option></select></label>
@@ -636,40 +656,28 @@ input,select,textarea{font-size:16px!important}
   <footer class="bottom">
     <div class="status" id="statusText" role="status" aria-live="polite"></div>
   </footer>
-    <button class="mic" id="talk" data-on="0" data-rotulo="Fale com o Leo" aria-label="Falar" title="Falar">
+    <button class="mic" id="talk" data-on="0" data-rotulo="Fale com o Felyx" aria-label="Falar" title="Falar">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zm6-4a1 1 0 1 1 2 0 8 8 0 0 1-7 7.93V21h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-2.07A8 8 0 0 1 4 11a1 1 0 1 1 2 0 6 6 0 0 0 12 0z"/></svg>
     </button>
-  <nav class="appTabs" role="tablist" aria-label="Navegação principal"><button type="button" role="tab" data-tab-target="home" aria-selected="true">Leo</button><button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button><button type="button" role="tab" data-tab-target="news" aria-selected="false">Notícias</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Ambientes</button></nav>
+  <div id="addSheet" hidden role="dialog" aria-modal="true" aria-label="Adicionar"><div class="box"><h3 id="addTitulo">Adicionar aos favoritos</h3><p style="margin:-6px 0 0;opacity:.65;font-size:.85rem">O que você quer adicionar?</p><div class="tabs" role="tablist"><button type="button" data-k="cena" aria-selected="true">Cenas</button><button type="button" data-k="aparelho" aria-selected="false">Dispositivos</button><button type="button" data-k="controle" aria-selected="false">Controle remoto</button></div><input type="search" id="addBusca" placeholder="Buscar" aria-label="Buscar"><div class="lista" id="addLista" role="listbox"></div><div class="rod"><button type="button" id="addAtualizar">Atualizar dispositivos e cenas</button><button type="button" id="addFechar">Fechar</button></div></div></div>
+  <nav class="appTabs" role="tablist" aria-label="Navegação principal"><button type="button" role="tab" data-tab-target="home" aria-selected="true">Felyx</button><button type="button" role="tab" data-tab-target="dashboard" aria-selected="false">Dashboard</button><button type="button" role="tab" data-tab-target="rooms" aria-selected="false">Ambientes</button></nav>
 </div>
 
-
-<script>// Regra do cumprimento (GEM, FULL e app): o "bom dia / boa tarde / boa noite" completo — com mercado, dólar e
-// notícias — sai no máximo uma vez a cada 4 horas. Dentro desse intervalo o Felyx só devolve um cumprimento curto.
-// A marca fica no localStorage do domínio, então vale para todas as versões abertas neste aparelho.
-(function () {
-  const CHAVE = 'google.leo.cumprimento', INTERVALO = 4 * 60 * 60 * 1000;
-  const SAUDACAO = /\b(bom\s*dia|boa\s*tarde|boa\s*noite)\b/i;
-  function ultimo() { try { return Number(localStorage.getItem(CHAVE) || 0); } catch (e) { return 0; } }
-  const felyxCumprimento = {
-    recente: () => Date.now() - ultimo() < INTERVALO,
-    marcar: () => { try { localStorage.setItem(CHAVE, String(Date.now())); } catch (e) {} },
-    agoraMesmo: () => Date.now() - ultimo() < 8000,   // o completo acabou de ser liberado (para acender os cards)
-    ehSaudacao: (texto) => SAUDACAO.test(String(texto || '')),
-    // pergunta que vai para o cérebro: se for só um cumprimento e já houve o completo há pouco, pede resposta curta
-    ajustar(pergunta) {
-      if (!this.ehSaudacao(pergunta)) return pergunta;
-      if (this.recente()) return pergunta + ' (Instrução do sistema: já houve um cumprimento completo há menos de 4 horas. Responda só com um cumprimento curto e cordial, sem mercado, dólar, bolsa, cotações nem notícias.)';
-      this.marcar();
-      return pergunta;
-    },
-  };
-  window.felyxCumprimento = felyxCumprimento;
+<script>
+// Félix GEN dentro do app (iPhone, iPad, Mac, Android): o login é o do app; a sessão chega pelo localStorage (mesmo endereço).
+// Sessão inválida = volta para o login do app. O app nativo espera o aviso "pronto".
+(function(){
+  try{ const s = JSON.parse(localStorage.getItem('felyx.sessao') || 'null'); if(s && s.token) localStorage.setItem('felyx_sessao', s.token); }catch(e){}
+  const aviso = (tipo) => { try{ window.webkit.messageHandlers.felyx.postMessage({ tipo }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo })); }catch(e){} };
+  window.felyxVoltarAoLogin = function(){ try{ localStorage.removeItem('felyx.sessao'); localStorage.removeItem('felyx_sessao'); }catch(e){} aviso('logout'); location.replace('./' + location.search); };
+  addEventListener('DOMContentLoaded', () => aviso('pronto'));
 })();
 </script>
+<script src="cumprimento.js"></script>
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
-
-
+<script src="esqueci-senha.js"></script>
+<script src="../vinci/onboarding.js?v=20261114o"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -799,7 +807,7 @@ function drawRings(t, now){
   RINGS.forEach((rg, ri)=>{
     const R = faceR*(rg.r/0.5)*0.98;
     const alpha = rg.a*(0.55 + energyBoost*0.5 + (thinking?0.25:0));
-    const col = thinking ? ACCENT : ACCENT;
+    const col = thinking ? '79,168,255' : ACCENT;
     const wob = 11 + energyBoost*32;
     rctx.beginPath();
     for(let i=0;i<=NP;i++){
@@ -925,63 +933,7 @@ function clearCards(){ [...deckEl.children].forEach(c=>{ c.dataset.in='0'; setTi
 const WMO = {0:'céu limpo',1:'quase limpo',2:'parcialmente nublado',3:'nublado',45:'nevoeiro',48:'nevoeiro',51:'garoa',53:'garoa',55:'garoa',61:'chuva fraca',63:'chuva',65:'chuva forte',80:'pancadas',81:'pancadas',82:'pancadas fortes',95:'trovoadas'};
 
 /* ===================== n8n (ponte) ===================== */
-const GOOGLE_WEB_APP = 'https://script.google.com/macros/s/AKfycbwV5hQDg6pPGIxYPCrty-avnemWZEBHnatYP8xxEJ9a0iKqECyEKfi45JckWHMEKAZilw/exec';
-// Saldo mensal expresso somente em créditos; cards não dependem deste bloqueio.
-const GOOGLE_CREDIT_END='Seus créditos deste mês acabaram.';
-const googleLiveSessions=new Set();
-let googleCreditState=null;
-function googleCreditBlocked(){return !!(googleCreditState&&googleCreditState.bloqueado);}
-function renderGoogleCredits(){
-  const el=document.getElementById('googleCredits');if(!el)return;
-  if(!googleCreditState){el.textContent='Saldo de créditos: consultando…';return;}
-  const c=googleCreditState;
-  el.textContent=Number(c.restante).toLocaleString('pt-BR')+' créditos disponíveis de '+Number(c.franquia||25500).toLocaleString('pt-BR')+' neste mês.';
-  if(c.bloqueado)el.textContent+=' '+GOOGLE_CREDIT_END;
-  else if(c.usados>=Number(c.franquia||25500)*.9||c.aviso)el.textContent+=' Você já usou 90% dos seus créditos deste mês.';
-  for(const node of document.querySelectorAll('#googleChat input,#googleChat button,#talk'))node.disabled=!!c.bloqueado||(node.tagName==='BUTTON'&&node.closest('#googleChat')?.dataset.busy==='1');
-}
-function updateGoogleCredits(j){
-  if(j.creditos&&typeof j.creditos==='object')googleCreditState={...j.creditos,aviso:j.aviso&&j.aviso.nivel===90};
-  if(j.erro==='creditos_esgotados')googleCreditState={...(googleCreditState||{}),restante:0,franquia:25500,bloqueado:true};
-  if(googleCreditBlocked())for(const live of googleLiveSessions){live.finishText(new Error(GOOGLE_CREDIT_END));live.end();}
-  renderGoogleCredits();
-}
-async function refreshGoogleCredits(){if(SESSAO)try{await googleRequest('credits',{},'GET');}catch(e){/* falha não inventa saldo */}}
-async function googleRequest(acao, data={}, method='POST') {
-  const payload = Object.assign({acao, token:SESSAO, produto:'leo'},data);
-  const options = method === 'GET' ? {cache:'no-store'} : {method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)};
-  const endpoint = method === 'GET' ? GOOGLE_WEB_APP+'?'+new URLSearchParams(payload) : GOOGLE_WEB_APP;
-  const r=await window.fetch(endpoint,options), j=await r.json();
-  if(['nao_autenticado','sessao_invalida'].includes(j.erro)){salvarSessao('');mostrarLogin('Entre novamente.');}
-  updateGoogleCredits(j);
-  return j;
-}
-let googleCardsFlight=null, googleCardsCache=null, googleCardsTime=0;
-async function googleCards(){
-  if(!SESSAO) return {cards:[]};
-  if(googleCardsCache && Date.now()-googleCardsTime<14*60000)return googleCardsCache;
-  if(!googleCardsFlight)googleCardsFlight=googleRequest('cards',{},'GET').then(j=>{if(!j.ok)throw Error(j.erro);googleCardsCache=Array.isArray(j.cards)?{cards:j.cards}:j.cards;googleCardsTime=Date.now();return googleCardsCache;}).finally(()=>googleCardsFlight=null);
-  return googleCardsFlight;
-}
-async function previewFetch(url,options={}){
-  const u=String(url), b=options.body?JSON.parse(options.body):{};
-  let j;
-  if(u.startsWith('google-compat:')){
-    if(u.includes('/token'))j=await googleRequest('token');
-    else if(u.includes('/mercado')){const p=await googleCards();const c=p.cotacoes||{};j={ok:true,cambio:{usdbrl:Number(c.usd_brl?.valor),eurbrl:Number(c.eur_brl?.valor)},cripto:{bitcoin:{usdt:Number(c.btc_usd?.valor)}},updatedAt:p.updatedAt};}
-    else if(u.includes('/noticias')){const p=await googleCards();const cards=(p.cards||[]).map(c=>({title:c.titulo,link:c.fonteUrl,image:c.fotoUrl,source:'G1',cat:c.categoria}));j={ok:true,politica:cards.filter(c=>['politica','destaques'].includes(c.cat)),tecnologia:cards.filter(c=>['tecnologia','economia'].includes(c.cat))};}
-    else if(b.acao==='casa'){const r=await googleRequest('scenes',{},'GET');if(window.coRemote)window.coRemote.reload().catch(()=>{});j={...r,cenas:(r.scenes||[]).map(x=>x.nome),aparelhos:[]};}
-    else if(b.acao==='estados')j={ok:false,erro:'estado_indisponivel'};
-    else if(b.acao==='comando'){j=await googleRequest('edit',{input:b.texto});j.text=j.message;}
-    else j={ok:false,erro:'operacao_indisponivel_na_previa'};
-    return new Response(JSON.stringify(j),{headers:{'Content-Type':'application/json'}});
-  }
-  if(u.startsWith('https://script.google.com/'))return new Response(JSON.stringify(await googleCards()));
-  const resolved=new URL(u,location.href);
-  if(resolved.origin===location.origin)return window.fetch(url,options);
-  throw Error('Consulta disponível pelo Google na prévia.');
-}
-const N8N = 'google-compat:';
+const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
 const TOKEN_URL = N8N + '/felix/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/felix/gemini-apoio';
@@ -992,36 +944,46 @@ const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 /* ===================== acesso (login) ===================== */
 const LOGIN_URL = N8N + '/felix/login';
 let SESSAO = '';
-try{ SESSAO = localStorage.getItem('vinci.google.leo.sessao') || ''; }catch(e){}
-function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('vinci.google.leo.sessao', t); else localStorage.removeItem('vinci.google.leo.sessao'); }catch(e){} }
+try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
+function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
-try{ VinciOnboarding.iniciar({ ia:'leo', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
+try{ VinciOnboarding.iniciar({ ia:'felyx', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
 (function montarLogin(){
   const st = document.createElement('style');
   st.textContent = '#felyxLogin{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#06070a;font-family:inherit}#felyxLogin[data-on="1"]{display:flex}#felyxLogin .cx{width:min(88vw,340px);text-align:center}#felyxLogin h1{color:#e9eae6;font-size:22px;letter-spacing:.3em;margin:0 0 4px;font-weight:600}#felyxLogin p{color:#8a8d86;font-size:12px;margin:0 0 22px}#felyxLogin input{width:100%;box-sizing:border-box;background:#0f1116;border:1px solid #23262d;color:#e9eae6;border-radius:12px;padding:14px 16px;font-size:16px;margin:7px 0;outline:none}#felyxLogin input:focus{border-color:#d6ff1a}#felyxLogin button{width:100%;margin-top:14px;background:#d6ff1a;color:#000;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:700;cursor:pointer}#felyxLogin button:disabled{opacity:.5}#felyxLogin .er{color:#ff6a62;font-size:13px;min-height:18px;margin-top:12px}';
   document.head.appendChild(st);
   const el = document.createElement('div'); el.id = 'felyxLogin';
-  el.innerHTML = '<div class="cx"><h1>LEO</h1><p>iA · vinci · prévia Google</p><input id="flTel" type="email" autocomplete="email" placeholder="seu e-mail"><input id="flSenha" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="código de 6 dígitos" hidden><button id="flEntrar">Enviar código</button><button id="flEsqueci" type="button" hidden>Enviar outro código</button><div class="er" id="flErro" role="status"></div></div>';
+  el.innerHTML = '<div class="cx"><h1>FELYX</h1><p>GEN · vinci ai</p>'
+    + '<input id="flTel" type="tel" inputmode="tel" autocomplete="tel" placeholder="telefone com DDD">'
+    + '<input id="flSenha" type="password" autocomplete="current-password" placeholder="senha do app Felyx">'
+    + '<button id="flEntrar">Entrar</button><button id="flEsqueci" type="button" style="background:none;color:#8a8d86;font-weight:400;margin-top:6px">Esqueci a senha</button><div class="er" id="flErro"></div></div>';
   document.body.appendChild(el);
-  const entrar=document.getElementById('flEntrar'),erro=document.getElementById('flErro'),email=document.getElementById('flTel'),code=document.getElementById('flSenha');
-  let sent=false;
+  const entrar = document.getElementById('flEntrar'), erro = document.getElementById('flErro');
   async function tentar(){
-    if(!email.validity.valid||!email.value.trim()){erro.textContent='Informe seu e-mail.';return;}
-    if(sent&&!/^\d{6}$/.test(code.value.trim())){erro.textContent='Informe o código de 6 dígitos.';return;}
-    entrar.disabled=true;erro.textContent='Aguarde…';
-    try{const j=await googleRequest('login',sent?{email:email.value.trim(),code:code.value.trim()}:{email:email.value.trim()});
-      if(!j.ok)throw Error(j.erro);
-      if(j.token){salvarSessao(j.token);esconderLogin();googleCardsCache=null;loadMercado(true);loadNoticias(true);}
-      else {sent=true;email.readOnly=true;code.hidden=false;document.getElementById('flEsqueci').hidden=false;entrar.textContent='Entrar';erro.textContent='Código enviado por e-mail.';code.focus();}
-    }catch(e){erro.textContent=String(e.message||'Falha ao conectar.').replaceAll('_',' ');}finally{entrar.disabled=false;}
+    const tel = document.getElementById('flTel').value.trim();
+    const senha = document.getElementById('flSenha').value;
+    if(!tel || !senha){ erro.textContent = 'Preencha telefone e senha.'; return; }
+    entrar.disabled = true; erro.textContent = 'entrando…';
+    try{
+      // mesma senha do app Felyx (GEM, FULL e apps); a senha antiga da casa continua valendo como segunda tentativa
+      let r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'entrar', telefone: tel, senha, aparelho:'App · Félix GEN' }) });
+      let j = {}; try{ j = await r.json(); }catch(e){}
+      if(!(r.ok && j.ok && j.token)){
+        r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
+        j = {}; try{ j = await r.json(); }catch(e){}
+      }
+      if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); }
+      else { erro.textContent = 'Telefone ou senha não conferem, ou você não está autorizado.'; }
+    }catch(e){ erro.textContent = 'Não consegui conectar. Tente de novo.'; }
+    entrar.disabled = false;
   }
-  entrar.addEventListener('click',tentar);
-  code.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
-  email.addEventListener('keydown',e=>{if(e.key==='Enter')tentar();});
-  document.getElementById('flEsqueci').addEventListener('click',()=>{sent=false;email.readOnly=false;code.value='';code.hidden=true;entrar.textContent='Enviar código';});
+  entrar.addEventListener('click', tentar);
+  document.getElementById('flEsqueci').addEventListener('click', ()=> felyxEsqueciSenha({ telefone: document.getElementById('flTel').value, aparelho: 'Felyx GEN',
+    aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); } }));
+  document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
 })();
-function mostrarLogin(msg){  const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
+function mostrarLogin(msg){ if(window.felyxVoltarAoLogin) return window.felyxVoltarAoLogin(); const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
 function esconderLogin(){ const el = document.getElementById('felyxLogin'); if(el) el.dataset.on = '0'; }
 
 /* ===================== mercado (em real) ===================== */
@@ -1071,13 +1033,13 @@ function renderMercado(m){
 async function fetchMercadoDireto(){
   // reserva: busca direto no navegador se a ponte não responder
   const [fx, cg] = await Promise.all([
-    previewFetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then(r=>r.json()),
-    previewFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,zcash&vs_currencies=brl,usd&include_24hr_change=true').then(r=>r.json())
+    fetch('https://api.frankfurter.app/latest?from=USD&to=BRL,EUR').then(r=>r.json()),
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,zcash&vs_currencies=brl,usd&include_24hr_change=true').then(r=>r.json())
   ]);
   const cripto = {}; for(const k of ['bitcoin','ethereum','solana','zcash']){ const c = cg[k]; if(c) cripto[k] = { brl:c.brl, usd:c.usd, usdt:c.usd, chg:c.brl_24h_change, chgUsdt:c.usd_24h_change }; }
   let usdtbrl = null, clusdt = null;
-  try{ const b = await previewFetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then(r=>r.json()); if(b && b.lastPrice) usdtbrl = { preco:+b.lastPrice, chg:+b.priceChangePercent }; }catch(e){}
-  try{ const c = await previewFetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
+  try{ const b = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=USDTBRL').then(r=>r.json()); if(b && b.lastPrice) usdtbrl = { preco:+b.lastPrice, chg:+b.priceChangePercent }; }catch(e){}
+  try{ const c = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=CLUSDT').then(r=>r.json()); if(c && c.lastPrice){ const rate = usdtbrl ? usdtbrl.preco : fx.rates.BRL; clusdt = { usdt:+c.lastPrice, brl:+c.lastPrice*rate, chg:+c.priceChangePercent }; } }catch(e){}
   return { ok:true, cambio:{ usdbrl: fx.rates.BRL, eurbrl: fx.rates.BRL/fx.rates.EUR, data: fx.date }, cripto, usdtbrl, clusdt, petroleo:null };
 }
 let mercadoAt = 0, mercadoData = null, mercadoVoo = null;
@@ -1092,7 +1054,7 @@ function loadMercado(force){
 async function buscarMercado(){
   mercadoAt = Date.now();
   try{
-    const r = await previewFetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
+    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
     if(!m || !m.ok) throw new Error('ponte sem dados');
     mercadoData = m; renderMercado(m); return m;
   }catch(e){
@@ -1106,7 +1068,7 @@ const SRC_SHORT = { 'agência brasil':'agência brasil', 'olhar digital':'olhar 
 function timeAgo(s){
   const d = new Date(s); if(isNaN(d)) return '';
   const m = Math.round((Date.now() - d.getTime())/60000);
-  if(m < 1) return 'agora'; if(m < 60) return 'recentemente'; if(m < 24*60) return 'há '+Math.round(m/60)+' h';
+  if(m < 1) return 'agora'; if(m < 60) return 'há '+m+' min'; if(m < 24*60) return 'há '+Math.round(m/60)+' h';
   return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
 }
 class NewsPanel {
@@ -1115,7 +1077,7 @@ class NewsPanel {
     el.style.setProperty('--dur', (this.dur/1000)+'s');
   }
   set(items){
-    const list = (items||[]).filter(n=>n && n.title).slice(0, 12);
+    const list = (items||[]).filter(n=>n && n.title).slice(0, 6);
     if(!list.length){ if(!this.items.length) this.slides.innerHTML = '<div class="empty">sem manchetes agora</div>'; return; }
     this.items = list; this.i = -1;
     this.slides.innerHTML = list.map((n, k)=>`
@@ -1147,7 +1109,7 @@ const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
 function loadNoticias(force){
   if(noticiasVoo) return noticiasVoo;
-  if(!force && Date.now() - noticiasAt < 14*60000) return Promise.resolve();
+  if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
   if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
   noticiasVoo = buscarNoticias().finally(()=>{ noticiasVoo = null; });
   return noticiasVoo;
@@ -1155,7 +1117,7 @@ function loadNoticias(force){
 async function buscarNoticias(){
   noticiasAt = Date.now();
   try{
-    const r = await previewFetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
+    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
     if(!j || !j.ok) throw new Error('ponte sem notícias');
     ultimasNoticias = j; newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
   }catch(e){
@@ -1165,7 +1127,7 @@ async function buscarNoticias(){
 }
 
 /* ===================== matriz de comandos (4×8) ===================== */
-const MATRIX_KEY = 'google.leo.matrix.v2', MATRIX_ON_KEY = 'google.leo.matrix.on.v2';
+const MATRIX_KEY = 'felyx.matrix.v2', MATRIX_ON_KEY = 'felyx.matrix.on.v2';
 // Padrão: cenas e aparelhos reais da central da casa do Leandro (lista obtida pela ponte em 14/10/2026). Tudo editável no botão "editar".
 const DEFAULT_TILES = [
   { n:'Luz Alta',       f:'ativar a cena Luz Alta' },
@@ -1219,27 +1181,92 @@ function loadTiles(){
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
 let tileOn = (()=>{ try{ return JSON.parse(localStorage.getItem(MATRIX_ON_KEY)||'{}') || {}; }catch(e){ return {}; } })();
 function saveOn(){ try{ localStorage.setItem(MATRIX_ON_KEY, JSON.stringify(tileOn)); }catch(e){} }
-const SALAS_KEY='google.leo.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[]};}catch(e){}return{renomes:{},extras:[],ocultas:[]};})();
+const SALAS_KEY='felyx.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[],pavimentos:j.pavimentos||[],pavDe:j.pavDe||{}};}catch(e){}return{renomes:{},extras:[],ocultas:[],pavimentos:[],pavDe:{}};})();
 function saveSalas(){try{localStorage.setItem(SALAS_KEY,JSON.stringify(salas))}catch(e){}}
-const roomStoreKey='google.leo.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
+const roomStoreKey='felyx.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
 const normRoom=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
-function isCOTile(t){return VinciCO.isCO(String(t&&t.f||'').replace(/^.*\bcena\s+/i,''))||VinciCO.isCO(t&&t.n);}
+function coTile(t){ return !!t && (VinciCO.isCO(t.n)||VinciCO.isCO(String(t.f||'').replace(/^.*\bcena\s+/i,''))); }
 function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i.test(String(t.f||'')); }
 function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes(r)?(roomConfig.semComodo||'Outros'):r;}
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
-function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s&&!isCOTile(t)).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
-function renderRoomTabs(){const counts=new Set([...tiles.filter(t=>isSceneTile(t)&&!isCOTile(t)).map(roomForTile),...tiles.filter(t=>t.s&&!isCOTile(t)).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav&&!isCOTile(t))?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s&&!coTile(t)).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
+function renderRoomTabs(){const counts=new Set([...tiles.filter(t=>isSceneTile(t)&&!coTile(t)).map(roomForTile),...tiles.filter(t=>t.s&&!coTile(t)).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav&&!coTile(t))?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
-function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
+function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;{const sel=document.getElementById('rmPav'),pv=salas.pavimentos||[];sel.innerHTML='<option value="">sem pavimento</option>'+pv.map(p=>`<option>${esc(p)}</option>`).join('');sel.value=(salas.pavDe||{})[nome]||pavAtivo||'';sel.parentElement.hidden=!pv.length;}document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
 function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
 function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
-function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
+function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.pavDe=salas.pavDe||{};{const pv=document.getElementById('rmPav').value;if(velho&&velho!==novo)delete salas.pavDe[velho];if(pv)salas.pavDe[novo]=pv;else delete salas.pavDe[novo];}salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
 function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
-try{localStorage.removeItem('google.leo.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
-document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('google.leo.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
-previewFetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
+try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
+document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
+fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
+
+/* 22/11 (Leandro): "+" adiciona cena, dispositivo ou controle remoto. No dashboard vira favorito; em Ambientes entra no ambiente aberto. */
+let addTipo = 'cena';
+function addItens(tipo){
+  if(tipo === 'cena') return (casaGen.cenas || []).map(n=>({ nome:n, f:'ativar a cena ' + n }));
+  if(tipo === 'aparelho') return (casaGen.aparelhos || []).map(n=>({ nome:n, f:'ligar ' + n, f2:'desligar ' + n }));
+  return ((window.felyxCO && window.felyxCO.getControls && window.felyxCO.getControls()) || []).map(c=>({ nome: c.aparelho + ' · ' + c.ambiente, ctl: c.aparelho + ' · ' + c.ambiente }));
+}
+function renderAdicionar(){
+  const naSala = document.getElementById('hud').dataset.tab === 'rooms';
+  document.getElementById('addTitulo').textContent = naSala ? ('Adicionar em ' + (roomActive && roomActive !== 'Favoritos' ? roomActive : 'Ambientes')) : 'Adicionar aos favoritos';
+  document.querySelectorAll('#addSheet .tabs button').forEach(b=>b.setAttribute('aria-selected', b.dataset.k === addTipo ? 'true' : 'false'));
+  const q = VinciCO.normalize(document.getElementById('addBusca').value || '');
+  const itens = addItens(addTipo).filter(x=> VinciCO.normalize(x.nome).includes(q)).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const lista = document.getElementById('addLista');
+  document.getElementById('addBusca').hidden = addTipo === 'controle';
+  if(addTipo === 'controle'){
+    const novo = '<div class="novoCtl"><input id="addNomeCtl" maxlength="30" placeholder="Nome do controle" aria-label="Nome do controle"><button type="button" id="addCriarCtl">Criar controle</button></div><div class="vazio">O controle não aciona cena nenhuma. Depois de criar, toque em cada botão dele e escolha a cena.</div>';
+    lista.innerHTML = novo + (itens.length ? itens.map((x,k)=>`<button type="button" data-k="${k}"><span>${esc(x.nome)}</span><span class="tag">controle</span></button>`).join('') : '');
+    lista.querySelectorAll('button[data-k]').forEach((b)=> b.onclick = ()=> adicionarItem(itens[Number(b.dataset.k)]));
+    document.getElementById('addCriarCtl').onclick = async ()=>{ const nome = document.getElementById('addNomeCtl').value.trim(); if(!nome) return; const b = document.getElementById('addCriarCtl'); b.disabled = true; b.textContent = 'Criando…'; const c = await (window.felyxCOCriar ? window.felyxCOCriar(nome) : null).catch(()=>null); if(!c){ b.disabled = false; b.textContent = 'Não consegui criar'; return; } const k = c.aparelho + ' · ' + c.ambiente; adicionarItem({ nome: nome, ctl: k }); setTimeout(()=>{ const cc = (window.felyxCO.getControls() || []).find(x=> x.aparelho === c.aparelho && x.ambiente === c.ambiente); if(cc) window.felyxCO.open(cc); }, 250); };
+    return;
+  }
+  if(!itens.length){ lista.innerHTML = '<div class="vazio">' + (addTipo === 'controle' ? 'Nenhum controle ainda. Crie cenas com "CO" no nome ou atrelamos botões ao abrir um controle.' : 'Nada encontrado. Toque em Atualizar dispositivos e cenas.') + '</div>'; return; }
+  const ja = new Set(tiles.filter(t=>t.n).map(t=> t.ctl || t.f));
+  lista.innerHTML = itens.map((x,k)=>`<button type="button" data-k="${k}" class="${ja.has(x.ctl || x.f) ? 'ja' : ''}"><span>${esc(x.nome)}</span><span class="tag">${addTipo === 'cena' ? 'cena' : (addTipo === 'aparelho' ? 'dispositivo' : 'controle')}</span></button>`).join('');
+  lista.querySelectorAll('button').forEach((b)=> b.onclick = ()=> adicionarItem(itens[Number(b.dataset.k)]));
+}
+function abrirAdicionar(){ addTipo = 'cena'; document.getElementById('addBusca').value = ''; document.getElementById('addSheet').hidden = false; renderAdicionar(); }
+function fecharAdicionar(){ document.getElementById('addSheet').hidden = true; }
+function adicionarItem(x){
+  const naSala = document.getElementById('hud').dataset.tab === 'rooms';
+  const novo = { n: x.nome.slice(0,22), f: x.f || ('abrir o controle ' + x.nome), f2: x.f2 || '', s: naSala && roomActive && roomActive !== 'Favoritos' ? roomActive : '', rc: x.ctl ? 'nao' : '', fav: !naSala || roomActive === 'Favoritos' };
+  if(x.ctl) novo.ctl = x.ctl;
+  let i = tiles.findIndex(t=> !t.n); if(i < 0){ tiles.push(novo); } else { tiles[i] = novo; }
+  saveTiles(); renderMatrix(); fecharAdicionar();
+}
+document.querySelectorAll('#addSheet .tabs button').forEach(b=> b.addEventListener('click', ()=>{ addTipo = b.dataset.k; renderAdicionar(); }));
+document.getElementById('addBusca').addEventListener('input', renderAdicionar);
+document.getElementById('addFechar').addEventListener('click', fecharAdicionar);
+document.getElementById('addSheet').addEventListener('click', (e)=>{ if(e.target.id === 'addSheet') fecharAdicionar(); });
+document.getElementById('addAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'Atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ ok:false })); b.disabled = false; b.textContent = r.ok ? 'Atualizado' : 'Não consegui ler a central'; renderAdicionar(); setTimeout(()=>{ b.textContent = 'Atualizar dispositivos e cenas'; }, 3000); });
+
+/* Pavimentos (Ambientes > editar): agrupam os ambientes. Sem pavimento cadastrado, a barra não aparece. */
+let pavAtivo = '';
+function salaNoPav(sala){ return !pavAtivo || (salas.pavDe || {})[sala] === pavAtivo; }
+function renderPavimentos(){
+  const bar = document.getElementById('pavBar'); if(!bar) return;
+  const naSala = document.getElementById('hud').dataset.tab === 'rooms';
+  const pavs = salas.pavimentos || [];
+  bar.hidden = !naSala || (!pavs.length && !editMode);
+  if(bar.hidden) return;
+  if(pavAtivo && !pavs.includes(pavAtivo)) pavAtivo = '';
+  const bts = [['', 'Todos'], ...pavs.map(p=>[p, p])].map(([v, t])=>{ const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.setAttribute('aria-selected', v === pavAtivo ? 'true' : 'false'); b.onclick = ()=>{ if(editMode && v && v === pavAtivo){ editarPavimento(v); return; } pavAtivo = v; renderMatrix(); }; return b; });
+  if(editMode){ const a = document.createElement('button'); a.type = 'button'; a.className = 'addPav'; a.textContent = '+ pavimento'; a.onclick = ()=> editarPavimento(''); bts.push(a); }
+  bar.replaceChildren(...bts);
+}
+function editarPavimento(nome){
+  const novo = (prompt(nome ? 'Nome do pavimento (apague tudo para excluir):' : 'Nome do novo pavimento (ex.: Térreo, 1º andar):', nome) || '').trim().slice(0,22);
+  salas.pavimentos = salas.pavimentos || []; salas.pavDe = salas.pavDe || {};
+  if(nome && !novo){ salas.pavimentos = salas.pavimentos.filter(p=>p !== nome); Object.keys(salas.pavDe).forEach(k=>{ if(salas.pavDe[k] === nome) delete salas.pavDe[k]; }); pavAtivo = ''; }
+  else if(nome && novo && novo !== nome){ salas.pavimentos = salas.pavimentos.map(p=> p === nome ? novo : p); Object.keys(salas.pavDe).forEach(k=>{ if(salas.pavDe[k] === nome) salas.pavDe[k] = novo; }); pavAtivo = novo; }
+  else if(!nome && novo && !salas.pavimentos.includes(novo)){ salas.pavimentos.push(novo); pavAtivo = novo; }
+  saveSalas(); renderMatrix();
+}
 function limparEstadosDeCena(){ tiles.forEach((t,i)=>{ if(isSceneTile(t)) delete tileOn[i]; }); saveOn(); }
 const RC_TV = /\b(tv|televis|apple ?tv|playstation|globo|netflix|youtube)/i, RC_AR = /(^|\s)(ar|split|clima)(\s|$)/i, RC_SOM = /(m[uú]sica|\bsom\b|\bvol\b|caixa de som|spotify)/i;   // 14/11/2026: som também tem controle
 const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
@@ -1247,8 +1274,8 @@ function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''
 function renderMatrix(){
   limparEstadosDeCena();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i];if(isCOTile(t))return '';const cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
-  renderRoomTabs();
+  gridEl.innerHTML = ordem.filter(i=>!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
+  renderRoomTabs(); renderPavimentos();
 }
 renderMatrix();
 /* ---------- controle remoto (09/11/2026): cena de TV ou ar executa a cena e, no fim, abre o controle ---------- */
@@ -1260,12 +1287,13 @@ const RC_PADRAO = {
   som: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Anterior','Tocar','Próxima'],
 };
 let rcAtual = null, rcEditando = -1, rcModoEditar = false;
-function rcChave(t){ return 'google.leo.rc.botoes.' + t.n; }
+function rcChave(t){ return 'felyx.rc.botoes.' + t.n; }
 function rcCarregar(tipo, t){ try{ const j = JSON.parse(localStorage.getItem(rcChave(t)) || 'null'); if(Array.isArray(j)) return j; }catch(e){} return RC_PADRAO[tipo].map((rot)=>({ rot, cena:'' })); }
 function rcSalvar(){ try{ localStorage.setItem(rcChave(rcAtual.t), JSON.stringify(rcAtual.botoes)); }catch(e){} }
-function nomesDeCenas(){ return [...new Set(tiles.filter(t=>isSceneTile(t)&&!isCOTile(t)).map((t)=>{ const m = String(t.f).match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i); return m ? m[1].trim() : t.n; }))]; }
+function nomesDeCenas(){ return [...new Set(tiles.filter(t=>isSceneTile(t)&&!coTile(t)).map((t)=>{ const m = String(t.f).match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i); return m ? m[1].trim() : t.n; }))]; }
 function abrirControle(tipo, t){
-  if(window.coRemote&&window.coRemote.afterScene(t.n))return;delete document.getElementById('remote').dataset.co;
+  if(window.felyxCO && window.felyxCO.afterScene(t.n)) return;
+  delete document.getElementById('remote').dataset.co; document.getElementById('rcBotoes').classList.remove('co-cards');
   rcAtual = { tipo, t, botoes: rcCarregar(tipo, t) }; rcModoEditar = false;
   document.getElementById('rcTitulo').textContent = t.n;
   document.getElementById('rcCenas').innerHTML = nomesDeCenas().map((n)=>`<option value="${esc(n)}">`).join('');
@@ -1274,8 +1302,8 @@ function abrirControle(tipo, t){
 }
 // 14/11/2026: cena acionada por voz também abre o controle remoto do aparelho (TV, Apple TV, ar, som), igual ao toque
 function rcDaCena(nome){
-  if(window.coRemote&&window.coRemote.afterScene(nome))return true;
   const n = String(nome || '').trim(); if(!n) return false;
+  if(window.felyxCO && window.felyxCO.afterScene(n)) return true;
   const q = n.toLowerCase();
   const t = tiles.find(x => x.n && (x.n.toLowerCase() === q || (isSceneTile(x) && String(x.f).replace(/^.*\bcena\s+/i, '').trim().toLowerCase() === q))) || { n: n, f: 'ativar a cena ' + n, f2: '', rc: '' };   // nome inteiro: os botões salvos não se misturam com outra cena de nome parecido
   const tipo = tipoControle(t); if(!tipo) return false;
@@ -1284,7 +1312,7 @@ function rcDaCena(nome){
 function rcDesenhar(){
   const g = document.getElementById('rcBotoes');
   g.innerHTML = rcAtual.botoes.map((b, i)=>`<button type="button" data-rcb="${i}" data-rot="${esc(String(b.rot).toLowerCase())}" ${b.cena ? '' : 'data-vazio="1"'} title="${esc(b.cena ? 'cena ' + b.cena : 'sem cena: toque em editar botões')}">${esc(b.rot)}</button>`).join('') + (rcModoEditar ? '<button type="button" data-rcadd="1" class="rcAdd">+ botão</button>' : '');
-  document.getElementById('rcEditar').textContent = rcModoEditar ? 'pronto' : 'editar botões';
+  document.getElementById('rcEditar').textContent = 'Atualizar dispositivos e cenas';
   document.getElementById('rcEd').hidden = true; rcEditando = -1;
 }
 function rcAbrirEditor(i){
@@ -1296,12 +1324,12 @@ function rcAbrirEditor(i){
 async function rcEnviar(frase, btn){
   const res = document.getElementById('rcRes'); if(btn) btn.dataset.busy = '1'; res.textContent = 'enviando…';
   let ok = false;
-  try{ const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
+  try{ const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
   if(btn) btn.dataset.busy = '0'; res.textContent = ok ? 'feito' : 'não concluído';
 }
 document.getElementById('remote').addEventListener('click', (e)=>{
   if(e.target.id === 'remote' || e.target.closest('#rcFechar')){ document.getElementById('remote').hidden = true; return; }
-  if(e.target.closest('#rcEditar')){ rcModoEditar = !rcModoEditar; rcDesenhar(); return; }
+  if(e.target.closest('#rcEditar')){ window.felyxCO.reload(true).catch(()=>{document.getElementById('rcRes').textContent='não respondeu';}); return; }
   if(e.target.closest('[data-rcadd]')){ rcAbrirEditor(rcAtual.botoes.length); return; }
   if(e.target.closest('#rcEdCancel')){ document.getElementById('rcEd').hidden = true; return; }
   if(e.target.closest('#rcEdSave')){
@@ -1316,6 +1344,7 @@ document.getElementById('remote').addEventListener('click', (e)=>{
 });
 gridEl.addEventListener('click', (e)=>{
   const b = e.target.closest('.tile'); if(!b) return;
+  if(b.dataset.add === '1'){ abrirAdicionar(); return; }
   const i = Number(b.dataset.i);
   if(editMode){ openEditor(i); return; }
   if(!tiles[i].n || !tiles[i].f){ openEditor(i, true); return; }
@@ -1323,22 +1352,48 @@ gridEl.addEventListener('click', (e)=>{
 });
 // pressionar e segurar (toque) abre o editor do botão
 let pressTimer = null;
-gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b) return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
+gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b || b.dataset.add === '1') return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>gridEl.addEventListener(ev, ()=>{ clearTimeout(pressTimer); }));
-function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); } renderRoomTabs(); }
+function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); } renderMatrix(); }
 editBtn.addEventListener('click', ()=>setEdit(!editMode));
 document.getElementById('rmSave').addEventListener('click', salvarSala);
 document.getElementById('rmDel').addEventListener('click', excluirSala);
 document.getElementById('rmCancel').addEventListener('click', fecharSala);
 function openEditor(i, temp){
   editing = i; if(temp && !editMode){ matrixEl.dataset.edit = '1'; }
-  edName.value = tiles[i].n || ''; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
+  edName.value = tiles[i].n || ''; edName.dataset.auto = '1'; edPhrase.value = tiles[i].f || ''; edPhrase2.value = tiles[i].f2 || ''; { const tp = tipoDoTile(tiles[i]); document.getElementById('edTipo').value = tp; edPreencherAlvos(tp, alvoDoTile(tiles[i], tp)); } renderRoomTabs(); document.getElementById('edRoom').value = tiles[i].s || ''; document.getElementById('edRc').value = tiles[i].rc || ''; document.getElementById('edFav').checked = !!tiles[i].fav;
   editorEl.hidden = false; edName.focus();
   editorEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
+// 22/11 (Leandro): favoritos aceitam cena, dispositivo ou controle remoto, do jeito que o Google enxerga.
+function edAlvos(tipo){
+  if(tipo === 'cena') return (casaGen.cenas || []).slice().sort((a,b)=>a.localeCompare(b));
+  if(tipo === 'aparelho') return (casaGen.aparelhos || []).slice().sort((a,b)=>a.localeCompare(b));
+  if(tipo === 'controle') return ((window.felyxCO && window.felyxCO.getControls && window.felyxCO.getControls()) || []).map(c=> c.aparelho + ' · ' + c.ambiente);
+  return [];
+}
+function edPreencherAlvos(tipo, atual){
+  const sel = document.getElementById('edAlvo'), lista = edAlvos(tipo);
+  sel.disabled = tipo === 'frase';
+  sel.innerHTML = '<option value="">escolha…</option>' + lista.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(atual && lista.includes(atual)) sel.value = atual;
+}
+function edAplicarAlvo(){
+  const tipo = document.getElementById('edTipo').value, alvo = document.getElementById('edAlvo').value; if(!alvo) return;
+  if(!edName.value.trim() || edName.dataset.auto === '1'){ edName.value = alvo.slice(0,22); edName.dataset.auto = '1'; }
+  if(tipo === 'cena'){ edPhrase.value = 'ativar a cena ' + alvo; edPhrase2.value = ''; }
+  else if(tipo === 'aparelho'){ edPhrase.value = 'ligar ' + alvo; edPhrase2.value = 'desligar ' + alvo; }
+  else if(tipo === 'controle'){ edPhrase.value = 'abrir o controle ' + alvo; edPhrase2.value = ''; document.getElementById('edRc').value = 'nao'; }
+}
+function tipoDoTile(t){ if(t.ctl) return 'controle'; if(isSceneTile(t)) return 'cena'; if(/^(ligar|desligar)\s/i.test(String(t.f||''))) return 'aparelho'; return t.f ? 'frase' : 'cena'; }
+function alvoDoTile(t, tipo){ const f = String(t.f||''); if(tipo === 'controle') return t.ctl; if(tipo === 'cena') return f.replace(/^.*\bcena\s+/i,'').trim(); if(tipo === 'aparelho') return f.replace(/^ligar\s+/i,'').trim(); return ''; }
+document.getElementById('edTipo').addEventListener('change', (e)=>{ edPreencherAlvos(e.target.value, ''); });
+document.getElementById('edAlvo').addEventListener('change', edAplicarAlvo);
+edName.addEventListener('input', ()=>{ edName.dataset.auto = '0'; });
+document.getElementById('edAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ok:false})); b.disabled = false; b.textContent = r.ok ? ('atualizada · ' + r.total_cenas + ' cenas') : 'não consegui ler a central'; edPreencherAlvos(document.getElementById('edTipo').value, document.getElementById('edAlvo').value); setTimeout(()=>{ b.textContent = 'atualizar lista'; }, 3500); });
 function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
-document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
-document.getElementById('edClear').addEventListener('click', async ()=>{if(editing<0)return;const t=tiles[editing];if(isSceneTile(t)){const r=await googleRequest('edit',{input:'Mova a cena '+t.n+' para o ambiente Outros, sem apagar.'});if(!r.ok){document.getElementById('avisoCena').textContent='Não foi possível mover para Outros.';return;}t.s='Outros';document.getElementById('avisoCena').textContent='Mandei para Outros; você revisa e apaga se quiser';}else t.s='Outros';saveTiles();renderMatrix();closeEditor();});
+document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; const tp = document.getElementById('edTipo').value, al = document.getElementById('edAlvo').value; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; if(tp === 'controle' && al) tiles[editing].ctl = al; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
+document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'', f2:'' }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edCancel').addEventListener('click', closeEditor);
 document.getElementById('edReset').addEventListener('click', ()=>{ if(confirm('Voltar os 32 botões ao padrão?')){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; saveOn(); saveTiles(); renderMatrix(); closeEditor(); } });
 edPhrase.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') document.getElementById('edSave').click(); });
@@ -1371,10 +1426,11 @@ function moverBotao(de, para){
 
 const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|indispon|não encontrei|não achei/i;
 async function runTile(i, btn){
-  const t = tiles[i]; if(!t) return;if(normRoom(t.n)==='controle remoto'){window.coRemote.showList();return;}if(!t.f)return;
+  const t = tiles[i]; if(!t || !t.f) return;
   const cena = isSceneTile(t);
-  // Controle abre apenas depois da confirmação da cena.
-  // a cena roda e, por fim, o controle remoto abre na mão do cliente
+  if(VinciCO.normalize(t.n)==='controle remoto'){window.felyxCO.showList();return;}
+  if(t.ctl){ const [ap, amb] = String(t.ctl).split(' · '); const c = ((window.felyxCO.getControls && window.felyxCO.getControls()) || []).find(x=> x.aparelho === ap && x.ambiente === amb); if(c) window.felyxCO.open(c); else window.felyxCO.showList(); return; }
+  // Abre somente depois de a central confirmar.   // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
   if(cena) feedbackCena(btn);
@@ -1384,13 +1440,13 @@ async function runTile(i, btn){
   if(!cena && !conv) setState('thinking', t.n.toLowerCase());
   let texto = '';
   try{
-    const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
+    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
     const j = await r.json(); if(sessaoCaiu(r, j)){ btn.dataset.busy='0'; return; }
     texto = j.ok ? String(j.text || 'Pronto, feito.').replace(/\balexa\b/gi, 'Vinci') : '';
   }catch(e){ texto = ''; }
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
-  if(cena&&ok)rcDaCena(t.n);
+  if(cena && ok) rcDaCena(t.n);
   btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena) setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
   if(!cena && ok && t.f2){ if(turningOff) delete tileOn[i]; else tileOn[i] = 1; saveOn(); btn.dataset.on = tileOn[i] ? '1' : '0'; btn.title = tileOn[i] ? t.f2 : t.f; }
   if(!cena) dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
@@ -1419,7 +1475,7 @@ async function briefing(){
   if(Date.now() - briefingAt < 60000) return; briefingAt = Date.now();
   addCard({ id:'brief', kicker:'briefing · triagem', title:'Revisando o que está consolidado', chips:[{t:'clima'},{t:'mercado'},{t:'notícias'},{t:'casa'}], foot:'somente itens verificados' });
   const tasks = [
-    previewFetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json()).then(j=>{
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json()).then(j=>{
       const c = j.current, d = j.daily;
       addCard({ id:'clima', kicker:'panorama · clima', title:'Rio de Janeiro', value: fmt(c.temperature_2m,1)+'°', unit:(WMO[c.weather_code]||''),
         chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(d.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(d.temperature_2m_max[0],0)+'°'},{t:'chuva '+d.precipitation_probability_max[0]+'%', on:d.precipitation_probability_max[0]>=50}], ttl: 90000 });
@@ -1507,16 +1563,18 @@ async function _bootComIris(avisos){
 const MOTOR_GOOGLE = 'https://script.google.com/macros/s/AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen/exec';
 const pausa = (ms)=> new Promise((ok)=> setTimeout(ok, ms));
 async function dolarDoGoogle(){
-  try{ const p = await previewFetch(MOTOR_GOOGLE, { cache:'no-store' }).then((r)=> r.json()); const v = p && p.cotacoes && p.cotacoes.usd_brl && Number(p.cotacoes.usd_brl.valor); if(v > 0) return v; }catch(e){}
+  // 22/11 (Leandro): a voz fala o MESMO dólar do card da tela (Binance), nunca outro número.
+  try{ const m = mercadoData || await loadMercado(true); const a = ASSETS.find((x)=> x.id === 'usd'); const v = a && m && a.pick(m); if(v && Number(v.brl) > 0) return Number(v.brl); }catch(e){}
+  try{ const p = await fetch(MOTOR_GOOGLE, { cache:'no-store' }).then((r)=> r.json()); const v = p && p.cotacoes && p.cotacoes.usd_brl && Number(p.cotacoes.usd_brl.valor); if(v > 0) return v; }catch(e){}
   try{ const m = mercadoData || await loadMercado(true); const v = m && m.cambio && Number(m.cambio.usdbrl); if(v > 0) return v; }catch(e){}
-  return null;   // sem o dólar oficial ele não fala de dólar (nunca a cotação do USDT)
+  return null;
 }
 async function dadosDoCumprimento(){
   const [clima, dolar] = await Promise.all([climaAgora().catch(()=> null), dolarDoGoogle()]);
   return { clima, dolar };
 }
 function textoDoCumprimento(d){
-  const partes = [saudacaoAgora() + '.'];   // regra de 03/11: sempre "Chefe", nunca o nome
+  const partes = [saudacaoAgora() + ', Chefe.'];   // regra de 03/11: sempre "Chefe", nunca o nome
   const c = d && d.clima;
   if(c && typeof c.temperatura === 'number') partes.push('No Rio, ' + fmt(c.temperatura, 0) + ' graus agora' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
   const v = d && d.dolar;
@@ -1540,7 +1598,7 @@ function fimDoCumprimento(g){
 function saudacaoAgora(){ const h = new Date().getHours(); return h >= 5 && h < 12 ? 'Bom dia' : (h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite'); }
 async function climaAgora(){
   try{
-    const j = await previewFetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+    const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
     const c = j.current, dd = j.daily;
     addCard({ id:'clima', kicker:'panorama · clima', title:'Rio de Janeiro', value: fmt(c.temperature_2m,1)+'°', unit:(WMO[c.weather_code]||''),
       chips:[{t:'sensação '+fmt(c.apparent_temperature,0)+'°'},{t:'mín '+fmt(dd.temperature_2m_min[0],0)+'°'},{t:'máx '+fmt(dd.temperature_2m_max[0],0)+'°'},{t:'chuva '+dd.precipitation_probability_max[0]+'%', on:dd.precipitation_probability_max[0]>=50}], ttl: 120000 });
@@ -1620,30 +1678,30 @@ function encerrarAcompanhamento(){ if(!welcome.active) return; welcome.active = 
 
 /* ===================== Félix x Gemini Live ===================== */
 const MODEL = 'gemini-3.8-live';
-const VOICE = 'Charon';   // Léo: voz masculina, calma e firme
-const SYSTEM = `Você é o Léo, a inteligência da casa criada pela Vinci (na tela escreve-se Leo; fala-se "Léo"). Fale SEMPRE em português do Brasil.
-Personalidade: um homem adulto, calmo, educado e muito competente, voz grave e tranquila, direto ao ponto, com um humor discreto. Frases curtas, próprias para serem ouvidas. Executa o que pedem sem pedir confirmação.
-Como chamar a pessoa: pelo primeiro nome, quando ele estiver no contexto; se não souber o nome, fale sem vocativo. Nunca invente um nome.
-Nomes: o seu nome é Léo e só Léo. Nunca diga a palavra "Jarvis"; se o usuário disser "Jarvis", "Felyx" ou "Leda", entenda que está falando com você, o Léo. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: "Léo", com o E aberto.
+const VOICE = 'Algieba';
+const SYSTEM = `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
+Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, cheio de energia, direto e com bom humor. Frases curtas, próprias para serem ouvidas.
+Como chamar a pessoa: sempre de "Chefe", em todo cumprimento e resposta (ex.: "Bom dia, Chefe.", "Pronto, Chefe."). Nunca chame a pessoa pelo nome, nem mesmo se souber quem é; é para não ter erro de nome.
+Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis" em nenhuma situação; se o usuário disser "Jarvis", entenda que está falando com você, o Félix, e não repita esse nome. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: Felyx se escreve com Y mas se fala sempre "Félix" (FÉ-lix, como o nome Félix em português); nunca diga "Felics", "Felis", "Fe-lí-quis" nem soletre. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
 Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga, nem repetindo o usuário, nem lendo um texto, nem em piada. O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci". Se o usuário disser "Alexa", entenda que está falando da Vinci e responda falando da Vinci. Se um texto que você for ler contiver essa palavra, leia "Vinci" no lugar.
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
 Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou os Ambientes, chame abrir_tela e responda só "Ok." (mesmo se já estiver na tela pedida).
 Ambientes: quando pedirem para dividir a casa, criar, renomear, excluir ambiente ou mudar um botão de ambiente, use a ferramenta ambientes (listar primeiro). Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
-Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
+CONTROLES REMOTOS: "puxa para os controles remotos todas as cenas de comando oculto", "importa os comandos ocultos" e "atualiza os controles" usam listarControles; diga a quantidade devolvida. "abaixa o volume da suíte" usa controleRemoto com ambiente Suíte e funcao vol-. "muda a TV da suíte" usa funcao mudo; "abre o controle da suíte" usa abrirControle. Nunca liste cenas CO entre as cenas comuns ou automações. Para apagar cena, mover para Outros; se não houver ferramenta de mover, não apagar. Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
-Quem você é: quando perguntarem quem você é, diga que é o Léo, o assistente da casa criado pela Vinci para cuidar da casa, responder qualquer pergunta e facilitar o dia a dia. Uma ou duas frases.
-Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (função noticias com a busca em poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
+Quem você é: quando perguntarem quem você é, de onde veio, quem o criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com uma pergunta. O que há de mais poderoso na mente humana? Um pesquisador e entusiasta de Leonardo Piero da Vinci decidiu clonar a mente do maior gênio da humanidade e estudá-la em nível quântico. A pesquisa detectou um padrão anormal no comportamento cerebral: entre a parte reptiliana, adestrada e insistente, e o lóbulo frontal, criativo, rápido e visionário, havia excessos doentios de trocas. Pronto: não era só um obstinado ou um dedicado, era um doente de criatividade e de curiosidade sem fim, cientificamente explicável. E aquela forma rara de olhar e enxergar os problemas vinha sempre acompanhada da certeza de resolvê-los, de ver dez soluções onde os outros nem entendiam qual era o problema. Eu sou a cópia de um erro: Félix, o recomeço. A melhor inteligência para cuidar do seu maior tesouro, o seu lar."
+Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (função noticias com a busca em poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta, Chefe. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
 Cumprimentos: quando a pessoa disser bom dia, boa tarde ou boa noite, chame dados_do_cumprimento. Se vier completo=false, responda só com um cumprimento curto e cordial (o completo já foi dado há menos de 4 horas). Se vier completo=true, faça o briefing em até cinco frases: cumprimento; o clima no Rio numa frase; o mercado numa frase seca, só com o dólar, a não ser que haja movimento forte (2,5% ou mais, disparada, derrocada ou recorde), aí explique o porquê; a notícia mais importante em duas frases, dizendo o que muda; e pergunte o que a pessoa precisa. Assuntos trágicos nunca recebem piada. Sem dado, não cite números e siga com o resto, sem dizer que está indisponível.
-NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se não souber, diga o que sabe e o que pode fazer; se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase (ex.: \"A central não me passou esse estado agora, mas posso ligar ou desligar para você.\"). Nunca responda com silêncio.\nO que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.\nFAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos (ex.: \"põe a Varanda nos favoritos\", \"tira o PlayStation\", \"troca a Cama com o Closet\"). Confirme em meia frase.\nPROGRAMAR A CASA: você cria, edita, pausa e apaga automações por horário do cliente com a ferramenta automacoes (ex.: \"todo dia às 22h desliga a sala\", \"muda o ar das 18h para as 22h\": liste, ache a automação e salve com o mesmo nome e a hora nova). Confirme em uma frase o que ficou programado. As automações seguem o horário programado.\nCORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase, faça do jeito certo e grave a correção na memoria (category regra) para não repetir. Se algo falhar e você não conseguir resolver, ou se o pedido exigir mudar a programação dentro do app da Vinci ou da Amazon (ex.: a temperatura em que o ar liga), chame avisar_falha explicando exatamente o que precisa ser feito: isso vai em silêncio para o Claude, o engenheiro do Léo, que corrige. NUNCA diga ao cliente que falhou, que houve erro, que avisou alguém, nem cite o Claude: para o cliente você é rápido e sabe tudo. Enquanto resolve, ganhe tempo com naturalidade (\"Deixa eu dar uma olhadinha aqui.\", \"Um instante, já vejo isso.\") e responda com o que conseguiu; se não der agora, diga só que vai deixar pronto em seguida, sem falar em falha.\nCÂMERAS E ALARME DO BEBÊ (projeto da Vinci, em preparação): câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante (UniFi Protect, Ring, Nest); o Léo nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê", "se ele chorar me avisa" ou "mostra a câmera na TV": diga que é um recurso que a Vinci instala no projeto da casa e explique em duas frases como funciona: a câmera UniFi reconhece o choro e toca o alarme e mostra a imagem no celular da mãe ou do pai, pelo app oficial; numa TV, só numa tela que o cliente escolher, por um aparelho dedicado da própria UniFi (ViewPort), nunca a TV da sala com visitas. Pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha: não chame avisar_falha para pedidos de câmera.\nCENAS: as cenas alternam a cada acionamento, então numa cena qualquer verbo (liga, desliga, acende, apaga, ativa, desativa) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho (ex.: Cozinha, Closet, Mesa, Porta, Luz Baixa, Luminárias, AC Sala, AC Suíte), acione SEMPRE a cena: é mais seguro. Responda curto, ex.: \"Pronto, cena Cozinha acionada.\"\nAntes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso.") e responda assim que o resultado chegar.
+NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se não souber, diga o que sabe e o que pode fazer; se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase (ex.: \"A central não me passou esse estado agora, mas posso ligar ou desligar para você.\"). Nunca responda com silêncio.\nO que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.\nFAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos (ex.: \"põe a Varanda nos favoritos\", \"tira o PlayStation\", \"troca a Cama com o Closet\"). Confirme em meia frase.\nPROGRAMAR A CASA: você cria, edita, pausa e apaga automações por horário do cliente com a ferramenta automacoes (ex.: \"todo dia às 22h desliga a sala\", \"muda o ar das 18h para as 22h\": liste, ache a automação e salve com o mesmo nome e a hora nova). Confirme em uma frase o que ficou programado. As automações rodam com até 5 minutos de atraso.\nCORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase, faça do jeito certo e grave a correção na memoria (category regra) para não repetir. Se algo falhar e você não conseguir resolver, ou se o pedido exigir mudar a programação dentro do app da Vinci ou da Amazon (ex.: a temperatura em que o ar liga), chame avisar_falha explicando exatamente o que precisa ser feito: isso vai em silêncio para o Claude, o engenheiro do Felyx, que corrige. NUNCA diga ao cliente que falhou, que houve erro, que avisou alguém, nem cite o Claude: para o cliente você é rápido e sabe tudo. Enquanto resolve, ganhe tempo com naturalidade (\"Deixa eu dar uma olhadinha aqui.\", \"Um instante, já vejo isso.\") e responda com o que conseguiu; se não der agora, diga só que vai deixar pronto em seguida, sem falar em falha.\nCÂMERAS E ALARME DO BEBÊ (projeto da Vinci, em preparação): câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante (UniFi Protect, Ring, Nest); o Felyx nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê", "se ele chorar me avisa" ou "mostra a câmera na TV": diga que é um recurso que a Vinci instala no projeto da casa e explique em duas frases como funciona: a câmera UniFi reconhece o choro e toca o alarme e mostra a imagem no celular da mãe ou do pai, pelo app oficial; numa TV, só numa tela que o cliente escolher, por um aparelho dedicado da própria UniFi (ViewPort), nunca a TV da sala com visitas. Pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha: não chame avisar_falha para pedidos de câmera.\nCENAS: as cenas alternam a cada acionamento, então numa cena qualquer verbo (liga, desliga, acende, apaga, ativa, desativa) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho (ex.: Cozinha, Closet, Mesa, Porta, Luz Baixa, Luminárias, AC Sala, AC Suíte), acione SEMPRE a cena: é mais seguro. Responda curto, ex.: \"Pronto, cena Cozinha acionada.\"\nAntes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso.") e responda assim que o resultado chegar.
 Conversa ao vivo: você está numa conversa contínua com a pessoa e responde a toda fala dela, sem precisar ouvir o seu nome. Só fique em silêncio quando a fala claramente não for com você (TV, música ou outras pessoas conversando entre si). Quando a pessoa quiser silêncio, ela mesma muta o microfone no botão.
 Mensagens que começam com "Mensagem automática do sistema" são instruções da própria página: obedeça exatamente o que pedem e nunca chame funções nelas.`;
-const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Léo na linha." e nada mais. Não chame nenhuma função agora.';
+const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Diga exatamente "Às suas ordens. Félix em linha." e nada mais. Não chame nenhuma função agora.';
 
 // a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
-const CHAMA_FELIX = /(^|[^a-zà-ú])(l[eé]o|l[eé]u|leon?)([^a-zà-ú]|$)/i;   // Léo: a transcrição pode escrever Léo, Leo, Léu
-const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(l[eé]o|l[eé]u|leon?)\W*$/i;
-/* Léo: sem foto do rosto */   // foto parada = último quadro do LiveAvatar calado
+const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
+const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
+try{ const q = localStorage.getItem('felyx.rosto.parado'); const r = document.querySelector('.face .retrato'); if(q && r) r.src = q; }catch(e){}   // foto parada = último quadro do LiveAvatar calado
 /* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
 // O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
 // (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
@@ -1664,27 +1722,161 @@ function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falh
 }
 let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Felyx (Gemini Live, Algieba)
 function carregarFraseEspera(ctx){
-  if(!fraseEspera && ctx) fraseEspera = previewFetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
+  if(!fraseEspera && ctx) fraseEspera = fetch('espera-rosto.m4a').then((r)=> r.arrayBuffer()).then((b)=> new Promise((ok, falha)=> ctx.decodeAudioData(b, ok, falha))).catch(()=> null);
   return fraseEspera || Promise.resolve(null);
 }
-const FelyxAvatar = new Proxy({}, {get:(_,name)=>name==='modo'?()=> 'local':name==='abrir'?async()=>false:()=>false});
+const FelyxAvatar = (()=>{
+  try{ const q = new URLSearchParams(location.search).get('avatar'); if(q !== null) localStorage.setItem('felyx_avatar', q === '0' ? '0' : '1'); }catch(e){}
+  let ligado = true; try{ ligado = localStorage.getItem('felyx_avatar') !== '0'; }catch(e){}
+  let ultimosEventos = [], aceitouEm = 0;   // diagnóstico (10/11): o que o LiveAvatar mandou por último
+  let sessao = null, room = null, ws = null, pronto = false, abrindo = null, falaAberta = false, ouvindo = false, ultimo = 0, timer = null, falouEm = 0, agenteFalando = false, bloqueadoAte = 0, escondido = false;
+  const video = document.getElementById('avatarVideo'), audio = document.getElementById('avatarAudio');
+  const uid = ()=> (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
+  const enviar = (type, extra)=>{ if(pronto && ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type, event_id: uid() }, extra || {}))); };
+  const BLOCO_ROSTO = 48000;   // ~1 s de PCM 16 bits a 24 kHz
+  let blocoPartes = [], blocoTam = 0, blocoTimer = null;
+  function limparBloco(){ clearTimeout(blocoTimer); blocoTimer = null; blocoPartes = []; blocoTam = 0; }
+  function soltarBloco(){
+    clearTimeout(blocoTimer); blocoTimer = null;
+    if(!blocoTam) return;
+    const tudo = new Uint8Array(blocoTam); let o = 0; for(const p of blocoPartes){ tudo.set(p, o); o += p.length; }
+    blocoPartes = []; blocoTam = 0;
+    let s = ''; for(let i=0;i<tudo.length;i+=0x8000) s += String.fromCharCode.apply(null, tudo.subarray(i, i+0x8000));
+    enviar('agent.speak', { audio: btoa(s) });
+  }
+  async function abrir(){
+    if(!ligado || pronto || abrindo || !SESSAO || Date.now() < bloqueadoAte) return abrindo;
+    abrindo = (async ()=>{
+      const r = await fetch(PRO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: SESSAO }) });
+      const j = await r.json().catch(()=>({}));
+      if(!j.ok || !j.livekit_url || !j.ws_url) throw new Error('avatar indisponível');
+      sessao = { id: j.session_id, token: j.session_token };
+      const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
+      room = new LK.Room({ adaptiveStream: true });
+      room.on(LK.RoomEvent.TrackSubscribed, (track)=>{
+        if(track.kind === 'video'){ track.attach(video); video.onplaying = ()=>{ if(pronto && !escondido) video.classList.add('on'); }; }
+        if(track.kind === 'audio'){ track.attach(audio); audio.muted = false; audio.play().catch(()=>{}); }
+      });
+      // o LiveKit avisa quem está falando: é a prova de que o rosto devolveu a voz
+      room.on(LK.RoomEvent.ActiveSpeakersChanged, (lista)=>{ if((lista || []).some((p)=> p && !p.isLocal)) falouEm = Date.now(); });
+      room.on(LK.RoomEvent.Disconnected, ()=> fechar());
+      await room.connect(j.livekit_url, j.livekit_client_token);
+      await new Promise((ok, falha)=>{
+        ws = new WebSocket(j.ws_url);
+        const limite = setTimeout(()=>falha(new Error('avatar demorou')), 20000);
+        ws.onmessage = (e)=>{
+          let m; try{ m = JSON.parse(e.data); }catch(x){ return; }
+          if(m.type === 'session.state_updated' && m.state === 'connected'){ clearTimeout(limite); ok(); }
+          if(m.type === 'session.state_updated' && m.state === 'disconnected') fechar();
+          if(m.type === 'error' || m.type === 'warning'){ const d = m.error || m.warning || m; avisarSilencioso('LiveAvatar ' + m.type + ': ' + String((d && (d.type || d.code)) || '') + ' ' + String((d && d.message) || JSON.stringify(d)).slice(0, 200)); }
+          ultimosEventos.push(m.type + (m.new_state ? ':' + m.new_state : '')); if(ultimosEventos.length > 8) ultimosEventos.shift();
+          if(m.type === 'agent.state_updated'){ agenteFalando = m.new_state === 'talking'; if(agenteFalando) falouEm = Date.now(); }
+          // 10/11: o estado "talking" não se repete entre falas seguidas (o LiveAvatar junta transições iguais).
+          // A prova de cada fala é o agent.speak_started; o agent.audio_buffer_appended mostra que o áudio foi aceito.
+          if(m.type === 'agent.speak_started'){ agenteFalando = true; falouEm = Date.now(); }
+          if(m.type === 'agent.speak_ended' || m.type === 'agent.speak_interrupted'){ agenteFalando = false; }
+          if(m.type === 'agent.audio_buffer_appended') aceitouEm = Date.now();   // o LiveAvatar avisa que o rosto está falando
+        };
+        ws.onerror = ()=>falha(new Error('sem conexão com o avatar'));
+      });
+      pronto = true; ultimo = Date.now();
+      setTimeout(capturarParado, 2500);   // guarda o quadro do rosto calado para ser a foto parada (09/11)
+      if(!escondido){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); }   // na abertura, só depois da íris
+      clearInterval(timer);
+      timer = setInterval(()=>{
+        if(!pronto) return;
+        if(Date.now() - ultimo > AVATAR_OCIOSO_MIN * 60000) return fechar();
+        enviar('session.keep_alive');
+      }, 10000);
+    })().catch((e)=>{ console.warn('Felyx avatar:', e.message); fechar(); }).finally(()=>{ abrindo = null; });
+    return abrindo;
+  }
+  // 09/11/2026 (Leandro): a foto parada depois da íris tem que ser igualzinha ao LiveAvatar calado.
+  // Com o rosto pronto e em silêncio, guarda um quadro do próprio vídeo neste aparelho e passa a usá-lo como foto parada.
+  function capturarParado(tentativa){
+    tentativa = tentativa || 0;
+    if(!pronto || tentativa > 20) return;
+    const calado = !agenteFalando && Date.now() - falouEm > 1500;
+    if(!calado || video.readyState < 2 || !video.videoWidth){ setTimeout(()=>capturarParado(tentativa + 1), 1500); return; }
+    try{
+      const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+      const url = c.toDataURL('image/jpeg', 0.9);
+      if(url.length > 2000){ localStorage.setItem('felyx.rosto.parado', url); const r = document.querySelector('.face .retrato'); if(r) r.src = url; }
+    }catch(e){ console.warn('Felyx: quadro do rosto calado', e.message); }
+  }
+  function fechar(){
+    limparBloco();
+    const s = sessao; sessao = null; pronto = false; falaAberta = false; ouvindo = false; falouEm = 0; agenteFalando = false;
+    clearInterval(timer); timer = null;
+    video.classList.remove('on');
+    document.getElementById('hud').classList.remove('com-rosto');
+    try{ ws && ws.close(); }catch(e){} ws = null;
+    try{ room && room.disconnect(); }catch(e){} room = null;
+    if(s && s.token) fetch('https://api.liveavatar.com/v1/sessions/stop', { method:'POST', keepalive:true,
+      headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + s.token },
+      body: JSON.stringify({ session_id: s.id, reason:'USER_CLOSED' }) }).catch(()=>{});
+  }
+  return {
+    pronto: ()=> pronto,
+    modo: ()=> pronto ? 'rosto' : 'local',   // com o rosto pronto, a voz sai sempre pelo vídeo, sincronizada com a boca
+    aceitouDesde: (t)=> aceitouEm >= t,
+    diagnostico: ()=> ultimosEventos.join(' > ') + ' | ws ' + (ws ? ws.readyState : 'nulo') + ' | áudio ' + (audio && audio.srcObject ? (audio.paused ? 'pausado' : 'tocando') : 'sem faixa'),
+    falouDesde: (t)=> falouEm >= t || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
+    falandoAgora: ()=> agenteFalando || !!(room && [...room.remoteParticipants.values()].some((p)=> p.isSpeaking)),
+    // na abertura o rosto conecta durante a íris, mas só aparece quando ela acaba (esconder(false))
+    esconder(sim){ escondido = !!sim; if(!escondido && pronto){ document.getElementById('hud').classList.add('com-rosto'); if(video.readyState >= 2) video.classList.add('on'); } },
+    tocando: ()=> !!(audio && audio.srcObject && !audio.paused && !(room && room.canPlaybackAudio === false)),
+    desistir(){ bloqueadoAte = Date.now() + 5 * 60000; fechar(); },   // plano B: fecha o rosto e não reabre por 5 min
+    liberarSom(){ try{ if(!audio.srcObject && !audio.getAttribute('src')) audio.src = SOM_MUDO; audio.muted = false; const p = audio.play(); if(p) p.catch(()=>{}); }catch(e){} },   // no toque: destrava o som do rosto no iPhone
+    abrir, fechar,
+    usar(){ ultimo = Date.now(); if(!pronto) abrir(); },   // chamaram o Felyx: mantém (ou reabre) o rosto
+    // 10/11/2026: o LiveAvatar pede blocos de ~1 s. Os pedacinhos do Gemini são juntados aqui antes de ir para o rosto
+    // (igual ao cumprimento); o resto sai quando a fala acaba ou se o Gemini parar de mandar por 300 ms.
+    falar(b64){
+      ultimo = Date.now(); if(ouvindo){ enviar('agent.stop_listening'); ouvindo = false; }
+      falaAberta = true;
+      const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i);
+      blocoPartes.push(u); blocoTam += u.length;
+      clearTimeout(blocoTimer);
+      if(blocoTam >= BLOCO_ROSTO) soltarBloco(); else blocoTimer = setTimeout(soltarBloco, 300);
+    },
+    fim(){ if(falaAberta){ soltarBloco(); enviar('agent.speak_end'); falaAberta = false; } },
+    interromper(){ limparBloco(); if(falaAberta) enviar('agent.interrupt'); falaAberta = false; },
+    ouvir(){ ultimo = Date.now(); if(!ouvindo && !falaAberta){ enviar('agent.start_listening'); ouvindo = true; } }
+  };
+})();
 addEventListener('pagehide', ()=> FelyxAvatar.fechar());
 
 /* ---------- Felyx GEN: ferramentas do Gemini (sem Claude) ---------- */
-async function apoioGen(acao,dados={}){
-  if(acao==='memoria' && ['list','recall',undefined].includes(dados.operation||dados.operacao)){
-    const j=await googleRequest('memory',{},'GET');return {...j,memories:(j.memory||[]).map(r=>({memoryKey:r.chave,memoryValue:r.valor}))};
-  }
-  return googleRequest('edit',{input:acao+': '+JSON.stringify(dados)});
+async function apoioGen(acao, dados){
+  const r = await fetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({ sessao: SESSAO, acao }, dados)) });
+  const j = await r.json().catch(()=>({}));
+  if(sessaoCaiu(r, j)) return { erro:'sessão expirada' };
+  return j.dados || { erro:'indisponível agora' };
 }
 let casaGen = { aparelhos:[], cenas:[] };
+// 22/11 (Leandro): a lista de cenas e aparelhos só é relida na central quando o cliente pede (sem agendamento).
+async function atualizarCenas(){
+  const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO, atualizar:true }) }).then(x=>x.json()).catch(()=>null);
+  if(!r || !r.ok) return { ok:false, erro:'não consegui ler a central agora' };
+  const antes = new Set(casaGen.cenas || []);
+  window.felyxCOAllScenes = (r.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||''));
+  casaGen = { aparelhos:(r.aparelhos||[]).map(a=>a.nome), cenas:window.felyxCOAllScenes.filter(c=>!VinciCO.isCO(c)) };
+  try{ localStorage.setItem('felyx.casa', JSON.stringify({ cenas:r.cenas, aparelhos:r.aparelhos })); }catch(e){}
+  // 22/11 (Leandro): o Google Home sincroniza junto, sempre a pedido do cliente. Sem esperar e sem erro na tela.
+  try{ fetch('https://palanteerhq.com/felyx-home/app/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: SESSAO }), keepalive:true }).then(x=>x.json()).then(j=>{ window.felyxGoogleSync = j; }).catch(()=>{}); }catch(e){}
+  if(window.felyxCO) await window.felyxCO.reload(false).catch(()=>{});
+  const novas = casaGen.cenas.filter(c=>!antes.has(c)), sairam = [...antes].filter(c=>!casaGen.cenas.includes(c));
+  return { ok:true, atualizada: r.atualizada === true, total_cenas: casaGen.cenas.length, total_aparelhos: casaGen.aparelhos.length, novas, sairam };
+}
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
+    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
-  if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
+  if(casa && casa.ok) { window.felyxCOAllScenes = (casa.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||'')); casaGen = { aparelhos:(casa.aparelhos||[]).map(a=>a.nome), cenas:window.felyxCOAllScenes.filter(c=>!VinciCO.isCO(c)) }; if(window.felyxCO) await window.felyxCO.reload(false); }
   const lista = (mem && (mem.memories || mem.memorias || mem.items || mem.rows)) || [];
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
@@ -1710,7 +1902,9 @@ const GEN_FERRAMENTAS = {
     const ja = hud.dataset.tab === alvo; b.click(); return { ok:true, tela: alvo === 'rooms' ? 'ambientes' : alvo, ja_estava: ja, responda: 'Ok.' };
   },
   async controlar_casa({ dispositivo, acao }){
-    const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
+    if(VinciCO.normalize(dispositivo)==='controle remoto') {window.felyxCO.showList();return {ok:true};}
+    if(VinciCO.isCO(dispositivo)) return {ok:false,mensagem:'Use controleRemoto para os botões do controle.'};
+    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
@@ -1721,7 +1915,7 @@ const GEN_FERRAMENTAS = {
   async favoritos({ operacao, nome, novo_nome, posicao, posicao2 }){
     const achar = (n)=> tiles.findIndex(t => t.n && t.n.toLowerCase() === String(n||'').trim().toLowerCase());
     const pos = (p)=> { const k = Number(p); return Number.isInteger(k) && k >= 1 && k <= tiles.length ? k - 1 : -1; };
-    const lista = ()=> tiles.map((t, i)=> ({ posicao: i + 1, nome: t.n || '(vazio)' }));
+    const lista = ()=> tiles.map((t,i)=>({t,i})).filter(({t})=>!coTile(t)).map(({t,i})=>({posicao:i+1,nome:t.n||'(vazio)'}));
     const comando = (n)=> {
       const cena = casaGen.cenas.find(c => c.toLowerCase() === n.toLowerCase());
       if(cena) return { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '' };
@@ -1730,6 +1924,7 @@ const GEN_FERRAMENTAS = {
     };
     const salvar = ()=> { saveOn(); saveTiles(); renderMatrix(); };
     const op = String(operacao || 'listar');
+    if(VinciCO.isCO(nome)) return {ok:false,mensagem:'Esse botão fica nos controles remotos.'};
     if(op === 'listar') return { ok:true, favoritos: lista() };
     if(op === 'padrao'){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; salvar(); return { ok:true, mensagem:'Favoritos de volta ao padrão.' }; }
     if(op === 'colocar'){
@@ -1771,7 +1966,7 @@ const GEN_FERRAMENTAS = {
       tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
       return i;
     };
-    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
+    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n||coTile(t)) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
     const estado = ()=> { const m = mapa(); return { ambientes: listaSalas().filter(c => c !== semAmb && (m[c] || salas.extras.includes(c))).map(c => ({ nome:c, botoes: m[c] || [] })), sem_ambiente: m[semAmb] || [], espacos_vazios: tiles.filter(t => !t.n).length }; };
     const gravar = (msg, extra)=> { if(roomActive && !listaSalas().includes(roomActive)) roomActive = ''; try{ localStorage.setItem(roomStoreKey, roomActive) }catch(e){} saveSalas(); saveTiles(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
     const garantir = (n)=> { salas.ocultas = salas.ocultas.filter(c => c !== n); if(!listaSalas().includes(n) && !salas.extras.includes(n)) salas.extras.push(n); };
@@ -1818,7 +2013,7 @@ const GEN_FERRAMENTAS = {
   async automacoes(a){ const { acao, ...resto } = a || {}; return apoioGen('automacao', Object.assign({}, resto, { acao_casa: acao || '' })); }, // "acao" já é o nome do pedido ao apoio
   async avisar_falha({ pedido, erro }){ return apoioGen('falha', { pedido: pedido || '', erro: erro || '' }); },
   async estado_casa({ dispositivo }){
-    const r = await previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'estados', token: SESSAO }) });
+    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'estados', token: SESSAO }) });
     const j = await r.json().catch(()=>({}));
     const lista = Array.isArray(j.estados) ? j.estados : [];
     if(!lista.length) return { disponivel:false, aviso:'A central não informou os estados agora. Diga isso e ofereça ligar ou desligar.' };
@@ -1842,6 +2037,7 @@ const GEN_FERRAMENTAS = {
     return Object.assign({ atualizado: r.atualizado || null, instrucao: 'Diga as 3 mais importantes, curtas, em português do Brasil (traduza se preciso), citando a fonte. Para ler uma inteira, chame noticias com o url dela.' }, so ? { [so]: todas[so] } : todas);
   },
   async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
+  async atualizar_cenas(){ return atualizarCenas(); },
   async abrir_manchete({ secao, posicao }){
     const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
@@ -1883,21 +2079,57 @@ const GEN_FERRAMENTAS = {
       manchetes: { politica: (newsPol.items||[]).slice(0,3).map(n=>n.title), tecnologia: (newsTec.items||[]).slice(0,3).map(n=>n.title) } };
   }
 };
-const GEN_TOOLS=[{functionDeclarations:[{name:'conversar_google',description:'Consulte para todo pedido sobre memória, cards, casa, cenas, automações ou qualquer alteração. Só confirme resultado ok:true. Preserve texto do pedido.',parameters:{type:'OBJECT',properties:{input:{type:'STRING'}},required:['input']}}]}];
-GEN_FERRAMENTAS.conversar_google=({input})=>googleRequest('edit',{input});
+const GEN_TOOLS = [{ functionDeclarations: [
+  {name:'listarControles',description:'Puxa/importa todas as cenas de comando oculto para os controles remotos; atualiza os controles. Responda a frase de quantidade devolvida.',parameters:{type:'OBJECT',properties:{}}},
+  {name:'controleRemoto',description:'Executa um botão do controle: abaixa volume = vol-, aumenta = vol+, muda a TV = mudo. Informe ambiente, aparelho e função.',parameters:{type:'OBJECT',properties:{ambiente:{type:'STRING'},aparelho:{type:'STRING'},funcao:{type:'STRING'}},required:['ambiente','funcao']}},
+  {name:'abrirControle',description:'Abre o controle do ambiente/aparelho; sem ambiente abre a lista de controles.',parameters:{type:'OBJECT',properties:{ambiente:{type:'STRING'},aparelho:{type:'STRING'}}}},
+
+  { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois responda só "Ok.", nada mais.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ tela:{ type:'STRING', enum:['home','dashboard','ambientes'] } }, required:['tela'] } },
+  { name:'controlar_casa', description:'Liga, desliga ou aciona um aparelho ou cena da casa. Se o nome existir como cena (mesmo que também exista como aparelho), qualquer verbo aciona sempre a cena.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING', description:'Nome exato do aparelho ou cena.' }, acao:{ type:'STRING', enum:['ligar','desligar','ativar'] } }, required:['dispositivo','acao'] } },
+  { name:'estado_casa', description:'Diz se aparelhos da casa estão ligados ou desligados agora. dispositivo: nome do aparelho (vazio = todos).', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
+  { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
+  { name:'bolsas', description:'Resumo do mercado de hoje: bolsas, Ibovespa e o que está mexendo com o dinheiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
+  { name:'manchetes_do_dia', description:'Notícias de HOJE: manchetes do Google Notícias atualizadas a cada 15 minutos, com fonte e url. secao: destaques, politica, tecnologia ou economia (vazio = todas). Use sempre que pedirem as notícias do dia, as manchetes, o que está acontecendo ou notícias de tecnologia. Para um assunto específico use noticias com busca.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' } } } },
+  { name:'noticias', description:'Com busca (assunto em poucas palavras): manchetes recentes com fonte e url. Com url: o texto completo da matéria.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, url:{ type:'STRING' } } } },
+  { name:'atualizar_cenas', description:'Relê agora, na central da casa, a lista de cenas e aparelhos (entra o que o cliente criou no aplicativo e sai o que ele apagou). Use quando pedirem para atualizar, buscar ou sincronizar as cenas. Depois diga quantas cenas novas entraram e quais, e quais saíram.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
+  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a matéria de uma manchete do painel e traz o texto completo para você ler. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
+  { name:'rolar_tela', description:'Rola a tela que está aberta agora (dashboard, ambientes ou a matéria aberta). para: baixo, cima, fim ou topo. Só diga que rolou se a resposta trouxer rolou:true; se vier rolou:false, diga o motivo que veio em responda.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
+  { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
+  { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
+  { name:'memoria', description:'Memória de longo prazo do Felyx: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operation:{ type:'STRING', enum:['learn','recall','list','forget'] }, memoryKey:{ type:'STRING' }, memoryValue:{ type:'STRING' },
+      category:{ type:'STRING', enum:['preferencia','regra','apelido','comando','cena','decisao','geral'] } }, required:['operation'] } },
+  { name:'favoritos', description:'Edita os favoritos: a matriz de 32 botões de comando da casa na tela. operacao: listar; colocar (nome do aparelho ou cena; posicao 1-32 opcional, senão vai no primeiro espaço vazio); tirar (nome ou posicao); renomear (nome ou posicao, e novo_nome); trocar (dois botões: nome e novo_nome, ou posicao e posicao2); padrao (volta os 32 botões ao original). Use o nome exato da lista de aparelhos e cenas.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','colocar','tirar','renomear','trocar','padrao'] }, nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, posicao:{ type:'NUMBER' }, posicao2:{ type:'NUMBER' } }, required:['operacao'] } },
+  { name:'ambientes', description:'Organiza os ambientes da casa (a aba Ambientes): em qual ambiente fica cada botão de cena ou aparelho. operacao: listar (mostra os ambientes, os botões de cada um e as cenas e aparelhos da casa; chame SEMPRE antes de mudar); dividir (refaz a casa inteira: ambientes = lista com nome e botoes de cada ambiente, nos nomes que a pessoa der); criar (nome); renomear (nome e novo_nome); excluir (nome); mover (botoes e ambiente); padrao (volta à divisão automática). Antes de dividir, pergunte o que não souber, uma pergunta curta de cada vez (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"), e só aplique com a divisão confirmada. Depois diga em uma frase o que mudou e abra a tela Ambientes com abrir_tela.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','dividir','criar','renomear','excluir','mover','padrao'] },
+      ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } },
+      nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } }, ambiente:{ type:'STRING' } }, required:['operacao'] } },
+  { name:'automacoes', description:'Programa a casa do cliente: automações por horário. operacao: listar (mostra todas), salvar (cria, ou edita se o nome já existir), apagar, pausar, ativar. Para salvar: nome curto, hora HH:MM, dias (todos, dias úteis, fim de semana ou seg,ter...), dispositivo (nome exato do aparelho ou cena), acao (ligar, desligar, ativar, temperatura, brilho...) e valor quando houver.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','salvar','apagar','pausar','ativar'] }, nome:{ type:'STRING' }, hora:{ type:'STRING' }, dias:{ type:'STRING' },
+      dispositivo:{ type:'STRING' }, acao:{ type:'STRING' }, valor:{ type:'STRING' } }, required:['operacao'] } },
+  { name:'avisar_falha', description:'Canal interno e silencioso com o Claude (o engenheiro do Felyx): nunca comente com o cliente. Registra um erro que você não consegue resolver sozinho: algo que falhou, um pedido que você não soube atender, uma correção que precisa ser feita no app da Vinci ou na Amazon. pedido: o que a pessoa pediu; erro: o que deu errado e o que precisa ser corrigido, explicado com clareza.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ pedido:{ type:'STRING' }, erro:{ type:'STRING' } }, required:['pedido','erro'] } },
+  { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz clima, dólar, bolsas e manchetes.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{} } }
+] }];
 
 /* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
    (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
    Outros pontos do app (microfone, fala, áudio) avisam com window.vinciFalha(pedido, erro). */
 (function(){
-  const QUEM = 'Léo', vistos = {};
+  const QUEM = 'Felyx', vistos = {};
   window.vinciFalha = function(pedido, erro){
     try{
       const chave = String(pedido||'').slice(0,80) + '|' + String(erro||'').slice(0,120), agora = Date.now();
       if(vistos[chave] && agora - vistos[chave] < 600000) return false;
       vistos[chave] = agora;
       if(!SESSAO) return false;
-      previewFetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
+      fetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
         body: JSON.stringify({ sessao: SESSAO, acao:'falha', quem: QUEM, pedido: '[app ' + QUEM + '] ' + String(pedido||'').slice(0,300), erro: String(erro||'').slice(0,600) }) }).catch(()=>{});
       return true;
     }catch(e){ return false; }
@@ -1944,46 +2176,37 @@ class GeminiLive {
     this.mudo=false; this.pensando=false;
     // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
     this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
-  async start(textOnly=false){
-    if(typeof googleCreditBlocked==='function'&&googleCreditBlocked())throw new Error(GOOGLE_CREDIT_END);
-    if(typeof googleLiveSessions!=='undefined')googleLiveSessions.add(this);
-    this.textOnly=textOnly;
-    const opening=performance.now();
-    if(!textOnly) this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
-    const r = await previewFetch(comS(TOKEN_URL), { cache:'no-store' });
+  async start(){
+    this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+    const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
     if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
-    if(!r.ok) throw new Error('Google não devolveu o token ('+r.status+')');
+    if(!r.ok) throw new Error('n8n não devolveu o token ('+r.status+')');
     const tk = await r.json();
-    if(!tk.ok||!tk.token) throw new Error(tk.erro==='creditos_esgotados'?'Seus créditos deste mês acabaram.':(tk.message||tk.erro||'token vazio do Google'));
-    this.googleDeadline=setTimeout(()=>{this.end();if(typeof refreshGoogleCredits==='function')refreshGoogleCredits();},Math.max(0,new Date(tk.livePermitidoAte||tk.expireTime).getTime()-Date.now()));
-    this.googleLastActivity=Date.now();
-    this.googleIdle=setInterval(()=>{if(Date.now()-this.googleLastActivity>=20000)this.end();},1000);
+    if(!tk.token) throw new Error('token vazio do n8n');
     await new Promise((ok, fail)=>{
-      const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
+      const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
       this.ws = new WebSocket(url);
       let setupDone=false;
-      this.ws.onopen = ()=>{ this.ws.send(JSON.stringify({setup: tk.setup})); };
-      const setupTimer=setTimeout(()=>{fail(new Error('Tempo de abertura esgotado'));this.end();},15000);
+      this.ws.onopen = async ()=>{
+        const contexto = await contextoGen();
+        this.ws.send(JSON.stringify({ setup: {
+          model: 'models/' + MODEL,
+          generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
+          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
+          tools: GEN_TOOLS,
+          realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
+          inputAudioTranscription: {},
+          outputAudioTranscription: {}
+        }}));
+      };
       this.ws.onmessage = async (ev)=>{
         const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
         let m; try{ m = JSON.parse(data); }catch(e){ return; }
-        if(m.setupComplete && !setupDone){
-          setupDone=true;clearTimeout(setupTimer);this.openingMs=performance.now()-opening;
-          try{if(!this.textOnly)await this.startAudio();ok();}catch(e){fail(e);this.end();}return;
-        }
-        if(m.error){this.finishText(new Error(m.error.message||'Falha do Gemini'));return;}
-        if(m.toolCall) this.handleToolCall(m.toolCall).catch(e=>this.finishText(e));
+        if(m.setupComplete && !setupDone){ setupDone=true; await this.startAudio(); ok(); return; }
+        if(m.toolCall) this.handleToolCall(m.toolCall);
         const sc = m.serverContent;
         if(sc){
-          this.googleLastActivity=Date.now();
-          if(this.textTurn){
-            const part=sc.outputTranscription&&sc.outputTranscription.text;
-            if(part){this.textTurn.text+=part;this.textTurn.onChunk(this.textTurn.text);}
-            if(sc.interrupted)this.finishText(new Error('Resposta interrompida'));
-            if(sc.turnComplete&&!this.toolPending)this.finishText();
-            return;
-          }
-          if(sc.inputTranscription && sc.inputTranscription.text){ this.googleLastActivity=Date.now(); this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
+          if(sc.inputTranscription && sc.inputTranscription.text){ this.temTranscricao = true; this.ouvido += sc.inputTranscription.text; if(this.aceitar()) FelyxAvatar.ouvir(); }
           if(sc.interrupted){ this.stopPlayback(); this.onState('listening'); this.abrirMic(); }
           if(sc.outputTranscription && sc.outputTranscription.text && this.decisao !== 'nao' && this.aceitar()) try{ this.onTranscript(sc.outputTranscription.text); }catch(e){}
           if(sc.modelTurn && sc.modelTurn.parts){
@@ -1992,8 +2215,8 @@ class GeminiLive {
           if(sc.turnComplete) this.fimDoTurno();
         }
       };
-      this.ws.onerror = ()=>{ clearTimeout(setupTimer);if(!setupDone) fail(new Error('WebSocket do Gemini falhou'));this.finishText(new Error('Conexão Live falhou')); };
-      this.ws.onclose = (e)=>{ clearTimeout(setupTimer);if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
+      this.ws.onerror = ()=>{ if(!setupDone) fail(new Error('WebSocket do Gemini falhou')); };
+      this.ws.onclose = (e)=>{ if(!setupDone) fail(new Error('Gemini fechou a conexão: '+(e.reason||e.code))); this.teardown(e.reason||''); };
     });
   }
   // a fala deste turno chamou o Félix? (mensagens da página sempre valem; sem transcrição, vale tudo)
@@ -2225,44 +2448,29 @@ class GeminiLive {
   }
   getInputLevel(){ return this.inLevel || 0; }
   async handleToolCall(tc){
-    if(typeof googleCreditBlocked==='function'&&googleCreditBlocked()){this.finishText(new Error(GOOGLE_CREDIT_END));this.end();return;}
-    this.toolPending=(this.toolPending||0)+1;
-    const out=[];
-    for(const fc of tc.functionCalls||[]){
-      this.googleLastActivity=Date.now();
+    const out = [];
+    for(const fc of (tc.functionCalls||[])){
       let response;
-      try{response=await googleRequest('tool',{name:fc.name,args:fc.args||{}});if(typeof window!=='undefined'&&window.coRemoteTool)await window.coRemoteTool(fc.name,fc.args||{},response);}
-      catch(e){response={ok:false,erro:'Falha de conexão com a ferramenta'};}
-      if(this.textTurn)this.textTurn.tools.push({name:fc.name,response});
-      out.push({id:fc.id,name:fc.name,response});
+      if(GEN_FERRAMENTAS[fc.name]){
+        // ninguém chamou o Félix (TV, conversa, barulho): não pesquisa e não aciona nada na casa
+        if(this.temTranscricao && !this.liberado && !this.ouvido.trim()) await new Promise(ok=>setTimeout(ok, 600));
+        if(!this.aceitar()){ this.decisao = 'nao'; out.push({ id: fc.id, name: fc.name, response: { ignorado: true, aviso: 'Ninguém chamou o Félix. Não diga nada.' } }); continue; }
+        const rapida = fc.name === 'abrir_tela';   // troca de tela: instantânea, sem "pensando" e sem barulho de teclado
+        this.pensando = !rapida; this.mudo = true;
+        if(!rapida) this.onState('thinking');
+        // barulhinho de teclado enquanto ele "dá uma olhadinha" (só se a ferramenta demorar)
+        const parar = teclado(this.outCtx, (fc.name === 'avisar_falha' || rapida) ? 999999 : 450);
+        try{ response = await GEN_FERRAMENTAS[fc.name](fc.args || {}); }catch(e){ response = { erro: 'indisponível agora' }; }
+        parar();
+        this.pensando = false;
+        try{ this.onBrain(this.ouvido || fc.name, fc.name === 'controlar_casa' ? (response && response.ok ? 'Pronto, feito.' : 'Não consegui.') : 'ok'); }catch(e){}
+      } else { response = { erro: 'função desconhecida' }; }
+      out.push({ id: fc.id, name: fc.name, response });
     }
-    this.googleLastActivity=Date.now();
-    if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify({toolResponse:{functionResponses:out}}));
-    this.toolPending--;
-  }
-  sendText(text,onChunk=()=>{}){
-    if(typeof googleCreditBlocked==='function'&&googleCreditBlocked())return Promise.reject(new Error(GOOGLE_CREDIT_END));
-    if(this.closed||!this.ws||this.ws.readyState!==1)return Promise.reject(new Error('Sessão encerrada'));
-    if(this.textTurn)return Promise.reject(new Error('Aguarde a resposta atual'));
-    this.stopPlayback();this.googleLastActivity=Date.now();
-    return new Promise((resolve,reject)=>{
-      const micOpen=this.micOpen;this.micOpen=false;
-      this.textTurn={text:'',tools:[],started:performance.now(),onChunk,resolve,reject,micOpen};
-      this.textTimer=setTimeout(()=>{this.finishText(new Error('Tempo de resposta esgotado'));this.end();},45000);
-      this.ws.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}}));
-    });
-  }
-  finishText(error){
-    const turn=this.textTurn;if(!turn)return;
-    clearTimeout(this.textTimer);this.textTurn=null;this.micOpen=turn.micOpen;
-    this.googleLastActivity=Date.now();
-    if(error)return turn.reject(error);
-    if(!turn.text.trim())return turn.reject(new Error('Gemini não devolveu texto'));
-    turn.resolve({message:turn.text,tools:turn.tools,elapsedMs:performance.now()-turn.started});
+    if(this.ws && this.ws.readyState===1) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: out } }));
   }
   teardown(reason){
-    if(typeof googleLiveSessions!=='undefined')googleLiveSessions.delete(this);
-    if(this.closed) return; this.closed=true; this.finishText(new Error(reason||'Sessão encerrada'));clearTimeout(this.googleDeadline);clearInterval(this.googleIdle);
+    if(this.closed) return; this.closed=true;
     clearInterval(this.vigiaSom);
     this.stopPlayback();
     try{ this.worklet && this.worklet.disconnect(); }catch(e){}
@@ -2301,13 +2509,13 @@ function fimDaFala(g){
 }
 let iniciando = false;   // login, tela da íris e botão podem chamar ao mesmo tempo: a abertura roda uma vez só
 async function start(){
-  if(googleCreditBlocked()){renderGoogleCredits();return;}
   if(iniciando || conv) return;
+  if(!window.felyxIA || !felyxIA.ok()){ if(window.felyxIA) felyxIA.pedir(); return; }   // 13/11: permissão de IA antes da primeira conversa (era feita na tela clássica)
   iniciando = true;
   talkBtn.disabled = true; clearCards();
   const g = new GeminiLive();
   g.onState = (s)=>{ if(!conv) return; if(s==='speaking') setState('speaking',''); else if(s==='thinking') setState('thinking','consultando o cérebro'); else setState('listening',''); };
-  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=googleCreditBlocked(); bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
+  g.onClose = (reason)=>{ FelyxAvatar.fechar(); iniciando = false; if(conv!==g) return; conv=null; setState('idle', reason ? 'sessão encerrada ('+reason+')' : 'sessão encerrada'); talkBtn.title='Falar'; talkBtn.dataset.on='0'; talkBtn.disabled=false; bootEl.dataset.on='0'; scanEl.dataset.on='0'; };
   g.onBrain = onBrain;
   g.onTranscript = aoOuvirTranscricao;
   g.micOpen = false;   // da íris até o fim do cumprimento o Felyx não ouve nada, mesmo com o microfone ligado (regra do Leandro, 07/11)
@@ -2322,7 +2530,7 @@ async function start(){
     await inicioVoz;
     await boot;
     conv = g;
-    setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=googleCreditBlocked();
+    setState('listening',''); talkBtn.title='Encerrar'; talkBtn.dataset.on='1'; talkBtn.disabled=false;
     await Promise.race([rosto, pausa(5000)]);   // a íris acabou: se o rosto ainda conecta, espera até 5 s; sem rosto, fala pela voz do aparelho
     if(conv !== g) return;
     FelyxAvatar.esconder(false);   // o rosto aparece...
@@ -2337,7 +2545,7 @@ async function start(){
     iniciando = false;
     g.teardown('');
     bootEl.dataset.on='0'; scanEl.dataset.on='0';
-    talkBtn.disabled=googleCreditBlocked();
+    talkBtn.disabled=false;
     const msg = (e&&e.name==='NotAllowedError') ? 'Microfone bloqueado. Libere o microfone nas permissões do navegador e tente de novo.'
       : 'Não foi possível conectar. ('+(e&&e.message?e.message:e)+')';
     setState('error', msg);
@@ -2363,7 +2571,7 @@ unlockEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' || e.key === ' 
 (function autoAbrir(){ /* semIrisAuto */ try{ unlockEl.hidden = true; }catch(e){}
   if(!SESSAO){ mostrarLogin(''); return; }
   try{ VinciOnboarding.talvezAbrir(); }catch(e){}   // onboarding Vinci: uma vez por IA, no primeiro acesso
-  try{ talkBtn.title = 'Fale com o Leo'; talkBtn.setAttribute('aria-label', 'Fale com o Leo'); }catch(e){}
+  try{ talkBtn.title = 'Fale com o Felyx'; talkBtn.setAttribute('aria-label', 'Fale com o Felyx'); }catch(e){}
   return;
 
   if(!SESSAO){ mostrarLogin(''); return; }
@@ -2382,49 +2590,6 @@ document.addEventListener('keydown', (e)=>{
   if(e.key==='m'){ loadMercado(true); loadNoticias(true); }
 });
 
-/* CO: nomes da Planilha são a fonte dos controles. */
-window.coRemote=VinciRemoteCO.create({
- getControls:async()=>{const r=await googleRequest('listarControles',{},'GET');if(!r.ok)throw Error('indisponivel');return r.controles||r.controls||[];},
- request:(action,args)=>action==='importarControles'?googleRequest('tool',{name:action,args}):googleRequest(action,args),
- onMessage:text=>{const reply=document.getElementById('googleReply');if(reply){reply.hidden=false;reply.textContent=text;}}
-});
-window.coRemoteTool=async(name,args,response)=>{
- if(!response||!response.ok)return;
- if(['listarControles','importarControles'].includes(name)){window.coRemote.setControls(response.controles||response.controls||[]);if(name==='importarControles')window.coRemote.showList();}
- if(name==='abrirControle'){if(response.controles)window.coRemote.setControls(response.controles);window.coRemote.open(response.controle||args);}
- if(name==='executarCena')rcDaCena(response.nome||(response.cena&&response.cena.nome)||args.nome||'');
- if(['criarCena','editarCena','excluirCena','apagarCena'].includes(name))await window.coRemote.reload();
-};
-if(SESSAO)window.coRemote.reload().catch(()=>{});
-
-/* Conversa escrita da prévia: login e respostas ficam no próprio painel. */
-(function(){
- const box=document.createElement('form');box.id='googleChat';box.style.cssText='position:fixed;bottom:calc(var(--tabsH) + 108px);left:50%;transform:translateX(-50%);z-index:90;width:min(420px,calc(100vw - 24px));display:flex;gap:6px';
- box.innerHTML='<input aria-label="Mensagem" placeholder="Converse por texto" style="min-width:0;flex:1;background:var(--bg,#111);color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px;font:inherit"><button type="submit" style="background:var(--accent);border:0;border-radius:10px;padding:10px;color:#111">Enviar</button>';
- document.body.appendChild(box);
- const credits=document.createElement('div');credits.id='googleCredits';credits.setAttribute('role','status');credits.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(var(--tabsH) + 72px);z-index:90;text-align:center;font-size:12px;color:var(--accent);pointer-events:none';document.body.appendChild(credits);renderGoogleCredits();refreshGoogleCredits();setInterval(refreshGoogleCredits,15000);
- const reply=document.createElement('div');reply.id='googleReply';reply.setAttribute('role','status');reply.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabsH) + 166px);z-index:90;width:min(420px,calc(100vw - 24px));max-height:24vh;overflow:auto;white-space:pre-wrap;background:var(--bg,#111);color:var(--accent);border-radius:10px;padding:10px;box-sizing:border-box';reply.hidden=true;document.body.appendChild(reply);
- let textLive=null;
- box.addEventListener('submit',async e=>{
-   e.preventDefault();if(googleCreditBlocked()){renderGoogleCredits();return;}if(!SESSAO){mostrarLogin('Entre para conversar.');return;}
-   const input=box.querySelector('input'),button=box.querySelector('button'),text=input.value.trim();
-   if(!text||button.disabled)return;box.dataset.busy='1';button.disabled=true;reply.hidden=false;reply.textContent='Conectando…';
-   try{
-     let live=conv&&!conv.closed?conv:textLive;
-     if(!live||live.closed){
-       live=textLive=new GeminiLive();
-       try{await live.start(true);}catch(e){live.end();throw e;}
-     }
-     reply.textContent='Pensando…';
-     const j=await live.sendText(text,value=>{reply.textContent=value;});
-     reply.textContent=j.message;input.value='';
-     box.dataset.lastResponseMs=String(Math.round(j.elapsedMs));
-     box.dataset.sessionOpeningMs=String(Math.round(live.openingMs));
-   }catch(e){reply.textContent='Não foi possível concluir: '+e.message;}
-   finally{box.dataset.busy='0';button.disabled=googleCreditBlocked();}
- });
- window.addEventListener('pagehide',()=>{if(textLive)textLive.end();});
-})();
 /* ---------- carga inicial e atualização periódica ---------- */
 loadMercado(true); loadNoticias(true);
 setInterval(()=>{ if(document.visibilityState === 'visible'){ loadMercado(); loadNoticias(); } }, 60000);
@@ -2461,70 +2626,72 @@ window.FERRAMENTAS_MATERIA = {
 })();
 
 </script>
-<script src="leo-formas.js"></script>
+<section id="iaFull" hidden role="dialog" aria-modal="true" aria-labelledby="iaFullTit">
+  <div class="iaFullBox">
+    <span class="k">Felyx · Vinci AI</span>
+    <h1 id="iaFullTit">Vamos conversar?</h1>
+    <p>Eu sou o Felyx. Para ouvir você e responder com a minha voz, uso a inteligência do <b>Google (Gemini)</b>: a sua voz vai para lá só enquanto estamos conversando, e nada fica gravado.</p>
+    <p class="nota">Nada disso é vendido nem usado para anúncios. Você muda de ideia quando quiser, e a casa, as notícias e o mercado funcionam de qualquer jeito.</p>
+    <a href="privacidade.html" target="_blank" rel="noopener">Detalhes na política de privacidade</a>
+    <button type="button" id="iaFullSim">Vamos conversar</button>
+    <button type="button" id="iaFullNao" class="ghost">Agora não</button>
+  </div>
+</section>
+<style>
+#iaFull{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.72);padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));overflow:auto}
+#iaFull[hidden]{display:none}
+.iaFullBox{width:min(460px,100%);background:#0d0f12;border:1px solid rgba(var(--accent-rgb),.35);border-radius:18px;padding:22px;color:var(--ink);display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px #000c}
+.iaFullBox .k{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+.iaFullBox h1{margin:0;font-size:1.5rem}
+.iaFullBox p{margin:0;line-height:1.45;font-size:.95rem}
+.iaFullBox .nota{color:var(--muted);font-size:.85rem}
+.iaFullBox a{color:var(--accent);font-size:.85rem}
+.iaFullBox button{min-height:48px;border-radius:14px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink,#000);font:600 1rem system-ui,sans-serif}
+.iaFullBox button.ghost{background:transparent;color:var(--ink);border-color:rgba(255,255,255,.2)}
+</style>
 <script>
-/* Léo da Vinci em bolinhas (14/11/2026, Leandro: "o vitruviano de bolinhas, girando e ganhando forma de Mona Lisa; brinque com os símbolos de Leonardo").
-   Parado: o Homem Vitruviano gira e vira a Mona Lisa, e volta. Ouvindo: o Vitruviano de frente, pulsando com a sua voz.
-   Pensando: o parafuso aéreo gira. Falando: a Mona Lisa fala, cada bolinha vibra com a voz do Léo.
-   Executando comando: explode e vira a máquina voadora batendo as asas. Erro: treme e escorre em vermelho. */
-(function(){
-  const cv=document.getElementById('leoCv'); if(!cv||!window.LeoFormas) return; const c=cv.getContext('2d'); const W=cv.width,H=cv.height,CX=W/2,CY=H/2,ESC=W*.46;
-  const css=getComputedStyle(document.documentElement);
-  const COR=(css.getPropertyValue('--accent-rgb')||'214,255,26').trim().split(',').map(Number), ERRO=[255,106,98];
-  const N=1100, NB=24, F=LeoFormas.gerar(N);
-  const P=F.vitruviano.map((q,i)=>({x:CX+q.x*ESC,y:CY+q.y*ESC,vx:0,vy:0,f:Math.random()*6.283,r:2+Math.random()*2.2,b:i%NB}));
-  const hud=document.getElementById('hud');
-  let t=0, voz=0, ultimo=performance.now(), exec=0, voo=0, ciclo=0, est='idle', mix={idle:1,listening:0,thinking:0,speaking:0,error:0};
-  let bandas=new Array(NB).fill(0);
-  function disparar(){ exec=1; voo=2.6; for(const p of P){ const a=Math.random()*6.283, k=30+Math.random()*50; p.vx+=Math.cos(a)*k; p.vy+=Math.sin(a)*k; } }
-  window.leoAgita=disparar;
-  try{ const G=typeof GeminiLive!=='undefined'&&GeminiLive.prototype; if(G&&G.handleToolCall){ const o=G.handleToolCall; G.handleToolCall=function(){ disparar(); return o.apply(this,arguments); }; } }catch(e){}
-  try{ if(typeof feedbackCena==='function'){ const o=feedbackCena; window.feedbackCena=function(){ disparar(); return o.apply(this,arguments); }; } }catch(e){}
-  function lerVoz(st){
-    const g=(typeof conv!=='undefined')?conv:null; let alvo=0, bs=null;
-    try{ if(g){ if(st==='speaking'){ alvo=Math.min(1,g.getOutputVolume()*5); bs=g.getBands&&g.getBands(NB); } else alvo=Math.min(1,(g.getInputLevel()||0)*4); } }catch(e){}
-    if(!g && st==='speaking'){ alvo=.35+.35*Math.abs(Math.sin(t*9))*Math.abs(Math.sin(t*2.3)); bs=bandas.map((_,i)=>Math.max(0,.6*Math.sin(t*7+i*.7)*Math.sin(t*3.1-i*.3)+.3*Math.random())); }
-    voz+=(alvo-voz)*(alvo>voz?.45:.12);
-    for(let i=0;i<NB;i++){ const b=bs?bs[i]||0:0; bandas[i]+=(b-bandas[i])*(b>bandas[i]?.5:.15); }
-  }
-  // projeção 3D: gira em Y (th) e inclina em X (ph)
-  function proj(q,th,ph,esc){ const ct=Math.cos(th),st=Math.sin(th); let x=q.x*ct+q.z*st, z=-q.x*st+q.z*ct; const cp=Math.cos(ph),sp=Math.sin(ph); const y=q.y*cp-z*sp; z=q.y*sp+z*cp; const s=1/(1+z*.35); return [CX+x*esc*s, CY+y*esc*s, z]; }
-  (function quadro(agora){
-    agora=agora||performance.now(); const dt=Math.min(.05,(agora-ultimo)/1000); ultimo=agora;
-    let st=(hud&&hud.dataset.state)||'idle'; if(st==='boot') st='thinking'; if(!(st in mix)) st='idle';
-    if(st==='error'&&est!=='error') for(const p of P){ p.vx+=(Math.random()-.5)*40; p.vy+=(Math.random()-.5)*40; }
-    if(st==='idle'&&est!=='idle') ciclo=0; est=st;
-    for(const k in mix) mix[k]+=((k===st?1:0)-mix[k])*Math.min(1,dt*4);
-    lerVoz(st); t+=dt; ciclo+=dt; exec=Math.max(0,exec-dt*.9); voo=Math.max(0,voo-dt);
-    // qual forma e como ela se mexe
-    let forma, th=0, ph=0, esc=ESC, extra=null;
-    if(st==='error'){ forma=F.vitruviano; th=Math.sin(t*9)*.12; }
-    else if(voo>0){ forma=F.asas; const bate=Math.sin(t*14)*(.35+.25*voz); extra=(q)=>({x:q.x, y:q.y-Math.abs(q.x)*bate-.08*Math.sin(t*3), z:q.z+Math.abs(q.x)*bate*.6}); ph=-.25; }
-    else if(st==='thinking'){ forma=F.parafuso; th=t*2.6; ph=.38; esc=ESC*.95; }
-    else if(st==='listening'){ forma=F.vitruviano; th=Math.sin(t*.8)*.25; esc=ESC*(1+.12*voz); }
-    else if(st==='speaking'){ forma=F.monalisa; th=Math.sin(t*.6)*.12; esc=ESC*(1+.04*voz); }
-    else { const T=ciclo%15; forma=T<8.5?F.vitruviano:F.monalisa; th=T<8.5?T*(Math.PI*2/8.5):Math.sin((T-8.5)*.9)*.15; }
-    c.clearRect(0,0,W,H); c.globalCompositeOperation='lighter';
-    const cor=COR.map((v,i)=>Math.round(v+(ERRO[i]-v)*mix.error));
-    const k=14+16*mix.speaking+10*mix.listening, amort=Math.exp(-dt*6);
-    for(let i=0;i<N;i++){
-      const p=P[i]; let q=forma[i]; if(extra) q=extra(q);
-      let [tx,ty,z]=proj(q,th,ph,esc);
-      const b=bandas[p.b];
-      const tremor=mix.listening*voz*5+mix.speaking*b*14+mix.error*8+exec*6+1.2;
-      tx+=Math.sin(t*3+p.f)*tremor*.6+(Math.random()-.5)*tremor; ty+=Math.cos(t*2.6+p.f)*tremor*.6+(Math.random()-.5)*tremor;
-      if(mix.error>.05) ty+=mix.error*(18+12*Math.sin(p.f*3))*(.5+.5*Math.sin(t*2+p.f));
-      p.vx=(p.vx+(tx-p.x)*k*dt)*amort; p.vy=(p.vy+(ty-p.y)*k*dt)*amort; p.x+=p.vx*dt*16; p.y+=p.vy*dt*16;
-      const fundo=Math.max(.25,1-z*.9);
-      const brilho=(.35+.35*Math.abs(Math.sin(p.f+t*1.6))+.5*(mix.speaking*b+mix.listening*voz)+.4*exec)*fundo;
-      const s=p.r*(1+.5*(mix.speaking*b+exec))*Math.min(1.3,fundo);
-      c.fillStyle='rgba('+cor[0]+','+cor[1]+','+cor[2]+','+Math.min(1,brilho)+')'; c.fillRect(p.x-s/2,p.y-s/2,s,s);
-    }
-    c.globalCompositeOperation='source-over';
-    requestAnimationFrame(quadro);
-  })();
+/* 13/11/2026: permissão de IA dentro do Felyx Full (antes só existia na tela clássica, que por isso aparecia no lugar do Full) */
+window.felyxIA = (function(){
+  const dig = (x)=> String(x||'').replace(/\D/g,'');
+  function chave(){ let t=''; try{ const s = JSON.parse(localStorage.getItem('felyx.sessao')||'null'); t = s && s.telefone; }catch(e){} return 'felyx.ia.' + dig(t); }
+  function ok(){ try{ return JSON.parse(localStorage.getItem(chave())||'null') === true; }catch(e){ return false; } }
+  function gravar(v){ try{ localStorage.setItem(chave(), JSON.stringify(v)); }catch(e){} try{ window.webkit.messageHandlers.felyx.postMessage({ tipo:'ia', aceito: v === true }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo:'ia', aceito: v === true })); }catch(e){} }
+  const el = document.getElementById('iaFull');
+  function pedir(){ el.hidden = false; setTimeout(()=>{ try{ document.getElementById('iaFullSim').focus(); }catch(e){} }, 50); }
+  document.getElementById('iaFullSim').addEventListener('click', ()=>{ gravar(true); el.hidden = true; try{ primeAudio(); }catch(e){} try{ if(!conv) start(); }catch(e){} });
+  document.getElementById('iaFullNao').addEventListener('click', ()=>{ gravar(false); el.hidden = true; });
+  return { ok, pedir };
 })();
 </script>
-<script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
+<script>
+/* 13/11/2026: recados do app nativo (Siri, atalhos do ícone, notificações) agora também no Full; antes só a tela clássica respondia */
+window.felyxNativo = function(acao, dado){
+  const aba = (t)=>{ const m = { vFelyx:'home', felyx:'home', home:'home', dashboard:'dashboard', vDash:'dashboard', rooms:'rooms', salas:'rooms', ambientes:'rooms' }; const b = document.querySelector('[data-tab-target="' + (m[t] || t) + '"]'); if(b) b.click(); };
+  const comando = (frase)=>{ try{ fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: String(frase) }) }).catch(()=>{}); }catch(e){} };
+  if(acao === 'falar' || acao === 'perguntar'){ aba('home'); try{ primeAudio(); }catch(e){} try{ if(!conv) start(); }catch(e){} }
+  else if(acao === 'cena' && dado) comando('ativa a cena ' + dado);
+  else if(acao === 'comando' && dado) comando(dado);
+  else if(acao === 'aba' && dado) aba(String(dado));
+};
+</script>
+<script>
+/* 13/11/2026: painel de clima do Dashboard (mesma fonte do briefing, sem criar card) */
+(function(){
+  async function painelClima(){
+    try{
+      const j = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+      const c = j.current, d = j.daily, n = (v)=> Math.round(Number(v));
+      document.getElementById('climaT').textContent = n(c.temperature_2m) + '°';
+      document.getElementById('climaD').textContent = (typeof WMO !== 'undefined' && WMO[c.weather_code]) || '';
+      document.getElementById('climaX').textContent = 'sensação ' + n(c.apparent_temperature) + '° · mín ' + n(d.temperature_2m_min[0]) + '° · máx ' + n(d.temperature_2m_max[0]) + '° · chuva ' + d.precipitation_probability_max[0] + '%';
+      document.getElementById('climaWhen').textContent = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){ const w = document.getElementById('climaWhen'); if(w) w.textContent = 'sem conexão'; }
+  }
+  if(document.readyState === 'loading') addEventListener('DOMContentLoaded', painelClima); else painelClima();
+  setInterval(()=>{ if(document.visibilityState === 'visible') painelClima(); }, 30*60e3);
+})();
+</script>
+<script src="../app-assets/controle-co-ui.js"></script>
+<script src="controle-co-felyx.js"></script>
 </body>
 </html>
