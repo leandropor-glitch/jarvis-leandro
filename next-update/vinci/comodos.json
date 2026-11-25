@@ -1,0 +1,266 @@
+{
+  "_como_funciona": "Cada cena ou aparelho vai para o primeiro cômodo cuja palavra aparece no nome (sem acento, sem maiúscula). Palavras com até 3 letras só valem como palavra inteira. 'fixos' força um item num cômodo ('Nome' ou 'Nome|TIPO'). 'cor' é a cor do cômodo (paleta do manual da Vinci); 'texto' é a cor da letra no cartão. A lista 'comodos' está na ordem de procura (Sala por último, porque tem palavras genéricas como 'mesa' e 'estante'); 'ordemTela' é a ordem em que aparecem.",
+  "comodos": [
+    {
+      "nome": "Felipe",
+      "cor": "#9EACB5",
+      "texto": "#1D2830",
+      "palavras": [
+        "felipe",
+        "mesafel"
+      ]
+    },
+    {
+      "nome": "Suíte",
+      "cor": "#E1FE06",
+      "texto": "#1D2830",
+      "palavras": [
+        "suite",
+        "casal",
+        "cama",
+        "master",
+        "sm",
+        "cab leandro",
+        "cab joana",
+        "boa noite"
+      ]
+    },
+    {
+      "nome": "Closet",
+      "cor": "#B0C034",
+      "texto": "#1D2830",
+      "palavras": [
+        "closet",
+        "joana_clos",
+        "armario"
+      ]
+    },
+    {
+      "nome": "Cozinha",
+      "cor": "#D5EC23",
+      "texto": "#1D2830",
+      "palavras": [
+        "cozinha",
+        "bancada",
+        "fita pia",
+        "cafe",
+        "nespresso",
+        "adega"
+      ]
+    },
+    {
+      "nome": "Banheiros",
+      "cor": "#79868F",
+      "texto": "#0E1519",
+      "palavras": [
+        "banheiro",
+        "lavabo",
+        "toalheiro",
+        "banho"
+      ]
+    },
+    {
+      "nome": "Varanda",
+      "cor": "#C8DC2A",
+      "texto": "#1D2830",
+      "palavras": [
+        "varanda",
+        "corda"
+      ]
+    },
+    {
+      "nome": "Serviço",
+      "cor": "#5B6770",
+      "texto": "#F2F5F7",
+      "palavras": [
+        "area servico",
+        "area"
+      ]
+    },
+    {
+      "nome": "Entrada",
+      "cor": "#3B464F",
+      "texto": "#F2F5F7",
+      "palavras": [
+        "entrada",
+        "porta",
+        "corredor",
+        "way 210",
+        "ring"
+      ]
+    },
+    {
+      "nome": "Sala",
+      "cor": "#C1CFD9",
+      "texto": "#1D2830",
+      "palavras": [
+        "sala",
+        "lustre",
+        "estante",
+        "painel",
+        "muxarabi",
+        "indireta",
+        "sanca",
+        "tela",
+        "led",
+        "luminaria",
+        "abajur",
+        "mesa",
+        "net",
+        "globo",
+        "apple tv",
+        "playstation",
+        "musica",
+        "persiana",
+        "cort",
+        "luz alta",
+        "luz baixa",
+        "z1",
+        "z2",
+        "pw net",
+        "mudo",
+        "3wbm",
+        "ch"
+      ]
+    }
+  ],
+  "ordemTela": [
+    "Sala",
+    "Suíte",
+    "Felipe",
+    "Closet",
+    "Cozinha",
+    "Banheiros",
+    "Varanda",
+    "Serviço",
+    "Entrada"
+  ],
+  "fixos": {
+    "Mudo|CENA": "Sala",
+    "MudoSM|CENA": "Suíte",
+    "Vol SM|CENA": "Suíte",
+    "Master OFF|CENA": "Suíte"
+  },
+  "ocultar": [
+    "CAMERA",
+    "SECURITY_PANEL"
+  ],
+  "semComodo": "Outros",
+  "corSemComodo": "#2A3640",
+  "textoSemComodo": "#F2F5F7",
+  "_retorno": "Cor dos botões na tela de Cenas: amarelo = ligado ou sem status; grafite = só quando a central confirma que está desligado. 'retorno' liga cada cena aos aparelhos que dizem se ela está ligada (basta um ligado). Cena com aparelho de mesmo nome já se liga sozinha. 'semRetorno' = cenas sem status (ficam sempre amarelas).",
+  "retorno": {
+    "Cama": [
+      "Casal Cama"
+    ],
+    "Luz Alta": [
+      "Lustre"
+    ],
+    "Sanca": [
+      "Indireta"
+    ],
+    "3wBM": [
+      "Banho Master"
+    ]
+  },
+  "semRetorno": [
+    "OFF_Sala",
+    "Master OFF",
+    "Boa Noite",
+    "Música",
+    "Apple TV",
+    "PlayStation",
+    "Globo",
+    "PW Net",
+    "PW Z1",
+    "PW Z2",
+    "CH",
+    "Persianas",
+    "CortDir",
+    "Estante Felipe"
+  ],
+  "_controles": "Controle remoto: cada botão dispara uma CENA da Smart Life/Tuya; vale a primeira cena da lista que existir na casa. 'volumeCentral' (sala ou suite): quando falta a cena de um lado do volume, o botão manda aumentar/abaixar o volume direto para a TV pela central da Vinci (a Amazon só recebe uma cena de volume por TV: Vol+ e Vol- chegam com o mesmo nome). Botão sem cena não aparece.",
+  "controles": [
+    {
+      "nome": "TV Sala",
+      "tipo": "tv",
+      "comodo": "Sala",
+      "botoes": {
+        "power": [
+          "TV Sala"
+        ],
+        "mudo": [
+          "Mudo"
+        ],
+        "volMais": [
+          "Vol Z1"
+        ],
+        "volMenos": [
+          "Vol Menos Sala"
+        ]
+      },
+      "volumeCentral": "sala",
+      "rotulos": {
+        "volMais": "Vol +",
+        "volMenos": "Vol −"
+      }
+    },
+    {
+      "nome": "TV Suíte",
+      "tipo": "tv",
+      "comodo": "Suíte",
+      "botoes": {
+        "power": [
+          "TV Suíte"
+        ],
+        "mudo": [
+          "MudoSM"
+        ],
+        "volMais": [
+          "Vol SM"
+        ],
+        "volMenos": [
+          "Vol Menos SM"
+        ]
+      },
+      "volumeCentral": "suite",
+      "rotulos": {
+        "volMais": "Vol + SM",
+        "volMenos": "Vol − SM"
+      }
+    },
+    {
+      "nome": "Ar Sala",
+      "tipo": "ar",
+      "comodo": "Sala",
+      "botoes": {
+        "ligar": [
+          "ONAutACSala"
+        ],
+        "desligar": [
+          "OffautACSala"
+        ]
+      }
+    },
+    {
+      "nome": "Ar Suíte",
+      "tipo": "ar",
+      "comodo": "Suíte",
+      "botoes": {
+        "power": [
+          "AC Suíte"
+        ]
+      }
+    },
+    {
+      "nome": "Ar Felipe",
+      "tipo": "ar",
+      "comodo": "Felipe",
+      "botoes": {
+        "power": [
+          "AC Felipe"
+        ]
+      }
+    }
+  ]
+}
