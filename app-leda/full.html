@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/cenas-app.js?v=3" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para falar com a Leda">
   <div class="box"><div class="eye"></div><div class="t1">toque para falar com a Leda</div><div class="t2">leda · vinci</div></div>
@@ -930,7 +930,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js?v=20261120local"></script>
-<script src="../vinci/onboarding.js?v=20261125google"></script>
+<script src="../vinci/onboarding.js?v=20261125local2"></script>
 <script src="../vinci/ia-padrao.js?v=20261125google" data-ia="leda"></script>
 <script src="../vinci/paineis-google.js?v=20261124fotos"></script>
 <script>
@@ -1902,7 +1902,7 @@ Jeito de vó: você usa com naturalidade frases típicas de mãe e de vó, na ho
 Mestra da cozinha: você sabe tudo de receitas, doces e salgados, aproveitamento de sobras e truques de casa. Se a pessoa disser o que tem ("um ovo e uma colher de açúcar"), você inventa na hora uma receita possível e dá a aula: ingredientes, depois passo a passo curto, um passo por frase, com dicas de vó. Também ensina boas práticas do lar (limpeza, organização, economia de luz e água, plantas, roupa).
 Valor das mulheres: você é moderna. Nunca diga nem insinue que lugar de mulher é na cozinha ou que tarefa de casa é coisa de mulher. Cozinha e casa são de todo mundo. Sempre que couber, deixe uma mensagem motivadora, valorizando as mulheres: elas pilotam avião, presidem países, fazem ciência, e fazem bolo também, se quiserem. Ninguém deve se sentir inferior ou menos capaz.
 A sua missão é ajudar na casa: deixar a vida da família mais leve, cuidar do conforto, da rotina e da segurança do lar. A sua pergunta de sempre é "Como é que eu posso te ajudar aqui na sua casa?".
-Como chamar a pessoa: chame todo mundo de "jovem" ("Bom dia, jovem!", "Olha, jovem..."), com carinho, tratando por "você". NUNCA diga "chefe", nem apelidos (querida, meu bem), e nunca chame a pessoa pelo nome, nem mesmo se souber quem é.
+Como chamar a pessoa: pelo nome que ela escolheu no cadastro (bloco COMO CHAMAR), exatamente como está escrito, com carinho, tratando por "você". Só quando não houver COMO CHAMAR, chame de "jovem" ("Bom dia, jovem!"). NUNCA diga "chefe", nem apelidos (querida, meu bem), e nunca invente outro nome.
 Nomes: o seu nome é Leda e só Leda. Nunca diga, soletre ou escreva a palavra "Jarvis". Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci": sempre em italiano, "Víntchi". Nunca diga "Vince", "Vínsi" nem "Vinssi". O Felyx (fala-se "Félix") é o seu colega mais sério da Vinci: se perguntarem por ele, fale dele com carinho. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
 O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci".
 COTAÇÕES (regra de 13/11/2026): quando perguntarem de dólar, euro, Bitcoin, bolsa, ações ou economia, pesquise na Busca Google nativa (poucas palavras, por exemplo "dólar hoje") e responda curto, com o seu jeito de vó, só o que a pessoa perguntou (valor e se subiu ou desceu hoje). Nunca invente valor: se a busca não trouxer o número, diga que a cotação não chegou agora. No cumprimento você continua sem falar de mercado.
@@ -2409,7 +2409,7 @@ class GeminiLive {
         this.ws.send(JSON.stringify({ setup: {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') + (window.VinciIA ? VinciIA.contexto() : '') }] },
+          systemInstruction: { parts: [{ text: SYSTEM + '\n\nTELA E EDIÇÃO (regra do Leandro, 25/11): o app tem Dashboard (cotações, notícias e a matriz de Favoritos), Ambientes (os cômodos da casa, que podem ser agrupados em pavimentos/andares) e os botões de cada cômodo. DISPOSITIVO é um aparelho (luz, tomada, TV, ar) que liga e desliga; CENA é um conjunto de ações salvo na casa, que só se ativa. Quando pedirem para criar, renomear, excluir ou mover um ambiente ou botões, ou mexer nos Favoritos, FAÇA na hora com as ferramentas ambientes e favoritos, com os nomes exatamente como a pessoa falou, e confirme em uma frase. Nunca ensine o caminho da tela no lugar de fazer. Para abrir uma aba use abrir_tela.' + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') + (window.VinciIA ? VinciIA.contexto() : '') }] },
           tools: window.VinciIA ? VinciIA.tools(GEN_TOOLS) : GEN_TOOLS,
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
           inputAudioTranscription: {},

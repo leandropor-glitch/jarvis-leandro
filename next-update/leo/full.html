@@ -557,7 +557,7 @@ input,select,textarea{font-size:16px!important}
 #hud[data-tab="dashboard"] #matrix::-webkit-scrollbar{display:none}
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style><meta name="robots" content="noindex,nofollow"></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/cenas-app.js?v=3" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style>/* 24/11 Leandro: Leo sem caixa de texto e sem saldo de créditos na tela (igual Felyx e Leda) */#googleChat,#googleCredits{display:none!important}</style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para continuar">
   <div class="box"><div class="eye"></div><div class="t1">toque para continuar</div><div class="t2">leo · iA vinci</div></div>
@@ -963,11 +963,32 @@ async function googleCards(){
   if(!googleCardsFlight)googleCardsFlight=googleRequest('cards',{},'GET').then(j=>{if(!j.ok)throw Error(j.erro);googleCardsCache=Array.isArray(j.cards)?{cards:j.cards}:j.cards;googleCardsTime=Date.now();return googleCardsCache;}).finally(()=>googleCardsFlight=null);
   return googleCardsFlight;
 }
+
+/* 25/11/2026 (Leandro): o Leo recebe junto com a voz o nome escolhido no onboarding, a regra do bom dia,
+   os dados de agora (tempo do Rio, uma manchete, dólar) e o que a tela dele tem. Só texto; não muda o controle da casa. */
+async function leoContexto(){
+  let s = '';
+  try{ s += (window.VinciOnboarding ? VinciOnboarding.contexto() : ''); }catch(e){}
+  let nome = ''; try{ nome = (window.VinciOnboarding && VinciOnboarding.apelido) ? (VinciOnboarding.apelido() || '') : ''; }catch(e){}
+  let clima = '';
+  try{
+    const j = await window.fetch('https://api.open-meteo.com/v1/forecast?latitude=-22.97&longitude=-43.19&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America/Sao_Paulo&forecast_days=1').then(r=>r.json());
+    clima = 'agora ' + Math.round(j.current.temperature_2m) + ' graus' + ((typeof WMO !== 'undefined' && WMO[j.current.weather_code]) ? ', ' + WMO[j.current.weather_code] : '') + '; mínima ' + Math.round(j.daily.temperature_2m_min[0]) + ' e máxima ' + Math.round(j.daily.temperature_2m_max[0]) + '; chance de chuva ' + j.daily.precipitation_probability_max[0] + '%';
+  }catch(e){}
+  const manchete = [...document.querySelectorAll('.news .slide .tt')].map(x=>x.textContent.trim()).filter(Boolean)[0] || '';
+  let dolar = ''; try{ const v = document.querySelector('#marketRows .row[data-id="usd"] [data-val]'); dolar = v ? v.textContent.trim() : ''; }catch(e){}
+  if(nome) s += '\n\nCOMO CHAMAR: chame a pessoa exatamente de "' + nome + '", em todo cumprimento e resposta. Não troque por outro nome nem por "Chefe".';
+  s += '\n\nBOM DIA (regra do Leandro): quando a pessoa disser bom dia, boa tarde ou boa noite, responda nesta ordem, curto: "Bom dia' + (nome ? ', ' + nome : '') + '. Estou aqui à sua disposição no Rio." (ou boa tarde/boa noite). Depois a temperatura e a previsão do tempo do Rio de Janeiro' + (clima ? ' (' + clima + ')' : '') + '. Depois leia pelo menos uma manchete de jornal' + (manchete ? ' (por exemplo: ' + manchete + ')' : '') + '. Só no final, a cotação atualizada do dólar' + (dolar ? ' (R$ ' + dolar + ')' : '') + '. Não abra com cotação.';
+  s += '\n\nSUA TELA: o app do Leo tem as abas Leo, Dashboard (cotações, notícias com foto e Favoritos), Notícias e Ambientes (os cômodos da casa com os botões das cenas e dos aparelhos). Para mexer em ambientes, pavimentos, botões e Favoritos, use as ferramentas ambientes e favoritos e faça na hora. Tocar numa cotação abre a Binance; tocar numa notícia abre a matéria.';
+  s += '\n\nTELA E EDIÇÃO (regra do Leandro, 25/11): o app tem Dashboard (cotações, notícias e a matriz de Favoritos), Ambientes (os cômodos da casa, que podem ser agrupados em pavimentos/andares) e os botões de cada cômodo. DISPOSITIVO é um aparelho (luz, tomada, TV, ar) que liga e desliga; CENA é um conjunto de ações salvo na casa, que só se ativa. Quando pedirem para criar, renomear, excluir ou mover um ambiente ou botões, ou mexer nos Favoritos, FAÇA na hora com as ferramentas ambientes e favoritos, com os nomes exatamente como a pessoa falou, e confirme em uma frase. Nunca ensine o caminho da tela no lugar de fazer. Para abrir uma aba use abrir_tela.';
+  try{ const casa = await contextoGen(); s += String(casa || '').slice(0, 2500); }catch(e){}   // 25/11: lista de aparelhos e cenas da casa (e memória) também vão para a voz e para as ferramentas
+  return s.slice(0, 6000);
+}
 async function previewFetch(url,options={}){
   const u=String(url), b=options.body?JSON.parse(options.body):{};
   let j;
   if(u.startsWith('google-compat:')){
-    if(u.includes('/token'))j=await googleRequest('token');
+    if(u.includes('/token'))j=await googleRequest('token',{contexto: await leoContexto(), ferramentas: JSON.stringify(LEO_TOOLS_TELA)});
     else if(u.includes('/mercado')){const p=await googleCards();const c=p.cotacoes||{};j={ok:true,cambio:{usdbrl:Number(c.usd_brl?.valor),eurbrl:Number(c.eur_brl?.valor)},cripto:{bitcoin:{usdt:Number(c.btc_usd?.valor)}},updatedAt:p.updatedAt};}
     else if(u.includes('/noticias')){const p=await googleCards();const cards=(p.cards||[]).map(c=>({title:c.titulo,link:c.fonteUrl,image:c.fotoUrl,source:'G1',cat:c.categoria}));j={ok:true,politica:cards.filter(c=>['politica','destaques'].includes(c.cat)),tecnologia:cards.filter(c=>['tecnologia','economia'].includes(c.cat))};}
     else if(b.acao==='casa'){const r=await googleRequest('scenes',{},'GET');if(window.coRemote)window.coRemote.reload().catch(()=>{});j={...r,cenas:(r.scenes||[]).map(x=>x.nome),aparelhos:[]};}
@@ -1224,7 +1245,7 @@ const gridEl = document.getElementById('grid'), matrixEl = document.getElementBy
 const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase'), edPhrase2 = document.getElementById('edPhrase2');
 let tiles = loadTiles(), editMode = false, editing = -1;
 function loadTiles(){
-  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
+  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length >= 32) return arr.slice(0, 160).map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
   return DEFAULT_TILES.map(t=>({ ...t }));
 }
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
@@ -1258,7 +1279,7 @@ function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''
 function renderMatrix(){
   limparEstadosDeCena();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.map((i)=>{const t=tiles[i];if(isCOTile(t))return '';const cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
+  gridEl.innerHTML = ordem.filter(i=>naSala||i<32).map((i)=>{const t=tiles[i];if(isCOTile(t))return '';const cena=isSceneTile(t),room=roomForTile(t),fora=naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${tipoControle(t)?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('');
   renderRoomTabs();
 }
 renderMatrix();
@@ -1692,7 +1713,7 @@ let casaGen = { aparelhos:[], cenas:[] };
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
+    Promise.race([previewFetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(9000)]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
   if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
@@ -1778,7 +1799,9 @@ const GEN_FERRAMENTAS = {
     const criarBotao = (n)=> {
       const q = norm(n), cena = cenas.find(c => norm(c) === q), ap = cena ? '' : aparelhos.find(a => norm(a) === q);
       if(!cena && !ap) return -1;
-      const i = tiles.findIndex(t => !t.n); if(i < 0) return -2;
+      let i = tiles.findIndex(t => !t.n);
+      // 25/11/2026 (Leandro): sem espaço nos 32 do painel, o botão entra só na aba Ambientes (não ocupa o Dashboard)
+      if(i < 0){ if(tiles.length >= 160) return -2; tiles.push({ n:'', f:'', f2:'', s:'', fav:false, rc:'' }); i = tiles.length - 1; }
       tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
       return i;
     };
@@ -1894,6 +1917,21 @@ const GEN_FERRAMENTAS = {
       manchetes: { politica: (newsPol.items||[]).slice(0,3).map(n=>n.title), tecnologia: (newsTec.items||[]).slice(0,3).map(n=>n.title) } };
   }
 };
+
+/* 25/11/2026 (Leandro): o Leo também mexe na tela por voz (abas, Favoritos, Ambientes, rolar), como o Felyx e a Leda.
+   As declarações vão junto com o pedido da voz; o servidor só aceita estes quatro nomes. Nada disso aciona a casa. */
+const LEO_TELA_NOMES = new Set(['abrir_tela','favoritos','ambientes','rolar_tela']);
+const LEO_TOOLS_TELA = [
+  { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois responda só "Ok.", nada mais.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ tela:{ type:'STRING', enum:['home','dashboard','ambientes'] } }, required:['tela'] } },
+  { name:'favoritos', description:'Edita os favoritos: a matriz de 32 botões de comando da casa na tela. operacao: listar; colocar (nome do aparelho ou cena; posicao 1-32 opcional, senão vai no primeiro espaço vazio); tirar (nome ou posicao); renomear (nome ou posicao, e novo_nome); trocar (dois botões: nome e novo_nome, ou posicao e posicao2); padrao (volta os 32 botões ao original). Use o nome exato da lista de aparelhos e cenas.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','colocar','tirar','renomear','trocar','padrao'] }, nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, posicao:{ type:'NUMBER' }, posicao2:{ type:'NUMBER' } }, required:['operacao'] } },
+  { name:'ambientes', description:'Organiza os ambientes da casa (a aba Ambientes): em qual ambiente fica cada botão de cena ou aparelho. operacao: listar (mostra os ambientes, os botões de cada um e as cenas e aparelhos da casa; chame SEMPRE antes de mudar); dividir (refaz a casa inteira: ambientes = lista com nome e botoes de cada ambiente, nos nomes que a pessoa der); criar (nome); renomear (nome e novo_nome); excluir (nome); mover (botoes e ambiente); padrao (volta à divisão automática). Antes de dividir, pergunte o que não souber, uma pergunta curta de cada vez (ex.: "o Closet fica na Suíte 1 ou na Suíte 2?"), e só aplique com a divisão confirmada. Depois diga em uma frase o que mudou e abra a tela Ambientes com abrir_tela.', behavior:'BLOCKING',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','dividir','criar','renomear','excluir','mover','padrao'] },
+      ambientes:{ type:'ARRAY', items:{ type:'OBJECT', properties:{ nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } } }, required:['nome','botoes'] } },
+      nome:{ type:'STRING' }, novo_nome:{ type:'STRING' }, botoes:{ type:'ARRAY', items:{ type:'STRING' } }, ambiente:{ type:'STRING' } }, required:['operacao'] } },
+  { name:'rolar_tela', description:'Rola a tela que está aberta agora (dashboard, ambientes ou a matéria aberta). para: baixo, cima, fim ou topo. Só diga que rolou se a resposta trouxer rolou:true; se vier rolou:false, diga o motivo que veio em responda.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } }
+];
 const GEN_TOOLS=[{functionDeclarations:[{name:'conversar_google',description:'Consulte para todo pedido sobre memória, cards, casa, cenas, automações ou qualquer alteração. Só confirme resultado ok:true. Preserve texto do pedido.',parameters:{type:'OBJECT',properties:{input:{type:'STRING'}},required:['input']}}]}];
 GEN_FERRAMENTAS.conversar_google=({input})=>googleRequest('edit',{input});
 
@@ -1968,14 +2006,14 @@ class GeminiLive {
     if(!tk.ok||!tk.token) throw new Error(tk.erro==='creditos_esgotados'?'Seus créditos deste mês acabaram.':(tk.message||tk.erro||'token vazio do Google'));
     this.googleDeadline=setTimeout(()=>{this.end();if(typeof refreshGoogleCredits==='function')refreshGoogleCredits();},Math.max(0,new Date(tk.livePermitidoAte||tk.expireTime).getTime()-Date.now()));
     this.googleLastActivity=Date.now();
-    this.googleIdle=setInterval(()=>{if(Date.now()-this.googleLastActivity>=20000)this.end();},1000);
+    this.googleIdle=setInterval(()=>{const tocando=this.outCtx&&this.playhead>this.outCtx.currentTime;if(tocando)this.googleLastActivity=Date.now();if(Date.now()-this.googleLastActivity>=20000)this.end();},1000);
     await new Promise((ok, fail)=>{
       const url = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=' + encodeURIComponent(tk.token);
       this.ws = new WebSocket(url);
       let setupDone=false;
       this.ws.onopen = ()=>{ this.ws.send(JSON.stringify({setup: tk.setup})); };
       const setupTimer=setTimeout(()=>{fail(new Error('Tempo de abertura esgotado'));this.end();},15000);
-      this.ws.onmessage = async (ev)=>{
+      this.ws.onmessage = async (ev)=>{ this.googleLastActivity=Date.now();   /* 25/11/2026 (Leandro): fala longa do Leo não conta como silêncio; antes caía depois de 20 s falando */
         const data = typeof ev.data === 'string' ? ev.data : await ev.data.text();
         let m; try{ m = JSON.parse(data); }catch(e){ return; }
         if(m.setupComplete && !setupDone){
@@ -2242,7 +2280,7 @@ class GeminiLive {
     for(const fc of tc.functionCalls||[]){
       this.googleLastActivity=Date.now();
       let response;
-      try{response=await googleRequest('tool',{name:fc.name,args:fc.args||{}});if(typeof window!=='undefined'&&window.coRemoteTool)await window.coRemoteTool(fc.name,fc.args||{},response);}
+      try{response=(LEO_TELA_NOMES.has(fc.name)&&typeof GEN_FERRAMENTAS[fc.name]==='function')?await GEN_FERRAMENTAS[fc.name](fc.args||{}):await googleRequest('tool',{name:fc.name,args:fc.args||{}});if(typeof window!=='undefined'&&window.coRemoteTool)await window.coRemoteTool(fc.name,fc.args||{},response);}
       catch(e){response={ok:false,erro:'Falha de conexão com a ferramenta'};}
       if(this.textTurn)this.textTurn.tools.push({name:fc.name,response});
       out.push({id:fc.id,name:fc.name,response});
@@ -2537,7 +2575,7 @@ window.FERRAMENTAS_MATERIA = {
 })();
 </script>
 <script src="../app-assets/vinci-favoritos.js?v=20261122b"></script>
-<script src="../vinci/onboarding.js?v=nu-googlelink3"></script>
+<script src="../vinci/onboarding.js?v=20261125local2"></script>
 <script>
 // 24/11/2026 (Leandro): onboarding do Léo igual ao da Leda (como chamar, casa pelo Google, informações relevantes), guardado neste aparelho e no servidor do Léo.
 try{ VinciOnboarding.iniciar({ ia:'leo', local:true, sessao: ()=> (typeof SESSAO !== 'undefined' ? SESSAO : ''), salas: ()=>[],

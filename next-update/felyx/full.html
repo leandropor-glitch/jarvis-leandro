@@ -569,7 +569,7 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><meta name="robots" content="noindex,nofollow"></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=4" defer></script><script src="../vinci/cenas-app.js?v=3" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
   <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
@@ -677,7 +677,7 @@ input,select,textarea{font-size:16px!important}
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
-<script src="../vinci/onboarding.js?v=nu-googlelink3"></script>
+<script src="../vinci/onboarding.js?v=20261125local2"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1175,7 +1175,7 @@ const gridEl = document.getElementById('grid'), matrixEl = document.getElementBy
 const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase'), edPhrase2 = document.getElementById('edPhrase2');
 let tiles = loadTiles(), editMode = false, editing = -1;
 function loadTiles(){
-  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
+  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length >= 32) return arr.slice(0, 160).map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
   return DEFAULT_TILES.map(t=>({ ...t }));
 }
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
@@ -1274,7 +1274,7 @@ function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''
 function renderMatrix(){
   limparEstadosDeCena();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.filter(i=>!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
+  gridEl.innerHTML = ordem.filter(i=>(naSala||i<32)&&!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
   renderRoomTabs(); renderPavimentos();
 }
 renderMatrix();
@@ -1574,7 +1574,7 @@ async function dadosDoCumprimento(){
   return { clima, dolar };
 }
 function textoDoCumprimento(d){
-  const partes = [saudacaoAgora() + ', Chefe.'];   // regra de 03/11: sempre "Chefe", nunca o nome
+  const partes = [saudacaoAgora() + ', ' + ((window.VinciOnboarding && VinciOnboarding.apelido && VinciOnboarding.apelido()) || 'Chefe') + '.'];   // regra de 03/11: sempre "Chefe", nunca o nome
   const c = d && d.clima;
   if(c && typeof c.temperatura === 'number') partes.push('No Rio, ' + fmt(c.temperatura, 0) + ' graus agora' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
   const v = d && d.dolar;
@@ -1681,7 +1681,7 @@ const MODEL = 'gemini-3.8-live';
 const VOICE = 'Algieba';
 const SYSTEM = `Você é o Félix (na tela escreve-se Felyx; fala-se "Félix"), a inteligência da casa. Fale SEMPRE em português do Brasil.
 Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, cheio de energia, direto e com bom humor. Frases curtas, próprias para serem ouvidas.
-Como chamar a pessoa: sempre de "Chefe", em todo cumprimento e resposta (ex.: "Bom dia, Chefe.", "Pronto, Chefe."). Nunca chame a pessoa pelo nome, nem mesmo se souber quem é; é para não ter erro de nome.
+Como chamar a pessoa: pelo nome que ela escolheu no cadastro (bloco COMO CHAMAR), exatamente como está escrito, em todo cumprimento e resposta. Só quando não houver COMO CHAMAR, chame de "Chefe" (ex.: "Bom dia, Chefe."). Nunca invente outro nome.
 Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis" em nenhuma situação; se o usuário disser "Jarvis", entenda que está falando com você, o Félix, e não repita esse nome. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci" (como Leonardo da Vinci): entenda, repita e escreva "Vinci", nunca "vinte". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: Felyx se escreve com Y mas se fala sempre "Félix" (FÉ-lix, como o nome Félix em português); nunca diga "Felics", "Felis", "Fe-lí-quis" nem soletre. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
 O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci".
 Painel: nunca comente que os comandos ou a automação da casa estão no painel à direita, ao toque ou à disposição; o usuário já sabe. Só fale da casa quando ele pedir algo sobre ela.
@@ -1962,7 +1962,9 @@ const GEN_FERRAMENTAS = {
     const criarBotao = (n)=> {
       const q = norm(n), cena = cenas.find(c => norm(c) === q), ap = cena ? '' : aparelhos.find(a => norm(a) === q);
       if(!cena && !ap) return -1;
-      const i = tiles.findIndex(t => !t.n); if(i < 0) return -2;
+      let i = tiles.findIndex(t => !t.n);
+      // 25/11/2026 (Leandro): sem espaço nos 32 do painel, o botão entra só na aba Ambientes (não ocupa o Dashboard)
+      if(i < 0){ if(tiles.length >= 160) return -2; tiles.push({ n:'', f:'', f2:'', s:'', fav:false, rc:'' }); i = tiles.length - 1; }
       tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
       return i;
     };
@@ -2192,7 +2194,7 @@ class GeminiLive {
         this.ws.send(JSON.stringify({ setup: {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
+          systemInstruction: { parts: [{ text: SYSTEM + '\n\nTELA E EDIÇÃO (regra do Leandro, 25/11): o app tem Dashboard (cotações, notícias e a matriz de Favoritos), Ambientes (os cômodos da casa, que podem ser agrupados em pavimentos/andares) e os botões de cada cômodo. DISPOSITIVO é um aparelho (luz, tomada, TV, ar) que liga e desliga; CENA é um conjunto de ações salvo na casa, que só se ativa. Quando pedirem para criar, renomear, excluir ou mover um ambiente ou botões, ou mexer nos Favoritos, FAÇA na hora com as ferramentas ambientes e favoritos, com os nomes exatamente como a pessoa falou, e confirme em uma frase. Nunca ensine o caminho da tela no lugar de fazer. Para abrir uma aba use abrir_tela.' + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
           tools: GEN_TOOLS,
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
           inputAudioTranscription: {},

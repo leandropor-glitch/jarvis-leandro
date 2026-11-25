@@ -360,7 +360,7 @@
     perfil = normalizar(p); gravarLocal(p); aplicarInteresses();
     if(typeof opt.aoSalvar === 'function'){ try{ opt.aoSalvar(p); }catch(e){} }
     try{ localStorage.setItem(chave() + '.pendente', '1'); }catch(e){}
-    chamar({ acao:'salvar', ia: opt.ia, versao: CONFIG.versao, perfil: p }).then((j)=>{ if(j && j.ok) try{ localStorage.removeItem(chave() + '.pendente'); }catch(e){} });
+    if(!opt.local) chamar({ acao:'salvar', ia: opt.ia, versao: CONFIG.versao, perfil: p }).then((j)=>{ if(j && j.ok) try{ localStorage.removeItem(chave() + '.pendente'); }catch(e){} });   // Leo: cadastro fica no aparelho (o servidor do n8n não conhece a sessão do Leo)
     passo = PASSOS.length - 1; desenhar();
   }
 
@@ -371,6 +371,7 @@
   }
 
   async function reenviarPendente(){
+    if(opt.local){ try{ localStorage.removeItem(chave() + ".pendente"); }catch(e){} return; }   // Leo: cadastro só no aparelho
     let pend = false; try{ pend = localStorage.getItem(chave() + '.pendente') === '1'; }catch(e){}
     const p = lerLocal();
     if(pend && p && p.concluido){
