@@ -933,8 +933,8 @@ const N8N = 'https://ia.uservinci.com/api';   // 25/11: Felyx Full no n8n do Mac
 const TOKEN_URL = N8N + '/felix/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/felix/gemini-apoio';
-const MERCADO_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/mercado';   // 25/11: cotações e notícias (só leitura) seguem no feed da nuvem
-const NOTICIAS_URL = 'https://vinciautomacao.app.n8n.cloud/webhook/felix/noticias';
+const MERCADO_URL = 'https://ia.uservinci.com/api/felix/mercado';   // 25/11 (Leandro): o feed da nuvem respondia 403; agora vem do Mac (mesmo do Leo)   // 25/11: cotações e notícias (só leitura) seguem no feed da nuvem
+const NOTICIAS_URL = 'https://ia.uservinci.com/api/felix/noticias';
 const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
 /* ===================== acesso (login) ===================== */
@@ -1050,7 +1050,8 @@ function loadMercado(force){
 async function buscarMercado(){
   mercadoAt = Date.now();
   try{
-    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
+    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const bruto = await r.json(); const c = (bruto && bruto.cotacoes) || {};
+    const m = (bruto && bruto.ok) ? bruto : { ok: !!(c.usd_brl && c.usd_brl.valor), cambio:{ usdbrl:Number(c.usd_brl && c.usd_brl.valor), eurbrl:Number(c.eur_brl && c.eur_brl.valor) }, cripto:{ bitcoin:{ usdt:Number(c.btc_usd && c.btc_usd.valor), usd:Number(c.btc_usd && c.btc_usd.valor) } }, updatedAt: bruto && bruto.atualizado };
     if(!m || !m.ok) throw new Error('ponte sem dados');
     mercadoData = m; renderMercado(m); return m;
   }catch(e){
@@ -1113,7 +1114,9 @@ function loadNoticias(force){
 async function buscarNoticias(){
   noticiasAt = Date.now();
   try{
-    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
+    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const bruto = await r.json();
+    const conv = (l, cat) => (l||[]).map(n => n.title ? n : { title:n.titulo, link:n.link, source:n.fonte, date:n.horario, image:n.foto||n.image||n.imagem, cat });
+    const j = bruto && { ok: bruto.ok, politica: conv((bruto.politica||[]).concat(bruto.destaques||[]), 'política'), tecnologia: conv((bruto.tecnologia||[]).concat(bruto.economia||[]), 'tecnologia') };
     if(!j || !j.ok) throw new Error('ponte sem notícias');
     ultimasNoticias = j; newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
   }catch(e){
