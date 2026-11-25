@@ -1,0 +1,20 @@
+/* 25/11/2026 (Leandro): Casa 4D dentro do Felyx, com as cores e as fontes do Felyx.
+   Mesmo tamanho de letra em qualquer ambiente (antes mudava ao trocar de ambiente). */
+:root{--bg:#06070a;--panel:#0d0f0a;--line:#2a2e1c;--txt:#e9eae6;--mut:#a2a596;--acc:#d6ff1a;--acc2:#b8e000;
+  --mono:"Share Tech Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--sans:"Saira",system-ui,-apple-system,"Segoe UI",sans-serif}
+html,body{background:#06070a!important;color:#e9eae6;font-family:var(--sans)!important;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body *{font-family:inherit}
+.topo{background:#08090b!important;border-bottom:1px solid #2a2e1c}
+#marca{font-family:var(--mono)!important;letter-spacing:.18em;color:#d6ff1a!important;font-size:12px!important}
+#titulo{font-family:var(--sans)!important;font-weight:600;font-size:18px!important;color:#e9eae6}
+#status,#selo,.dica{font-family:var(--mono)!important;font-size:12px!important;color:#a2a596!important}
+#voltar,#diaNoite,#tela{color:#d6ff1a!important;border-color:#2a2e1c!important}
+/* tamanhos fixos: trocar de ambiente não muda a letra */
+#ambientes,#ambientes *,#cenas,#cenas *,.pilulas,.pilulas *,#chips .chip,#chipsFoto .chip,#ficha,#ficha *{font-size:14px!important;line-height:1.25!important}
+#ambientes button,.pilulas button,#cenas button{font-family:var(--mono)!important;letter-spacing:.06em;text-transform:uppercase;border:1px solid #2a2e1c!important;background:#0d0f0a!important;color:#e9eae6!important}
+#ambientes button[aria-pressed="true"],.pilulas button[aria-pressed="true"],#ambientes .on,.pilulas .on,#cenas button[aria-pressed="true"],#cenas .on{background:#d6ff1a!important;color:#06070a!important;border-color:#d6ff1a!important}
+#ficha{background:#0d0f0a!important;border:1px solid #2a2e1c!important;color:#e9eae6}
+#ficha button{background:#13160d!important;color:#e9eae6!important;border:1px solid #2a2e1c!important}#ficha button small{color:#a2a596!important}#ficha button svg{stroke:#d6ff1a!important}#ficha button.on{background:#d6ff1a!important;color:#06070a!important;border-color:#d6ff1a!important}#ficha button.on small{color:#06070a!important}#ficha button.on svg{stroke:#06070a!important}#ficha .x{background:#d6ff1a!important;color:#06070a!important;border:0!important}
+.room:hover{fill:rgba(214,255,26,.07)!important}
+.dev.on .ar-led{fill:#d6ff1a!important;filter:drop-shadow(0 0 4px #d6ff1a)!important}
+a{color:#d6ff1a}
