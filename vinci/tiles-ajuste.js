@@ -33,10 +33,12 @@
   let agendado = 0;
   // Felyx (quadrado): uma fonte só para a grade inteira, pela palavra/nome que mais ocupa,
   // com 7% de margem de cada lado; nome de duas palavras pode ir em duas linhas.
-  function maxFonte(t){
-    const s = t.querySelector('span'); if(!s || !t.offsetParent) return null;
+  // 25/11/2026 (Leandro): a letra é a mesma em qualquer ambiente e filtro. A conta usa TODOS os botões da grade
+  // (inclusive os escondidos pelo filtro) e o tamanho de um botão visível; antes, com 2 botões, a letra crescia.
+  function maxFonte(t, ref){
+    const s = t.querySelector('span'); if(!s || !ref) return null;
     const txt = (s.textContent || '').trim(); if(!txt) return null;
-    const lw = t.clientWidth * 0.86, lh = t.clientHeight * 0.86; if(lw <= 0) return null;
+    const lw = ref.clientWidth * 0.86, lh = ref.clientHeight * 0.86; if(lw <= 0) return null;
     s.style.removeProperty('font-size');
     const cs = getComputedStyle(s), base = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
     let lo = 8, hi = 60;
@@ -47,9 +49,11 @@
     agendado = 0;
     if(forma !== 'quadrado'){ document.querySelectorAll('.tile').forEach(ajustar); return; }
     const grades = new Map();
-    document.querySelectorAll('.tile').forEach(t=>{ if(!t.offsetParent) return; const g = t.parentElement; if(!grades.has(g)) grades.set(g, []); grades.get(g).push(t); });
+    document.querySelectorAll('.tile').forEach(t=>{ const g = t.parentElement; if(!g || !g.offsetParent) return; if(!grades.has(g)) grades.set(g, []); grades.get(g).push(t); });
     grades.forEach(tiles=>{
-      let fs = Infinity; tiles.forEach(t=>{ const m = maxFonte(t); if(m) fs = Math.min(fs, m); });
+      const ref = tiles.find(t => t.offsetParent); if(!ref) return;
+      let fs = Infinity; tiles.forEach(t=>{ const m = maxFonte(t, ref); if(m) fs = Math.min(fs, m); });
+      fs = Math.min(fs, 22);
       if(!isFinite(fs)) return; fs = Math.floor(fs * 2) / 2;
       tiles.forEach(t=>{ const s = t.querySelector('span'); if(s){ s.style.setProperty('font-size', fs + 'px', 'important'); s.style.removeProperty('max-width'); } });
     });

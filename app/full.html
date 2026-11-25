@@ -565,7 +565,7 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=3cat" defer></script><script src="../vinci/cenas-app.js?v=3" defer></script><script src="../vinci/cena-pedido.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script></head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=3cat" defer></script><script src="../vinci/cenas-app.js?v=3" defer></script><script src="../vinci/cena-pedido.js?v=1" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style id="favCabe">/* 25/11/2026 (Leandro): no computador os Favoritos cabem na tela (4 colunas, quadrado limitado pela altura), sem depender de rolagem */@media (min-width:900px){#hud[data-tab="dashboard"] #matrix .grid{grid-template-columns:repeat(4,min(104px,calc((100dvh - 250px) / 8)))!important;justify-content:center!important}#hud[data-tab="dashboard"]>.stage{scrollbar-width:thin;scrollbar-color:rgba(214,255,26,.45) transparent}}</style></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
   <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
@@ -2694,5 +2694,5 @@ window.felyxNativo = function(acao, dado){
 </script>
 <script src="../app-assets/controle-co-ui.js"></script>
 <script src="controle-co-felyx.js"></script>
-<script src="../vinci/tiles-ajuste.js?v=9" data-forma="quadrado"></script></body>
+<script src="../vinci/tiles-ajuste.js?v=12" data-forma="quadrado"></script></body>
 </html>
