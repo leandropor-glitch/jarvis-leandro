@@ -609,7 +609,7 @@ input,select,textarea{font-size:16px!important}
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
         <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="ghome" id="ghome" hidden><span id="ghomeTxt">Google Home: não conectado</span><button class="pb" type="button" id="ghomeBtn">conectar</button></div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="ghome" id="ghome" hidden><span id="ghomeTxt">Casa Google: não conectada</span><button class="pb" type="button" id="ghomeBtn">conectar</button></div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o Leo<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
@@ -1964,7 +1964,7 @@ const GHome = (()=>{
     if(!el || !b || !t) return;
     el.hidden = !st.disponivel; el.dataset.on = st.conectado ? '1' : '0';
     b.textContent = st.conectado ? 'desconectar' : 'conectar';
-    t.textContent = st.conectado ? 'Google Home: ' + (st.casa || 'conectado') : 'Google Home: não conectado';
+    t.textContent = st.conectado ? 'Casa Google: ' + (st.casa || 'conectada') : 'Casa Google: não conectada';
   }
   async function atualizar(){ const r = await pedir('status'); st = { disponivel: !!r.disponivel, conectado: !!r.conectado, casa: String(r.casa || '') }; pintar(); return st; }
   async function alternar(){
