@@ -468,6 +468,7 @@ input,select,textarea{font-size:16px!important}
   addEventListener('DOMContentLoaded', folgas); addEventListener('resize', folgas); addEventListener('orientationchange', ()=>setTimeout(folgas, 250));
 })();
 </script>
+<style id="ghome2511">/* 25/11/2026: Google Home pelo aparelho (só aparece no app nativo com o SDK) */.ghome{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:2px 0 6px;font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;color:#9aa0a6}.ghome[hidden]{display:none}.ghome[data-on="1"] #ghomeTxt{color:#dfe2da}</style>
 <style id="semIris">#unlock{display:none!important}#hud>.mic{overflow:visible}#hud[data-tab="home"]>.mic[data-on="0"]::after{content:attr(data-rotulo);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:#e1fe06;font:700 1.02rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 0 6px rgba(225,254,6,.75),0 0 18px rgba(225,254,6,.45),0 1px 2px #000}@media (orientation:landscape){#hud[data-tab="home"]>.mic[data-on="0"]::after{left:auto;right:-4px;transform:none;text-align:right}}@media (orientation:portrait){html body #hud>.mic{bottom:calc(var(--tabsH,64px) + 36px)!important}}html body #hud[data-tab]>.mic{display:grid!important}</style>
 <style id="telaGrandeDeitada">/* 12/11/2026: tela grande deitada (iPad, tablet, dobrável aberto, Duo aberto, Vision): mesmo arranjo do celular deitado e da TV, microfone na lateral direita, nada na frente do rosto */
 @media (orientation:landscape) and (min-height:561px){
@@ -608,7 +609,7 @@ input,select,textarea{font-size:16px!important}
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
         <div class="ph"><span class="k"><i></i>comandos · toque</span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="ghome" id="ghome" hidden><span id="ghomeTxt">Google Home: não conectado</span><button class="pb" type="button" id="ghomeBtn">conectar</button></div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
           <label>frase para o Leo<input id="edPhrase" list="phrases" autocomplete="off" placeholder="ex.: ativar a cena Luz Baixa"></label>
@@ -1717,7 +1718,8 @@ async function contextoGen(){
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
   const tec = (newsTec.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
-  return '\n\nAparelhos da casa: ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas: ' + (casaGen.cenas.join(', ') || 'lista indisponível') +
+  const ghome = (typeof GHome !== 'undefined') ? await GHome.contexto().catch(()=> '') : '';
+  return '\n\nAparelhos da casa: ' + (casaGen.aparelhos.join(', ') || 'lista indisponível') + '\nCenas: ' + (casaGen.cenas.join(', ') || 'lista indisponível') + ghome +
     '\n\nPAINEL — mercado: ' + (dolarResumo(mercadoData) ? 'dólar ' + dolarResumo(mercadoData) : 'sem leitura') +
     '\nPAINEL — política:\n' + (pol || 'sem leitura') + '\nPAINEL — tecnologia:\n' + (tec || 'sem leitura') +
     '\n\nMemórias gravadas:\n' + (memorias || 'nenhuma');
@@ -1930,6 +1932,76 @@ const LEO_TOOLS_TELA = [
 ];
 const GEN_TOOLS=[{functionDeclarations:[{name:'conversar_google',description:'Consulte para todo pedido sobre memória, cards, casa, cenas, automações ou qualquer alteração. Só confirme resultado ok:true. Preserve texto do pedido.',parameters:{type:'OBJECT',properties:{input:{type:'STRING'}},required:['input']}}]}];
 GEN_FERRAMENTAS.conversar_google=({input})=>googleRequest('edit',{input});
+
+/* =====================================================================
+   25/11/2026 — Google Home pelo próprio aparelho (Google Home APIs, SDK nativo Android/iOS).
+   A conta Google do CLIENTE autoriza o Leo (OAuth 2.0, tela do próprio Google) a ver UMA casa; nada passa por servidor
+   da Vinci nem por servidor na casa. O lado nativo (MainActivity.kt / FelyxWebView.swift) responde {id, ...} em
+   window.felyxGoogleHomeResposta. Sem SDK embutido ele responde disponivel=false: a linha fica escondida, a ferramenta
+   não é oferecida ao Gemini e o Leo segue pela central da Vinci (conversar_google), igual a hoje.
+   ===================================================================== */
+const GHome = (()=>{
+  const pend = {}; let n = 0; let st = { disponivel:false, conectado:false, casa:'' };
+  function pedir(op, args){
+    return new Promise((ok)=>{
+      const id = 'gh' + (++n) + '-' + Date.now().toString(36); pend[id] = ok;
+      setTimeout(()=>{ if(pend[id]){ delete pend[id]; ok({ ok:false, erro:'o aparelho não respondeu' }); } }, op === 'conectar' ? 180000 : 25000);
+      const msg = { id, op, args: args || {} };
+      try{
+        if(window.FelyxAndroid && typeof FelyxAndroid.googleHome === 'function') FelyxAndroid.googleHome(JSON.stringify(msg));
+        else if(window.webkit && webkit.messageHandlers && webkit.messageHandlers.felyx) webkit.messageHandlers.felyx.postMessage(Object.assign({ tipo:'googleHome' }, msg));
+        else { delete pend[id]; ok({ ok:false, disponivel:false, erro:'só no app do celular' }); }
+      }catch(e){ delete pend[id]; ok({ ok:false, erro:'ponte nativa falhou' }); }
+    });
+  }
+  window.felyxGoogleHomeResposta = function(id, json){
+    const f = pend[id]; if(!f) return; delete pend[id];
+    let j = json; if(typeof json === 'string'){ try{ j = JSON.parse(json); }catch(e){ j = { ok:false, erro:'resposta inválida do aparelho' }; } }
+    f(j || {});
+  };
+  function pintar(){
+    const el = document.getElementById('ghome'), b = document.getElementById('ghomeBtn'), t = document.getElementById('ghomeTxt');
+    if(!el || !b || !t) return;
+    el.hidden = !st.disponivel; el.dataset.on = st.conectado ? '1' : '0';
+    b.textContent = st.conectado ? 'desconectar' : 'conectar';
+    t.textContent = st.conectado ? 'Google Home: ' + (st.casa || 'conectado') : 'Google Home: não conectado';
+  }
+  async function atualizar(){ const r = await pedir('status'); st = { disponivel: !!r.disponivel, conectado: !!r.conectado, casa: String(r.casa || '') }; pintar(); return st; }
+  async function alternar(){
+    const b = document.getElementById('ghomeBtn'); if(b) b.disabled = true;
+    try{
+      const r = await pedir(st.conectado ? 'desconectar' : 'conectar');
+      if(r && r.manual) addCard({ kicker:'google home', title:'Desconectar', body: esc(r.aviso || ''), foot:'conta google', ttl: 20000 });
+      await atualizar();
+    } finally { if(b) b.disabled = false; }
+  }
+  const FERRAMENTA = { name:'google_home', behavior:'BLOCKING',
+    description:'Google Home do cliente, direto do aparelho (conta Google dele). operacao: listar (aparelhos, ambiente e se está ligado), estado (um aparelho), ligar, desligar, conectar (abre a autorização do Google) e desconectar. Use para aparelhos que estão na lista do Google Home (chame listar antes se não souber); para cenas e aparelhos da central da Vinci continue usando conversar_google. Só diga que fez quando a resposta vier com confirmado=true.',
+    parameters:{ type:'OBJECT', properties:{ operacao:{ type:'STRING', enum:['listar','estado','ligar','desligar','conectar','desconectar'] }, dispositivo:{ type:'STRING', description:'Nome ou id do aparelho (listar primeiro).' } }, required:['operacao'] } };
+  async function ferramenta({ operacao, dispositivo }){
+    if(!st.disponivel) return { disponivel:false, aviso:'O Google Home ainda não está ligado a este app. Diga isso em uma frase e siga pela central da Vinci.' };
+    const op = String(operacao || '').toLowerCase();
+    if(!st.conectado && op !== 'conectar') return { conectado:false, aviso:'A conta Google ainda não foi conectada. Pergunte se pode conectar; se sim, chame google_home com operacao conectar.' };
+    const r = await pedir(op === 'ligar' || op === 'desligar' || op === 'estado' ? op : op, { dispositivo: dispositivo || '' });
+    if(op === 'conectar' || op === 'desconectar') await atualizar();
+    if(op === 'ligar' || op === 'desligar') try{ addCard({ kicker:'casa · google home', title: esc((op === 'ligar' ? 'Ligar ' : 'Desligar ') + (r.nome || dispositivo || '')), body: esc(r.confirmado ? 'confirmado pelo aparelho' : (r.aviso || r.erro || 'sem confirmação')), chips:[{t: r.confirmado ? 'executado' : 'sem confirmação', on: !!r.confirmado}], foot:'google home', ttl: 20000 }); }catch(e){}
+    return r;
+  }
+  // contexto para o cérebro: os aparelhos do Google Home do cliente, quando conectado
+  async function contexto(){
+    if(!st.disponivel || !st.conectado) return '';
+    const r = await Promise.race([pedir('listar'), new Promise(ok=>setTimeout(()=>ok(null), 4000))]);
+    const l = r && Array.isArray(r.dispositivos) ? r.dispositivos : [];
+    return l.length ? '\nAparelhos no Google Home do cliente (ferramenta google_home): ' + l.map(d => d.nome + (d.ambiente ? ' (' + d.ambiente + ')' : '')).join(', ') : '';
+  }
+  function iniciar(){
+    const b = document.getElementById('ghomeBtn'); if(b) b.addEventListener('click', alternar);
+    atualizar().then(s => { if(s.disponivel && !GEN_TOOLS[0].functionDeclarations.some(f => f.name === 'google_home')){ GEN_TOOLS[0].functionDeclarations.push(FERRAMENTA); LEO_TELA_NOMES.add('google_home'); } }).catch(()=>{});
+  }
+  if(document.readyState === 'loading') addEventListener('DOMContentLoaded', iniciar); else iniciar();
+  return { pedir, atualizar, ferramenta, contexto, estado: ()=> st };
+})();
+GEN_FERRAMENTAS.google_home = (a)=> GHome.ferramenta(a || {});
 
 /* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
    (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
