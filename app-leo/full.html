@@ -429,7 +429,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 input,select,textarea{font-size:16px!important}
 :root{--sTop:max(env(safe-area-inset-top),12px);--sBot:max(env(safe-area-inset-bottom),10px);--tabsH:calc(66px + var(--sBot))}
-#hud>.appTabs{left:0;right:0;padding:8px max(18px,calc(env(safe-area-inset-right) + 10px)) calc(var(--sBot) + 4px) max(18px,calc(env(safe-area-inset-left) + 10px));gap:8px}
+#hud>.appTabs{left:0;right:0;padding:8px max(18px,calc(env(safe-area-inset-right) + 10px),calc(env(safe-area-inset-left) + 10px)) calc(var(--sBot) + 4px) max(18px,calc(env(safe-area-inset-right) + 10px),calc(env(safe-area-inset-left) + 10px));gap:8px}
 #hud>.appTabs button{min-height:48px;border-radius:14px}   /* alvo de toque: 44 pt (Apple) e 48 dp (Google) */
 #hud{padding-top:calc(var(--sTop) + 6px)}
 #hud[data-tab="rooms"],#hud[data-tab="dashboard"]{padding-top:calc(var(--sTop) + 8px)}

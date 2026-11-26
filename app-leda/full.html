@@ -448,7 +448,7 @@ label:has(#edRoom){display:none}
 html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 input,select,textarea{font-size:16px!important}
 :root{--sTop:max(env(safe-area-inset-top),12px);--sBot:max(env(safe-area-inset-bottom),10px);--tabsH:calc(66px + var(--sBot))}
-#hud>.appTabs{left:0;right:0;padding:8px max(18px,calc(env(safe-area-inset-right) + 10px)) calc(var(--sBot) + 4px) max(18px,calc(env(safe-area-inset-left) + 10px));gap:8px}
+#hud>.appTabs{left:0;right:0;padding:8px max(18px,calc(env(safe-area-inset-right) + 10px),calc(env(safe-area-inset-left) + 10px)) calc(var(--sBot) + 4px) max(18px,calc(env(safe-area-inset-right) + 10px),calc(env(safe-area-inset-left) + 10px));gap:8px}
 #hud>.appTabs button{min-height:48px;border-radius:14px}   /* alvo de toque: 44 pt (Apple) e 48 dp (Google) */
 #hud{padding-top:calc(var(--sTop) + 6px)}
 #hud[data-tab="rooms"],#hud[data-tab="dashboard"]{padding-top:calc(var(--sTop) + 8px)}
@@ -921,7 +921,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 // Félix GEN dentro do app (iPhone, iPad, Mac, Android): o login é o do app; a sessão chega pelo localStorage (mesmo endereço).
 // Sessão inválida = volta para o login do app. O app nativo espera o aviso "pronto".
 (function(){
-  try{ const nativo = !!((window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.felyx)||window.FelyxAndroid); const s = nativo ? JSON.parse(localStorage.getItem('felyx.sessao') || 'null') : null; if(s && s.token) localStorage.setItem('leda_sessao', s.token); }catch(e){}
+  try{ const nativo = !!((window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.felyx)||window.FelyxAndroid); const s = nativo ? JSON.parse(localStorage.getItem('felyx.sessao') || 'null') : null; /* 26/11/2026 (Leandro: a Leda fechava a cada entrada): o token do app só entra se a Leda ainda não tem sessão própria; antes ele sobrescrevia a sessão boa a cada abertura */ if(s && s.token && !localStorage.getItem('leda_sessao')) localStorage.setItem('leda_sessao', s.token); }catch(e){}
   const aviso = (tipo) => { try{ window.webkit.messageHandlers.felyx.postMessage({ tipo }); }catch(e){} try{ window.FelyxAndroid.evento(JSON.stringify({ tipo })); }catch(e){} };
   window.felyxVoltarAoLogin = function(){ try{ if((window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.felyx)||window.FelyxAndroid) localStorage.removeItem('felyx.sessao'); localStorage.removeItem('leda_sessao'); }catch(e){} aviso('logout'); try{ if(typeof mostrarLogin === 'function'){ mostrarLogin(''); return; } }catch(e){} location.replace('./' + location.search); };
   addEventListener('DOMContentLoaded', () => aviso('pronto'));
@@ -1202,12 +1202,14 @@ try{ SESSAO = localStorage.getItem('leda_sessao') || ''; }catch(e){}
 // 25/11/2026 (Leandro): quem entrou na Leda antes da sessão própria (24/11) não perde o login.
 // Se não há sessão da Leda mas há a antiga, confere no servidor da Leda; se valer, passa a ser a da Leda. Nunca apaga a antiga.
 (function(){ try{
+  /* 26/11: sessão da Leda igual à do Felyx (guardada por engano) e recusada pela Leda é limpa, para não cair no login a cada abertura */
+  if(SESSAO && SESSAO === localStorage.getItem('felyx_sessao') && !sessionStorage.getItem('leda.conferiu')){ sessionStorage.setItem('leda.conferiu','1'); fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r => r.json()).then(j => { if(j && j.erro === 'sessao'){ localStorage.removeItem('leda_sessao'); SESSAO = ''; } }).catch(()=>{}); return; }
   if(SESSAO) return; const antiga = localStorage.getItem('felyx_sessao'); if(!antiga || sessionStorage.getItem('leda.migrou')) return;
   sessionStorage.setItem('leda.migrou', '1');
   fetch(N8N + '/leda/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: antiga }) })
     .then(r => r.json()).then(j => { if(j && j.ok){ localStorage.setItem('leda_sessao', antiga); location.reload(); } }).catch(()=>{});
 }catch(e){} })();
-function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('leda_sessao', t); else localStorage.removeItem('leda_sessao'); }catch(e){} }
+function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('leda_sessao', t); else localStorage.removeItem('leda_sessao'); /* 26/11: no app, o login feito na página também fica guardado para o app (mesma sessão nas duas pontas) */ if(t && ((window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.felyx)||window.FelyxAndroid)){ const o = JSON.parse(localStorage.getItem('felyx.sessao') || '{}') || {}; o.token = t; localStorage.setItem('felyx.sessao', JSON.stringify(o)); } }catch(e){} }
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
 try{ VinciOnboarding.iniciar({ ia:'leda', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
