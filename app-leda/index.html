@@ -471,8 +471,8 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 /* ===================== configuração ===================== */
 const VERSAO = '1.0.6';
 const N8N = 'https://ia.uservinci.com/api';
-const APP_URL = N8N + '/felyx-pre-vps/leda/app';
-const TOKEN_URL = N8N + '/felyx-pre-vps/leda/token';
+const APP_URL = N8N + '/leda/app';
+const TOKEN_URL = N8N + '/leda/token';
 const PERGUNTA_URL = N8N + '/felyx-pre-vps/felix/pergunta';
 const MOTOR_URL = 'https://script.google.com' + '/macros/s/' + 'AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen' + '/exec';
 const MERCADO_URL = N8N + '/felyx-pre-vps/felix/mercado';
@@ -499,7 +499,7 @@ const NATIVO = !!params.get('p');
 let toastT = null;
 function toast(t, ms){ const el = $('#toast'); el.textContent = t; el.dataset.show = '1'; clearTimeout(toastT); toastT = setTimeout(() => { el.dataset.show = '0'; }, ms || 3500); }
 async function api(acao, dados){
-  const r = await fetch(['casa','comando','estados'].includes(acao) ? N8N + '/felyx-pre-vps/leda/app' : APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
+  const r = await fetch(['casa','comando','estados'].includes(acao) ? N8N + '/leda/app' : APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
   if (!r.ok) throw new Error('n8n ' + r.status);
   return r.json();
 }
@@ -1054,7 +1054,7 @@ const SOM_MUDO = 'data:audio/wav;base64,UklGRkwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAf
 const falhasDaVoz = new Set();
 function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falhas, sem WhatsApp), uma vez por tipo a cada abertura
   const k = String(erro).slice(0, 80); if(falhasDaVoz.has(k) || !(sessao && sessao.token)) return; falhasDaVoz.add(k);
-  fetch(N8N + '/felyx-pre-vps/leda/gemini-apoio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao.token, acao:'falha',
+  fetch(N8N + '/leda/gemini-apoio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao.token, acao:'falha',
     pedido: 'voz do app, tela clássica (' + APARELHO + ')', erro: String(erro) + ' · ' + navigator.userAgent.slice(0, 140) }) }).catch(()=>{});
 }
 let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Leda (Gemini Live, Algieba)
