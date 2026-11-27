@@ -14,9 +14,9 @@
   const raw=atob(data),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
   const count=Math.floor(bytes.length/2),view=new DataView(bytes.buffer),rate=Number(/rate=(\d+)/.exec(mime||'')?.[1])||24000;
   const buffer=s.audio.createBuffer(1,count,rate),channel=buffer.getChannelData(0);for(let i=0;i<count;i++)channel[i]=view.getInt16(i*2,true)/32768;
-  const source=s.audio.createBufferSource();source.buffer=buffer;source.connect(s.audio.destination);s.sources.add(source);source.onended=()=>s.sources.delete(source);
+  const source=s.audio.createBufferSource();source.buffer=buffer;source.connect(s.audio.destination);s.sources.add(source);source.onended=()=>{s.sources.delete(source);if(current===s&&!s.sources.size){button.dataset.state='listening';label('Pode falar. Estou ouvindo.');}};
   s.playhead=Math.max(s.audio.currentTime,s.playhead);source.start(s.playhead);s.playhead+=buffer.duration;
-  button.dataset.audioChunks=String(Number(button.dataset.audioChunks||0)+1);label('Paola está falando…');
+  button.dataset.audioChunks=String(Number(button.dataset.audioChunks||0)+1);button.dataset.state='speaking';label('Paola está falando…');
  }
  async function start(){
   const token=sessionStorage.getItem('paola.session.v1');if(!token){label('Entre na Paola para conversar.');return;}
@@ -39,9 +39,9 @@
    s.socket.onmessage=async event=>{if(s.closed)return;try{const msg=JSON.parse(typeof event.data==='string'?event.data:await event.data.text());if(s.closed)return;
     if(msg.setupComplete){s.ready=true;clearTimeout(s.timer);button.dataset.setupComplete='true';button.dataset.state='listening';label('Pode falar. Estou ouvindo.');s.socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:'Apresente-se como Paola em uma frase curtinha e pergunte como pode ajudar.'}]}],turnComplete:true}}));}
     if(msg.error){stop('A voz ficou indisponível. Toque para tentar novamente.');return;}
-    const content=msg.serverContent;if(content?.interrupted){s.sources.forEach(source=>{try{source.stop();}catch{}});s.sources.clear();s.playhead=s.audio.currentTime;}
+    const content=msg.serverContent;if(content?.interrupted){s.sources.forEach(source=>{try{source.stop();}catch{}});s.sources.clear();s.playhead=s.audio.currentTime;button.dataset.state='listening';}
     for(const part of content?.modelTurn?.parts||[])if(part.inlineData?.data)play(s,part.inlineData.data,part.inlineData.mimeType);
-    if(content?.turnComplete)label('Pode falar. Estou ouvindo.');
+    if(content?.turnComplete&&!s.sources.size){button.dataset.state='listening';label('Pode falar. Estou ouvindo.');}
    }catch{if(current===s)stop('Não consegui entender a resposta de voz. Tente novamente.');}};
    s.socket.onerror=()=>{if(current===s)stop('Não foi possível conectar a voz. Tente novamente.');};
    s.socket.onclose=()=>{if(current===s)stop('Conversa encerrada. Toque para falar novamente.');};

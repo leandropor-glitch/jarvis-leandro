@@ -67,3 +67,14 @@ nav a{font-size:10.56px}
 
 /* Retrato aprovado: imagem integral, sem corte nem distorção. */
 #paola .paola-portrait{display:block;width:auto;height:auto;max-width:min(100%,520px);max-height:min(62dvh,520px);object-fit:contain;margin:0 auto 20px}
+
+/* Expressão por postura: não simula sincronização da boca. */
+#paola .paola-portrait{transform-origin:50% 88%;animation:paola-patience 7s ease-in-out infinite}
+#paola:has(.voice-button[data-state="connecting"]) .paola-portrait{animation:paola-wait 2.8s ease-in-out infinite}
+#paola:has(.voice-button[data-state="listening"]) .paola-portrait{animation:paola-listen 4.5s ease-in-out infinite}
+#paola:has(.voice-button[data-state="speaking"]) .paola-portrait{animation:paola-speak 1.8s ease-in-out infinite}
+@keyframes paola-patience{0%,100%{transform:rotate(-.15deg) translateY(0)}42%{transform:rotate(.15deg) translateY(-1px)}58%{transform:rotate(.15deg) translateY(-1px)}75%{transform:rotate(-.1deg) translateY(0)}}
+@keyframes paola-wait{0%,100%{transform:rotate(-.2deg)}50%{transform:rotate(.2deg) translateY(-1px)}}
+@keyframes paola-listen{0%,100%{transform:rotate(-.15deg) translateY(0)}50%{transform:rotate(-.1deg) translateY(-1.5px)}}
+@keyframes paola-speak{0%,100%{transform:rotate(-.2deg) translateY(0)}35%{transform:rotate(.25deg) translateY(-1.5px)}68%{transform:rotate(-.1deg) translateY(-1px)}}
+@media(prefers-reduced-motion:reduce){#paola .paola-portrait,#paola:has(.voice-button[data-state]) .paola-portrait{animation:none;transform:none}}
