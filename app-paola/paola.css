@@ -64,3 +64,6 @@ nav a{font-size:10.56px}
 #dashboard h2,#ambientes h2,#ambientes h3{font-size:12.96px}
 
 #dashboard{width:min(100%,1000px);text-align:left}.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}.dashboard-grid article{padding:16px;border:1px solid #2c6379;border-radius:16px;background:#0a1324}.dashboard-grid h3{font-size:12.96px;color:#8af6ff}.dashboard-grid p{line-height:1.5}.dashboard-grid a{color:#bdcfdf}.dashboard-grid .news-card{grid-column:1/-1}#dashboard-news{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px}#dashboard-news img{width:100%;max-width:100%;height:140px;object-fit:cover;border-radius:10px}#dashboard-news a{display:block;text-decoration:none}#dashboard-news small{display:block;color:#bdcfdf;margin-top:8px}
+
+/* Retrato aprovado: imagem integral, sem corte nem distorção. */
+#paola .paola-portrait{display:block;width:auto;height:auto;max-width:min(100%,520px);max-height:min(62dvh,520px);object-fit:contain;margin:0 auto 20px}
