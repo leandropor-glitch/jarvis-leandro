@@ -37,7 +37,7 @@
    s.timer=setTimeout(()=>{if(current===s&&!s.ready)stop('A voz demorou para conectar. Toque para tentar novamente.');},20000);
    s.socket.onopen=()=>{if(!s.closed)s.socket.send(JSON.stringify({setup:config.setup}));};
    s.socket.onmessage=async event=>{if(s.closed)return;try{const msg=JSON.parse(typeof event.data==='string'?event.data:await event.data.text());if(s.closed)return;
-    if(msg.setupComplete){s.ready=true;clearTimeout(s.timer);button.dataset.setupComplete='true';button.dataset.state='listening';label('Pode falar. Estou ouvindo.');s.socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:'Comece como Paola, já bravinha e impaciente de um jeito bem-humorado: uma cutucada curtinha sobre já ser hora de começar e pergunte o que vamos resolver. Português predominante com no máximo uma interjeição chilena.'}]}],turnComplete:true}}));}
+    if(msg.setupComplete){s.ready=true;clearTimeout(s.timer);button.dataset.setupComplete='true';button.dataset.state='listening';label('Pode falar. Estou ouvindo.');s.socket.send(JSON.stringify({clientContent:{turns:[{role:'user',parts:[{text:'Empieza como Paola, sin tiempo, directa, rápida e impaciente: una pulla breve y pregunta qué vamos a resolver. Habla en español predominante, con tu voz femenina fina adulta y personalidad habitual.'}]}],turnComplete:true}}));}
     if(msg.error){stop('A voz ficou indisponível. Toque para tentar novamente.');return;}
     const content=msg.serverContent;if(content?.interrupted){s.sources.forEach(source=>{try{source.stop();}catch{}});s.sources.clear();s.playhead=s.audio.currentTime;button.dataset.state='listening';}
     for(const part of content?.modelTurn?.parts||[])if(part.inlineData?.data)play(s,part.inlineData.data,part.inlineData.mimeType);
