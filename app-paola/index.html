@@ -17,7 +17,11 @@
       </button>
       <p id="voice-status">Voz aguardando conexão ao fluxo da Paola.</p>
     </section>
-    <section id="dashboard"><h2>Dashboard</h2><p>As fontes de clima, cotações e notícias ainda não estão conectadas.</p></section>
+    <section id="dashboard"><h2>Dashboard</h2><div class="dashboard-grid">
+      <article><h3>Clima · Rio de Janeiro</h3><div id="dashboard-weather" role="status">Carregando…</div></article>
+      <article><h3>Mercado</h3><div id="dashboard-market" role="status">Carregando…</div></article>
+      <article class="news-card"><h3>Notícias</h3><div id="dashboard-news" role="status">Carregando…</div></article>
+    </div></section>
     
     <section id="ambientes">
       <h2>Ambientes</h2>
@@ -41,6 +45,7 @@
     <a href="#paola">Paola</a><a href="#dashboard">Dashboard</a>
     <a href="#ambientes">Ambientes</a>
   </nav>
+  <script src="dashboard.js?v=20261127" defer></script>
   <script src="particles.js" defer></script>
   <script src="recuperar.js?v=user20-1" defer></script>
   <script src="central.js?v=paola-casa-sessao" defer></script>
