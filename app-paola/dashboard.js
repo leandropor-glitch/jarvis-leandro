@@ -33,7 +33,8 @@
       const updated=Date.parse(j.atualizado);
       const stamp=paragraph(Number.isFinite(updated)?'Fonte central · atualização '+new Date(updated).toLocaleString('pt-BR'):'Fonte central · horário não informado');
       const values=[['Dólar / real',c.usd_brl?.valor??j.usdtbrl?.preco??j.cambio?.usdbrl,'R$'],['Euro / real',c.eur_brl?.valor??j.cambio?.eurbrl,'R$'],['Bitcoin / dólar',c.btc_usd?.valor??j.cripto?.bitcoin?.usdt??j.cripto?.bitcoin?.usd,'US$']];
-      return [...values.filter(([,v])=>Number(v)>0).map(([name,value,unit])=>paragraph(name+': '+unit+' '+format(value))),stamp];
+      const rows=values.filter(([,v])=>Number(v)>0).map(([name,value,unit])=>paragraph(name+': '+unit+' '+format(value)));
+      return rows.length?[...rows,stamp]:[];
     });
     load('dashboard-news',motorURL,j=>{
       j=j.noticias||j;
