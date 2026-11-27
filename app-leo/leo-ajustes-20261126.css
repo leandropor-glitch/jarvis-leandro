@@ -1,0 +1,102 @@
+.face .leoMarca .leo-media {
+  position: relative;
+  width: min(86vw, 66dvh, 650px);
+  aspect-ratio: 16/9;
+}
+.face .leoMarca .leo-media > img,
+.face .leoMarca .leo-media > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: normal;
+}
+.face .leoMarca .leo-media > video:not(.is-playing) { opacity: 0; }
+.face .leoMarca .leo-media > video.is-playing { opacity: 1; }
+
+#hud[data-tab="dashboard"], #hud[data-tab="rooms"] {
+  --leo-safe-left: env(safe-area-inset-left, 0px);
+  --leo-safe-right: env(safe-area-inset-right, 0px);
+  padding-left: max(12px, var(--leo-safe-left));
+  padding-bottom: calc(var(--leo-nav-body, var(--tabsH)) + var(--micZ) + 12px);
+}
+#hud[data-tab="rooms"] { padding-bottom: calc(var(--leo-nav-body, var(--tabsH)) + 12px); }
+#hud[data-tab="dashboard"] > .stage,
+#hud[data-tab="rooms"] > .stage {
+  min-width: 0;
+  padding-bottom: 16px;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+}
+#hud[data-tab="dashboard"] .panel { min-height: 0; }
+#hud[data-tab="dashboard"] .panel .ph,
+#hud[data-tab="dashboard"] .panel .pf { flex-wrap: wrap; flex-shrink: 0; line-height: 1.45; }
+#hud[data-tab="dashboard"] .panel .ph > *,
+#hud[data-tab="dashboard"] .panel .pf > *,
+#hud[data-tab="dashboard"] .panel .pf {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#hud[data-tab="dashboard"] .news { min-height: 185px; }
+#hud[data-tab="dashboard"] .news .slides { min-height: 144px; }
+#hud[data-tab="dashboard"] #matrix { align-self: start; overflow: visible; }
+#hud[data-tab="dashboard"] #matrix .grid { grid-auto-rows: minmax(40px, auto); align-content: start; flex: 0 0 auto; }
+#hud[data-tab="dashboard"] #matrix .tile { min-height: 40px; }
+#hud[data-tab="dashboard"] #matrix .tile span {
+  overflow-wrap: anywhere !important;
+  padding: 1px 0;
+}
+@media (min-width: 600px) {
+  #hud[data-tab="dashboard"] > .stage { grid-template-rows: max-content minmax(185px, auto); align-content: start; }
+}
+@media (orientation: portrait) and (min-width: 600px),
+       (orientation: landscape) and (min-height: 561px) and (max-width: 1000px) {
+  #hud[data-tab="dashboard"] > .stage { grid-template-rows: max-content minmax(185px, auto) minmax(185px, auto); }
+}
+#leoCasaNav { display: none; }
+#hud[data-tab="rooms"] #leoCasaNav {
+  display: block;
+  flex: none;
+  margin: 6px 10px 0;
+  min-width: 0;
+}
+#leoCasaNav .casa-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#leoCasaNav .ghome { text-align: start; overflow-wrap: anywhere; }
+#leoCasaNav .pb { min-height: 40px; }
+#leoCasaNav [hidden] { display: none !important; }
+
+#hud[data-tab="dashboard"] > .stage > .center {
+  display: flex !important;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-content: center;
+  min-width: 0;
+}
+#hud[data-tab="dashboard"] > .stage {
+  grid-template-areas: "avatar" "mk" "mx" "np" "nt";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(5, max-content);
+}
+#hud[data-tab="dashboard"] > .stage > .center { grid-area: avatar; }
+#hud[data-tab="rooms"] .center,
+html body #hud[data-tab="rooms"] > .mic { display: none !important; }
+#hud[data-tab="rooms"] #grid,
+#hud[data-tab="dashboard"] #grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#hud #grid .tile span {
+  font-family: inherit;
+  font-size: .75rem;
+  overflow-wrap: anywhere;
+}
+@media (horizontal-viewport-segments: 2) {
+  #hud[data-tab="rooms"] #grid,
+  #hud[data-tab="dashboard"] #grid { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+}
