@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Paola · VINCI</title>
+  <link rel="stylesheet" href="paola.css?v=margens-20261127">
+</head>
+<body class="signed-out">
+  <main>
+    <section id="paola" aria-label="Paola">
+      <canvas id="paola-particles" width="360" height="360" aria-hidden="true"></canvas>
+      
+      <button class="voice-button" type="button" disabled aria-label="Falar com a Paola" aria-describedby="voice-status">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8"/></svg>
+      </button>
+      <p id="voice-status">Voz aguardando conexão ao fluxo da Paola.</p>
+    </section>
+    <section id="dashboard"><h2>Dashboard</h2><p>As fontes de clima, cotações e notícias ainda não estão conectadas.</p></section>
+    
+    <section id="ambientes">
+      <h2>Ambientes</h2>
+      <form id="central-login">
+        <h1>Bem-vindo à Paola</h1>
+        <noscript><a href="https://felyx-local.uservinci.com/ia-origem/app-paola/">Abrir a Paola online</a></noscript>
+        <label>Telefone VINCI <input name="telefone" type="tel" autocomplete="username" required></label>
+        <label>Senha VINCI <input name="senha" type="password" autocomplete="current-password" required></label>
+        <button>Entrar</button>
+        <button type="button" class="recovery-link" id="paola-recovery">Primeiro acesso ou esqueci a senha</button>
+      </form>
+      <div id="paola-house-status" hidden>
+        <button type="button" id="paola-house-import">Buscar minha casa na VINCI</button>
+        <p id="paola-house-result" role="status"></p>
+        <div id="paola-house-list"></div>
+      </div>
+      <p id="central-status" role="status"></p>
+    </section>
+  </main>
+  <nav aria-label="Navegação principal">
+    <a href="#paola">Paola</a><a href="#dashboard">Dashboard</a>
+    <a href="#ambientes">Ambientes</a>
+  </nav>
+  <script src="particles.js" defer></script>
+  <script src="recuperar.js?v=user20-1" defer></script>
+  <script src="central.js?v=paola-casa-sessao" defer></script>
+</body>
+</html>

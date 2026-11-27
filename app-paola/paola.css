@@ -1,0 +1,64 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; color: #f5f6f1; background: #090909; }
+body { margin: 0; min-height: 100dvh; display: grid; grid-template-rows: 1fr auto; }
+main { display: grid; place-items: center; padding: 24px; text-align: center; }
+section { display: none; }
+section:target, main:not(:has(section:target)) #paola { display: block; }
+img { max-width: min(55vw, 35dvh); height: auto; object-fit: contain; }
+nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 10px 4px max(10px, env(safe-area-inset-bottom)); border-top: 1px solid #343622; }
+nav a { color: #e1fe06; text-align: center; padding: 12px 2px; font-size: clamp(.71rem, 2.8vw, .95rem); }
+button { padding: 10px 18px; border-radius: 24px; }
+:root { background: radial-gradient(ellipse at 50% 35%, #10254a, #070b15 66%); }
+nav a { color: #76efff; }
+canvas { width: min(74vw, 42dvh, 360px); height: auto; }
+nav { gap: 4px; padding-inline: clamp(8px, 2vw, 24px); background: #0a1324; }
+nav a {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #bdcfdf;
+  font: 600 clamp(.71rem, 2.8vw, .95rem)/1.2 system-ui, sans-serif;
+  text-decoration: none;
+}
+nav a:hover, nav a:focus-visible { border-color: #5294ad; }
+body:not(:has(section:target)) nav a[href="#paola"],
+body:has(#paola:target) nav a[href="#paola"],
+body:has(#dashboard:target) nav a[href="#dashboard"],
+body:has(#noticias:target) nav a[href="#noticias"],
+body:has(#ambientes:target) nav a[href="#ambientes"] {
+  color: #8af6ff;
+  border-color: #2c6379;
+  background: #10293b;
+}
+.voice-button {
+  display: inline-grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1px solid #58bacc;
+  border-radius: 16px;
+  color: #8af6ff;
+  background: #10293b;
+}
+.voice-button:disabled { opacity: .66; }
+.access-link, .recovery-link { color: #8af6ff; }
+.access-link { display: inline-block; padding: 10px 14px; border: 1px solid #2c6379; border-radius: 12px; }
+#central-login { display: grid; gap: 12px; }
+#central-login[hidden] { display: none; }
+#central-login label { display: grid; gap: 4px; text-align: start; }
+#central-login input { padding: 10px; border: 1px solid #2c6379; border-radius: 10px; }
+.signed-out main > section:not(#ambientes), .signed-out nav,
+.signed-out #ambientes > h2 { display: none; }
+.signed-out main > #ambientes { display: block; width: min(100%, 360px); }
+#felyxEsqueci { background: #070b15 !important; }
+#felyxEsqueci h2 { color: #8af6ff !important; }
+#felyxEsqueci button:not(.sec) { background: #8af6ff !important; }
+
+/* Keep account and home controls within their responsive containers. */
+main, main section, #paola-house-status { box-sizing: border-box; min-width: 0; max-width: 100%; }
+main :is(button,input,select) { box-sizing: border-box; max-width: 100%; }
+main button { white-space: normal; overflow-wrap: anywhere; }
+
+/* Mesma escala de abas e cards do Felyx. */
+nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+nav a{font-size:10.56px}
+#dashboard h2,#ambientes h2,#ambientes h3{font-size:12.96px}
