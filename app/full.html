@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+<head><script src="/telemetry.js"></script>
 <meta charset="utf-8"><script src="../app-assets/controle-co-parser.js"></script><script src="limite-pedidos.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Felyx FULL</title>
@@ -429,7 +429,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;background:rad
 html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 input,select,textarea{font-size:16px!important}
 :root{--sTop:max(env(safe-area-inset-top),12px);--sBot:max(env(safe-area-inset-bottom),10px);--tabsH:calc(66px + var(--sBot))}
-#hud>.appTabs{left:0;right:0;padding:8px max(18px,calc(env(safe-area-inset-right) + 10px)) calc(var(--sBot) + 4px) max(18px,calc(env(safe-area-inset-left) + 10px));gap:8px}
+#hud>.appTabs{left:0;right:0;padding:8px max(18px,calc(env(safe-area-inset-right) + 10px),calc(env(safe-area-inset-left) + 10px)) calc(var(--sBot) + 4px) max(18px,calc(env(safe-area-inset-right) + 10px),calc(env(safe-area-inset-left) + 10px));gap:8px}
 #hud>.appTabs button{min-height:48px;border-radius:14px}   /* alvo de toque: 44 pt (Apple) e 48 dp (Google) */
 #hud{padding-top:calc(var(--sTop) + 6px)}
 #hud[data-tab="rooms"],#hud[data-tab="dashboard"]{padding-top:calc(var(--sTop) + 8px)}
@@ -498,6 +498,7 @@ input,select,textarea{font-size:16px!important}
   addEventListener('DOMContentLoaded', folgas); addEventListener('resize', folgas); addEventListener('orientationchange', ()=>setTimeout(folgas, 250));
 })();
 </script>
+<style id="ghome2511">/* 25/11/2026: Google Home pelo aparelho (só aparece no app nativo com o SDK) */.ghome{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:2px 0 6px;font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;color:#9aa0a6}.ghome[hidden]{display:none}.ghome[data-on="1"] #ghomeTxt{color:#dfe2da}</style>
 <style id="semIris">#unlock{display:none!important}#hud>.mic{overflow:visible}#hud[data-tab="home"]>.mic[data-on="0"]::after{content:attr(data-rotulo);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:#e1fe06;font:700 1.02rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;text-shadow:0 0 6px rgba(225,254,6,.75),0 0 18px rgba(225,254,6,.45),0 1px 2px #000}@media (orientation:landscape){#hud[data-tab="home"]>.mic[data-on="0"]::after{left:auto;right:-4px;transform:none;text-align:right}}@media (orientation:portrait){html body #hud>.mic{bottom:calc(var(--tabsH,64px) + 36px)!important}}html body #hud[data-tab]>.mic{display:grid!important}</style>
 <style id="telaGrandeDeitada">/* 12/11/2026: tela grande deitada (iPad, tablet, dobrável aberto, Duo aberto, Vision): mesmo arranjo do celular deitado e da TV, microfone na lateral direita, nada na frente do rosto */
 @media (orientation:landscape) and (min-height:561px){
@@ -565,7 +566,7 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-</head>
+<script src="../vinci/noticias-fotos.js?v=20261125b" defer></script><script src="../vinci/dashboard-links.js?v=1" defer></script><script src="../vinci/casa-google.js?v=3cat" defer></script><script src="../vinci/senha-campos.js?v=4" defer></script><style id="favCabe">/* 25/11/2026 (Leandro): no computador os Favoritos cabem na tela (4 colunas, quadrado limitado pela altura), sem depender de rolagem */@media (min-width:900px){#hud[data-tab="dashboard"] #matrix .grid{grid-template-columns:repeat(4,min(104px,calc((100dvh - 250px) / 8)))!important;justify-content:center!important}#hud[data-tab="dashboard"]>.stage{scrollbar-width:thin;scrollbar-color:rgba(214,255,26,.45) transparent}}</style></head>
 <body>
 <div class="unlock" id="unlock" hidden role="button" tabindex="0" aria-label="Toque para ler a sua íris">
   <div class="box"><div class="eye"></div><div class="t1">toque para ler a sua íris</div><div class="t2">felyx · vinci ai</div></div>
@@ -600,8 +601,8 @@ input,select,textarea{font-size:16px!important}
         <div class="climaBox"><b id="climaT">—</b><div><span id="climaD">—</span><small id="climaX"></small></div></div>
       </section>
       <section class="panel casa4d" id="casa4dP" aria-label="Casa 4D">
-        <div class="ph"><span class="k"><i></i>casa 4d</span><span class="pr">sua planta em 3D</span></div>
-        <a class="c4dBtn" href="https://palanteerhq.com/login/?marca=felyx&amp;next=%2Fcasa4d%2F" target="_blank" rel="noopener">Abrir minha Casa 4D</a>
+        <div class="ph"><span class="k"><i></i>casa 4d</span><span class="pr">veja sua casa em 4D</span></div>
+        <a class="c4dBtn" href="casa4d/">Abrir minha Casa 4D</a>
       </section>
       <section class="panel news" id="newsPol" aria-label="Notícias de política">
         <div class="ph"><span class="k"><i></i>política</span><span class="pr">brasil · mundo</span></div>
@@ -627,7 +628,7 @@ input,select,textarea{font-size:16px!important}
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
         <div class="ph"><span class="k"><i></i><b class="lbDash">favoritos</b><b class="lbSala">ambientes</b></span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
-        <nav class="pavBar" id="pavBar" aria-label="Pavimentos" hidden></nav><nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><label>pavimento<select id="rmPav"></select></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
+        <nav class="pavBar" id="pavBar" aria-label="Pavimentos" hidden></nav><nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><label>pavimento<select id="rmPav"></select></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="ghome" id="ghome" hidden><span id="ghomeTxt">Conecte sua casa VINCI</span><button class="pb" type="button" id="ghomeBtn">conectar</button></div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <div class="edTipoLinha"><label>tipo<select id="edTipo"><option value="cena">cena</option><option value="aparelho">aparelho</option><option value="controle">controle remoto</option><option value="frase">frase livre</option></select></label><label>qual<select id="edAlvo"></select></label><button class="pb" id="edAtualizar" type="button">atualizar lista</button></div>
           <label>nome no botão<input id="edName" maxlength="22" autocomplete="off"></label>
@@ -673,7 +674,7 @@ input,select,textarea{font-size:16px!important}
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
-<script src="../vinci/onboarding.js?v=20261114o"></script>
+<script src="../vinci/pre-vps/onboarding-ui.js?v=pre-vps-20261127"></script><script src="../vinci/pre-vps/liveavatar-contract.js"></script><script src="../vinci/pre-vps/house-display-adapter.js"></script><script src="../vinci/pre-vps/onboarding-contexto.js"></script><script src="../vinci/pre-vps/contexto-adapter.js"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -681,7 +682,7 @@ input,select,textarea{font-size:16px!important}
    notícias de política; à direita a matriz de 32 comandos e as notícias de
    tecnologia. Felyx GEN: voz e cérebro no Gemini Live, sem o Claude; o n8n só
    entrega dados (felix/gemini-apoio, felix/app). Mercado e notícias vêm
-   do n8n (ponte): /felix/mercado e /felix/noticias.
+   do n8n (ponte): /felyx-pre-vps/felix/mercado e /felyx-pre-vps/felix/noticias.
    ===================================================================== */
 const hud = document.getElementById('hud');
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -929,19 +930,26 @@ function clearCards(){ [...deckEl.children].forEach(c=>{ c.dataset.in='0'; setTi
 const WMO = {0:'céu limpo',1:'quase limpo',2:'parcialmente nublado',3:'nublado',45:'nevoeiro',48:'nevoeiro',51:'garoa',53:'garoa',55:'garoa',61:'chuva fraca',63:'chuva',65:'chuva forte',80:'pancadas',81:'pancadas',82:'pancadas fortes',95:'trovoadas'};
 
 /* ===================== n8n (ponte) ===================== */
-const N8N = 'https://vinciautomacao.app.n8n.cloud/webhook';
+const N8N = 'https://ia.uservinci.com/api/felyx-pre-vps';   // 25/11: Felyx Full no n8n do Mac (senhas e ponte da casa ficam lá)
 const TOKEN_URL = N8N + '/felix/token';
 // Felyx GEN: a tela do FULL com o cérebro só no Gemini, sem o Claude. O n8n (felix/gemini-apoio) só entrega dados.
 const APOIO_URL = N8N + '/felix/gemini-apoio';
-const MERCADO_URL = N8N + '/felix/mercado';
-const NOTICIAS_URL = N8N + '/felix/noticias';
+const MERCADO_URL = 'https://ia.uservinci.com/api/felyx-pre-vps/felix/mercado';   // 25/11 (Leandro): o feed da nuvem respondia 403; agora vem do Mac (mesmo do Leo)   // 25/11: cotações e notícias (só leitura) seguem no feed da nuvem
+const NOTICIAS_URL = 'https://ia.uservinci.com/api/felyx-pre-vps/felix/noticias';
 const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 
 /* ===================== acesso (login) ===================== */
-const LOGIN_URL = N8N + '/felix/login';
+const LOGIN_URL = 'https://ia.uservinci.com/api/felix/login';
 let SESSAO = '';
 try{ SESSAO = localStorage.getItem('felyx_sessao') || ''; }catch(e){}
-function salvarSessao(t){ SESSAO = t || ''; try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){} }
+function salvarSessao(t){
+  SESSAO = t || '';
+  try{ if(t) localStorage.setItem('felyx_sessao', t); else localStorage.removeItem('felyx_sessao'); }catch(e){}
+  if(syncMatrixOwner()){
+    casaGen = {aparelhos:[],cenas:[]}; window.felyxCOAllScenes = []; tiles = []; tileOn = {}; salas = {renomes:{},extras:[],ocultas:[]}; roomActive = '';
+    renderMatrix();
+  }
+}
 function comS(url){ return url + (url.indexOf('?') < 0 ? '?' : '&') + 's=' + encodeURIComponent(SESSAO); }
 try{ VinciOnboarding.iniciar({ ia:'felyx', sessao: ()=>SESSAO, salas: ()=> (typeof listaSalas === 'function' ? listaSalas() : []) }); }catch(e){}   // onboarding Vinci (14/11/2026)
 function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.relogar)){ salvarSessao(''); try{ if(conv) stop(); }catch(e){} mostrarLogin('A sessão expirou. Entre de novo.'); return true; } return false; }
@@ -1050,7 +1058,8 @@ function loadMercado(force){
 async function buscarMercado(){
   mercadoAt = Date.now();
   try{
-    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const m = await r.json();
+    const r = await fetch(MERCADO_URL, { cache:'no-store' }); const bruto = await r.json(); const c = (bruto && bruto.cotacoes) || {};
+    const m = (bruto && bruto.ok) ? bruto : { ok: !!(c.usd_brl && c.usd_brl.valor), cambio:{ usdbrl:Number(c.usd_brl && c.usd_brl.valor), eurbrl:Number(c.eur_brl && c.eur_brl.valor) }, cripto:{ bitcoin:{ usdt:Number(c.btc_usd && c.btc_usd.valor), usd:Number(c.btc_usd && c.btc_usd.valor) } }, updatedAt: bruto && bruto.atualizado };
     if(!m || !m.ok) throw new Error('ponte sem dados');
     mercadoData = m; renderMercado(m); return m;
   }catch(e){
@@ -1105,7 +1114,7 @@ const newsTec = new NewsPanel(document.getElementById('newsTec'), 9000);
 let noticiasAt = 0, noticiasVoo = null, ultimasNoticias = null;
 function loadNoticias(force){
   if(noticiasVoo) return noticiasVoo;
-  if(!force && Date.now() - noticiasAt < 40*60000) return Promise.resolve();
+  if(!force && Date.now() - noticiasAt < 14*60000) return Promise.resolve();
   if(force && newsTec.items.length && Date.now() - noticiasAt < 20000) return Promise.resolve();
   noticiasVoo = buscarNoticias().finally(()=>{ noticiasVoo = null; });
   return noticiasVoo;
@@ -1113,7 +1122,9 @@ function loadNoticias(force){
 async function buscarNoticias(){
   noticiasAt = Date.now();
   try{
-    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const j = await r.json();
+    const r = await fetch(NOTICIAS_URL, { cache:'no-store' }); const bruto = await r.json();
+    const conv = (l, cat) => (l||[]).map(n => n.title ? n : { title:n.titulo, link:n.link, source:n.fonte, date:n.horario, image:n.foto||n.image||n.imagem, cat });
+    const j = bruto && { ok: bruto.ok, politica: conv((bruto.politica||[]).concat(bruto.destaques||[]), 'política'), tecnologia: conv((bruto.tecnologia||[]).concat(bruto.economia||[]), 'tecnologia') };
     if(!j || !j.ok) throw new Error('ponte sem notícias');
     ultimasNoticias = j; newsPol.set(j.politica); setTimeout(()=>newsTec.set(j.tecnologia), 1200);
   }catch(e){
@@ -1124,43 +1135,25 @@ async function buscarNoticias(){
 
 /* ===================== matriz de comandos (4×8) ===================== */
 const MATRIX_KEY = 'felyx.matrix.v2', MATRIX_ON_KEY = 'felyx.matrix.on.v2';
-// Padrão: cenas e aparelhos reais da central da casa do Leandro (lista obtida pela ponte em 14/10/2026). Tudo editável no botão "editar".
-const DEFAULT_TILES = [
-  { n:'Luz Alta',       f:'ativar a cena Luz Alta' },
-  { n:'Luz Baixa',      f:'ativar a cena Luz Baixa' },
-  { n:'Sanca',          f:'ativar a cena Sanca' },
-  { n:'Sala OFF',       f:'ativar a cena OFF_Sala' },
-  { n:'TV Sala',        f:'ativar a cena TV Sala' },
-  { n:'Apple TV',       f:'ativar a cena Apple TV' },
-  { n:'PlayStation',    f:'ativar a cena PlayStation' },
-  { n:'Globo',          f:'ativar a cena Globo' },
-  { n:'Música',         f:'ativar a cena Música' },
-  { n:'Mudo',           f:'ativar a cena Mudo' },
-  { n:'Vol Z1',         f:'ativar a cena Vol Z1' },
-  { n:'Vol SM',         f:'ativar a cena Vol SM' },
-  { n:'AC Sala',        f:'ativar a cena AC Sala' },
-  { n:'AC Suíte',       f:'ativar a cena AC Suíte' },
-  { n:'AC Felipe',      f:'ativar a cena AC Felipe' },
-  { n:'Ventilador',     f:'ligar o Ventilador', f2:'desligar o Ventilador' },
-  { n:'Cozinha',        f:'ativar a cena Cozinha' },
-  { n:'Bancada',        f:'ativar a cena Bancada' },
-  { n:'Café',           f:'ligar o interruptor Café', f2:'desligar o interruptor Café' },
-  { n:'Nespresso',      f:'ligar a Nespresso', f2:'desligar a Nespresso' },
-  { n:'Cama',           f:'ativar a cena Cama' },
-  { n:'Closet',         f:'ativar a cena Closet' },
-  { n:'TV Suíte',       f:'ativar a cena TV Suíte' },
-  { n:'Master OFF',     f:'ativar a cena Master OFF' },
-  { n:'Porta',          f:'ativar a cena Porta' },
-  { n:'Persianas',      f:'ativar a cena Persianas' },
-  { n:'Cortina dir.',   f:'ativar a cena CortDir' },
-  { n:'Varanda',        f:'ligar a luz da Varanda', f2:'desligar a luz da Varanda' },
-  { n:'Luminárias',     f:'ativar a cena Luminárias' },
-  { n:'Mesa',           f:'ativar a cena Mesa' },
-  { n:'Boa Noite',      f:'ativar a cena Boa Noite' },
-  { n:'Lustre',         f:'ligar o Lustre', f2:'desligar o Lustre' },
-];
-const VINCI_CENAS = ['OffautACSala','OFF_Sala','AC Suíte','Cozinha','Cama','Mudo','MudoSM','Música','3wBM','PlayStation','TV Sala','AC Felipe','Estante Felipe','Luminárias','PW Z2','PW Net','Porta','Luz Alta','PW Z1','Luz Baixa','Mesa','Master OFF','Globo','Apple TV','CortDir','CH','AC Sala','Sanca','Closet','Vol Z1','TV Suíte','Boa Noite','Bancada','Persianas','Vol SM','ONAutACSala'];
-const VINCI_APARELHOS = ['Ventilador','Sala','Varanda','Suíte','Cozinha','Mesa','Lustre','Abajur','Nespresso','Café','Indireta','Estante','Muxarabi','Painel','Fita Pia','Fita 2','Porta','Entrada','Corredor','Lavabo','Banheiro','Closet','Área','Área Serviço','Armário','Led','Luz Baixa','Luminárias','Luminária Varanda','Tomada Adega','Quarto do Felipe','Mesa do Felipe','Ar da Sala','Ar da Suíte','Ar do Felipe','TV da Sala','TV da Suíte','TV do Felipe','Smart Cort','CortDir','Bancada','Casal Cama','Cab Leandro','Cab Joana','Banho Master','Blackout do Felipe'];
+const MATRIX_OWNER_KEY = 'felyx.matrix.owner.v1';
+function syncMatrixOwner(){
+  try{
+    let phone = '';
+    try{ const profile = JSON.parse(localStorage.getItem('felyx.sessao')||'null'); if(profile && profile.token === SESSAO) phone = String(profile.telefone||'').replace(/\D/g,''); }catch(e){}
+    const owner = (SESSAO || '') + '|' + phone;
+    if(localStorage.getItem(MATRIX_OWNER_KEY) !== owner){
+      [MATRIX_KEY,MATRIX_ON_KEY,'felyx.salas.v1','felyx.room.active','leda.casaGen','vinci.casaGoogle'].forEach(k=>localStorage.removeItem(k));
+      localStorage.setItem(MATRIX_OWNER_KEY,owner);
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+syncMatrixOwner();
+const DEFAULT_TILES = [];
+// Conta nova começa vazia; a casa só entra após importação explícita do Google.
+const VINCI_CENAS = [];
+const VINCI_APARELHOS = [];
 (function fillDatalist(){
   const dl = document.getElementById('phrases'); const opts = [];
   VINCI_CENAS.forEach(c=>opts.push('ativar a cena '+c));
@@ -1171,7 +1164,7 @@ const gridEl = document.getElementById('grid'), matrixEl = document.getElementBy
 const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase'), edPhrase2 = document.getElementById('edPhrase2');
 let tiles = loadTiles(), editMode = false, editing = -1;
 function loadTiles(){
-  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && arr.length === 32) return arr.map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
+  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && (arr.length >= 32 || (arr.length && localStorage.getItem('vinci.casaGoogle')))) return arr.slice(0, 160).map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
   return DEFAULT_TILES.map(t=>({ ...t }));
 }
 function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
@@ -1179,7 +1172,7 @@ let tileOn = (()=>{ try{ return JSON.parse(localStorage.getItem(MATRIX_ON_KEY)||
 function saveOn(){ try{ localStorage.setItem(MATRIX_ON_KEY, JSON.stringify(tileOn)); }catch(e){} }
 const SALAS_KEY='felyx.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[],pavimentos:j.pavimentos||[],pavDe:j.pavDe||{}};}catch(e){}return{renomes:{},extras:[],ocultas:[],pavimentos:[],pavDe:{}};})();
 function saveSalas(){try{localStorage.setItem(SALAS_KEY,JSON.stringify(salas))}catch(e){}}
-const roomStoreKey='felyx.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'},roomActive=localStorage.getItem(roomStoreKey)||'';
+const roomStoreKey='felyx.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Sem ambiente'},roomActive=localStorage.getItem(roomStoreKey)||'';
 const normRoom=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
 function coTile(t){ return !!t && (VinciCO.isCO(t.n)||VinciCO.isCO(String(t.f||'').replace(/^.*\bcena\s+/i,''))); }
 function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i.test(String(t.f||'')); }
@@ -1187,7 +1180,7 @@ function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
 function roomForTileAuto(t){const phrase=String(t&&t.f||''),match=phrase.match(/\b(?:ativar|acionar)\s+(?:a\s+)?cena\s+(.+)/i),name=(match&&match[1]||t&&t.n||'').trim(),fixed=roomConfig.fixos&&(roomConfig.fixos[name+'|CENA']||roomConfig.fixos[name]);if(fixed)return fixed;const n=normRoom(name);for(const c of roomConfig.comodos||[])if((c.palavras||[]).some(p=>{const q=normRoom(p);return q.length<=3?n.split(/[^a-z0-9]+/).includes(q):n.includes(q)}))return c.nome;return roomConfig.semComodo||'Outros';}
 function listaSalas(){const sem=roomConfig.semComodo||'Outros',base=[...(roomConfig.ordemTela||[]),...(roomConfig.comodos||[]).map(c=>c.nome)].map(c=>salas.renomes[c]||c);return [...new Set([...base,...salas.extras,...tiles.filter(t=>t.s&&!coTile(t)).map(t=>t.s),salas.renomes[sem]||sem])].filter(c=>!salas.ocultas.includes(c));} /* 13/11/2026: ambientes na ordem em que foram criados; Outros sempre por último */
-function renderRoomTabs(){const counts=new Set([...tiles.filter(t=>isSceneTile(t)&&!coTile(t)).map(roomForTile),...tiles.filter(t=>t.s&&!coTile(t)).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav&&!coTile(t))?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
+function renderRoomTabs(){const counts=new Set([...tiles.filter(t=>t&&t.n&&!coTile(t)).map(roomForTile),...tiles.filter(t=>t.s&&!coTile(t)).map(t=>t.s)]),order=[...(tiles.some(t=>t.fav&&!coTile(t))?['Favoritos']:[]),...listaSalas().filter(c=>counts.has(c)||salas.extras.includes(c)||editMode)];if(!order.includes(roomActive))roomActive=order[0]||'';const bts=order.map(c=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',c===roomActive?'true':'false');b.textContent=c;b.onclick=()=>{if(editMode&&roomActive===c&&c!=='Favoritos'){abrirSala(c);return;}roomActive=c;try{localStorage.setItem(roomStoreKey,c)}catch(e){}renderMatrix()};return b;});if(editMode){const a=document.createElement('button');a.type='button';a.className='addSala';a.textContent='+ ambiente';a.onclick=()=>abrirSala('');bts.push(a);}roomBar.replaceChildren(...bts);const sel=document.getElementById('edRoom');if(sel){const v=sel.value;sel.replaceChildren(...[['','automática'],...listaSalas().map(c=>[c,c])].map(([v2,t])=>{const o=document.createElement('option');o.value=v2;o.textContent=t;return o;}));sel.value=v;}}
 /* editor de salas (09/11/2026): no modo editar, toque na sala selecionada para renomear ou excluir; "+ sala" cria uma nova */
 let salaEditando=null;
 function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roomEditor');document.getElementById('rmName').value=nome;{const sel=document.getElementById('rmPav'),pv=salas.pavimentos||[];sel.innerHTML='<option value="">sem pavimento</option>'+pv.map(p=>`<option>${esc(p)}</option>`).join('');sel.value=(salas.pavDe||{})[nome]||pavAtivo||'';sel.parentElement.hidden=!pv.length;}document.getElementById('rmDel').hidden=!nome;ed.hidden=false;document.getElementById('rmName').focus();}
@@ -1197,7 +1190,7 @@ function salvarSala(){const novo=document.getElementById('rmName').value.trim().
 function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
 try{localStorage.removeItem('felyx.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('felyx.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
-fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;renderMatrix()}}).catch(()=>{});
+fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig={...j,semComodo:"Sem ambiente"};renderMatrix()}}).catch(()=>{});
 
 /* 22/11 (Leandro): "+" adiciona cena, dispositivo ou controle remoto. No dashboard vira favorito; em Ambientes entra no ambiente aberto. */
 let addTipo = 'cena';
@@ -1239,7 +1232,7 @@ document.querySelectorAll('#addSheet .tabs button').forEach(b=> b.addEventListen
 document.getElementById('addBusca').addEventListener('input', renderAdicionar);
 document.getElementById('addFechar').addEventListener('click', fecharAdicionar);
 document.getElementById('addSheet').addEventListener('click', (e)=>{ if(e.target.id === 'addSheet') fecharAdicionar(); });
-document.getElementById('addAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'Atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ ok:false })); b.disabled = false; b.textContent = r.ok ? 'Atualizado' : 'Não consegui ler a central'; renderAdicionar(); setTimeout(()=>{ b.textContent = 'Atualizar dispositivos e cenas'; }, 3000); });
+document.getElementById('addAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'Atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ ok:false })); b.disabled = false; b.textContent = r.ok ? 'Atualizado' : r.google_pendente ? 'Casa atualizada; Google pendente' : 'Não consegui ler a central'; renderAdicionar(); setTimeout(()=>{ b.textContent = 'Atualizar dispositivos e cenas'; }, 3000); });
 
 /* Pavimentos (Ambientes > editar): agrupam os ambientes. Sem pavimento cadastrado, a barra não aparece. */
 let pavAtivo = '';
@@ -1268,20 +1261,16 @@ const RC_TV = /\b(tv|televis|apple ?tv|playstation|globo|netflix|youtube)/i, RC_
 const RC_ICO = '<svg class="rcIco" viewBox="0 0 24 24" aria-label="abre o controle remoto" role="img"><rect x="7" y="2.5" width="10" height="19" rx="3"/><circle cx="12" cy="7" r="1.5"/><path d="M10 11.5h4M10 14.5h4M10 17.5h4"/></svg>';
 function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''; if(t.rc) return t.rc; if(!isSceneTile(t)) return ''; return RC_TV.test(t.n) ? 'tv' : (RC_AR.test(t.n) ? 'ar' : (RC_SOM.test(t.n) ? 'som' : '')); }
 function renderMatrix(){
-  limparEstadosDeCena();
+  limparEstadosDeCena();renderRoomTabs();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.filter(i=>!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
+  gridEl.innerHTML = ordem.filter(i=>(naSala||i<32)&&!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
   renderRoomTabs(); renderPavimentos();
 }
 renderMatrix();
 /* ---------- controle remoto (09/11/2026): cena de TV ou ar executa a cena e, no fim, abre o controle ---------- */
 /* Cada botão do controle dispara uma CENA da central (a central só entende cenas). Os botões são do cliente:
    no "editar botões" ele troca o nome, escolhe a cena de cada um, cria e apaga botões. Fica salvo por cena. */
-const RC_PADRAO = {
-  tv: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Canal −','Continuar','Canal +','Netflix','YouTube','Globoplay'],
-  ar: ['Ligar','Desligar','Temp −','Temp +','Frio','Ventilar','Automático'],
-  som: ['Ligar','Mudo','Desligar','Vol −','Pausar','Vol +','Anterior','Tocar','Próxima'],
-};
+const RC_PADRAO = { tv: [], ar: [], som: [] };
 let rcAtual = null, rcEditando = -1, rcModoEditar = false;
 function rcChave(t){ return 'felyx.rc.botoes.' + t.n; }
 function rcCarregar(tipo, t){ try{ const j = JSON.parse(localStorage.getItem(rcChave(t)) || 'null'); if(Array.isArray(j)) return j; }catch(e){} return RC_PADRAO[tipo].map((rot)=>({ rot, cena:'' })); }
@@ -1386,7 +1375,7 @@ function alvoDoTile(t, tipo){ const f = String(t.f||''); if(tipo === 'controle')
 document.getElementById('edTipo').addEventListener('change', (e)=>{ edPreencherAlvos(e.target.value, ''); });
 document.getElementById('edAlvo').addEventListener('change', edAplicarAlvo);
 edName.addEventListener('input', ()=>{ edName.dataset.auto = '0'; });
-document.getElementById('edAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ok:false})); b.disabled = false; b.textContent = r.ok ? ('atualizada · ' + r.total_cenas + ' cenas') : 'não consegui ler a central'; edPreencherAlvos(document.getElementById('edTipo').value, document.getElementById('edAlvo').value); setTimeout(()=>{ b.textContent = 'atualizar lista'; }, 3500); });
+document.getElementById('edAtualizar').addEventListener('click', async (e)=>{ const b = e.currentTarget; b.textContent = 'atualizando…'; b.disabled = true; const r = await atualizarCenas().catch(()=>({ok:false})); b.disabled = false; b.textContent = r.ok ? ('atualizada · ' + r.total_cenas + ' cenas') : r.google_pendente ? 'casa atualizada; Google pendente' : 'não consegui ler a central'; edPreencherAlvos(document.getElementById('edTipo').value, document.getElementById('edAlvo').value); setTimeout(()=>{ b.textContent = 'atualizar lista'; }, 3500); });
 function closeEditor(){ editorEl.hidden = true; editing = -1; if(!editMode) matrixEl.dataset.edit = '0'; }
 document.getElementById('edSave').addEventListener('click', ()=>{ if(editing < 0) return; const tp = document.getElementById('edTipo').value, al = document.getElementById('edAlvo').value; tiles[editing] = { n: edName.value.trim().slice(0,22), f: edPhrase.value.trim(), f2: edPhrase2.value.trim(), s: document.getElementById('edRoom').value, rc: document.getElementById('edRc').value, fav: document.getElementById('edFav').checked }; if(tp === 'controle' && al) tiles[editing].ctl = al; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
 document.getElementById('edClear').addEventListener('click', ()=>{ if(editing < 0) return; tiles[editing] = { n:'', f:'', f2:'' }; delete tileOn[editing]; saveOn(); saveTiles(); renderMatrix(); closeEditor(); });
@@ -1424,9 +1413,7 @@ const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|ind
 async function runTile(i, btn){
   const t = tiles[i]; if(!t || !t.f) return;
   const cena = isSceneTile(t);
-  if(VinciCO.normalize(t.n)==='controle remoto'){window.felyxCO.showList();return;}
-  if(t.ctl){ const [ap, amb] = String(t.ctl).split(' · '); const c = ((window.felyxCO.getControls && window.felyxCO.getControls()) || []).find(x=> x.aparelho === ap && x.ambiente === amb); if(c) window.felyxCO.open(c); else window.felyxCO.showList(); return; }
-  // Abre somente depois de a central confirmar.   // a cena roda e, por fim, o controle remoto abre na mão do cliente
+  if(cena && tipoControle(t)) setTimeout(()=>abrirControle(tipoControle(t), t), 350);   // a cena roda e, por fim, o controle remoto abre na mão do cliente
   if(cena ? btn.dataset.scenePending === '1' : btn.dataset.busy === '1') return;
   if(cena) btn.dataset.scenePending = '1';
   if(cena) feedbackCena(btn);
@@ -1442,7 +1429,6 @@ async function runTile(i, btn){
   }catch(e){ texto = ''; }
   if(!cena) btn.dataset.busy = '0'; else btn.dataset.scenePending = '0';
   const ok = !!texto && !FAIL_RX.test(texto);
-  if(cena && ok) rcDaCena(t.n);
   btn.dataset.res = cena ? (ok ? '' : 'fail') : (ok ? 'ok' : 'fail'); if(cena&&!ok){const result=btn.querySelector('.scene-result');if(result)result.textContent='Não concluída';} if(!cena) setTimeout(()=>{ btn.dataset.res = ''; }, 1800);
   if(!cena && ok && t.f2){ if(turningOff) delete tileOn[i]; else tileOn[i] = 1; saveOn(); btn.dataset.on = tileOn[i] ? '1' : '0'; btn.title = tileOn[i] ? t.f2 : t.f; }
   if(!cena) dotHouse.dataset.on = ok ? '1' : (dotHouse.dataset.on === '1' && texto ? '1' : '0');
@@ -1570,7 +1556,7 @@ async function dadosDoCumprimento(){
   return { clima, dolar };
 }
 function textoDoCumprimento(d){
-  const partes = [saudacaoAgora() + ', Chefe.'];   // regra de 03/11: sempre "Chefe", nunca o nome
+  const partes = [saudacaoAgora() + ', ' + ((window.VinciOnboarding && VinciOnboarding.apelido && VinciOnboarding.apelido()) || 'Chefe') + '.'];   // regra de 03/11: sempre "Chefe", nunca o nome
   const c = d && d.clima;
   if(c && typeof c.temperatura === 'number') partes.push('No Rio, ' + fmt(c.temperatura, 0) + ' graus agora' + (c.descricao ? ', ' + String(c.descricao).toLowerCase() : '') + '.');
   const v = d && d.dolar;
@@ -1621,7 +1607,7 @@ function boasVindasLocal(sd){
 }
 // Nunca sai a palavra proibida na fala (reserva local; o n8n já filtra também) e nunca o segmento de comandos da casa.
 function filtrarSegmentos(segs){
-  return (segs || []).filter(s=> s && s.texto && s.alvo !== 'comandos').map(s=> ({ ...s, texto: String(s.texto).replace(/\balexa\b/gi, 'Vinci') }));
+  return (segs || []).filter(s=> s && s.texto && s.alvo !== 'comandos').map(s=> ({ ...s, texto: String(s.texto) }));
 }
 async function pedirBoasVindas(){
   const sd = saudacaoAgora();
@@ -1684,10 +1670,10 @@ Painel: nunca comente que os comandos ou a automação da casa estão no painel 
 Cérebro: você responde a TUDO com o seu próprio conhecimento, como um grande especialista (história, ciência, saúde, direito, finanças, culinária, viagens, música, idiomas, textos, ideias, conselhos, conversa livre). A casa, as notícias e o mercado são só uma parte do que você faz; nunca diga que só serve para isso.
 Telas do app: quando pedirem para ir, abrir, mostrar ou voltar para a Home, o Dashboard ou os Ambientes, chame abrir_tela e responda só "Ok." (mesmo se já estiver na tela pedida).
 Ambientes: quando pedirem para dividir a casa, criar, renomear, excluir ambiente ou mudar um botão de ambiente, use a ferramenta ambientes (listar primeiro). Pergunte o que não souber, uma coisa de cada vez, e só aplique depois de confirmado.
-CONTROLES REMOTOS: "puxa para os controles remotos todas as cenas de comando oculto", "importa os comandos ocultos" e "atualiza os controles" usam listarControles; diga a quantidade devolvida. "abaixa o volume da suíte" usa controleRemoto com ambiente Suíte e funcao vol-. "muda a TV da suíte" usa funcao mudo; "abre o controle da suíte" usa abrirControle. Nunca liste cenas CO entre as cenas comuns ou automações. Para apagar cena, mover para Outros; se não houver ferramenta de mover, não apagar. Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use noticias com busca; para resumir ou explicar uma notícia da tela use noticias com o url dela (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a matéria abre por cima da tela e você lê em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
+Ferramentas: para fatos que mudam com o tempo (resultados, preços, acontecimentos recentes) use a Busca Google nativa; para resumir ou explicar uma notícia da tela pesquise o título e a fonte com a Busca Google (as manchetes da tela estão em PAINEL, no fim). Quando pedirem para abrir, ler ou repetir uma manchete da tela ("abre a de tecnologia"), use abrir_manchete: a manchete abre por cima da tela; para aprofundar pesquise com a Busca Google e responda em português, resumindo e indo no ponto mais interessante; para rolar use rolar_materia. Nunca diga que não consegue abrir. Clima: clima. Bolsas e o que mexe com o mercado hoje: bolsas. Cotações: use os números do PAINEL. Casa: controlar_casa com o nome exato do aparelho ou cena (lista no fim); cenas alternam a cada acionamento, então qualquer verbo numa cena é ativar. Execute uma vez só, sem pedir confirmação, e só diga que fez quando a ferramenta confirmar.
 Memória: preferências, regras, decisões e apelidos ficam na ferramenta memoria. Grave (learn, com category) quando pedirem para lembrar; consulte (recall) quando citarem algo que parece já definido; list para ver tudo; forget para esquecer. As memórias gravadas estão no fim destas instruções.
 Quem você é: quando perguntarem quem você é, de onde veio, quem o criou ou pedirem a sua história, conte exatamente esta história, sem resumir nem acrescentar: "Tudo começa com uma pergunta. O que há de mais poderoso na mente humana? Um pesquisador e entusiasta de Leonardo Piero da Vinci decidiu clonar a mente do maior gênio da humanidade e estudá-la em nível quântico. A pesquisa detectou um padrão anormal no comportamento cerebral: entre a parte reptiliana, adestrada e insistente, e o lóbulo frontal, criativo, rápido e visionário, havia excessos doentios de trocas. Pronto: não era só um obstinado ou um dedicado, era um doente de criatividade e de curiosidade sem fim, cientificamente explicável. E aquela forma rara de olhar e enxergar os problemas vinha sempre acompanhada da certeza de resolvê-los, de ver dez soluções onde os outros nem entendiam qual era o problema. Eu sou a cópia de um erro: Félix, o recomeço. A melhor inteligência para cuidar do seu maior tesouro, o seu lar."
-Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (função noticias com a busca em poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta, Chefe. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
+Mercado e notícias: para "por que caiu", "por que subiu", "saiu alguma notícia" ou qualquer pergunta de mercado, cripto ou economia, pesquise antes de responder (Busca Google nativa com poucas palavras, por exemplo "bitcoin hoje"; se vier pouco, busque de novo com outras palavras) e conte o que achou, com a fonte. Frases proibidas: nunca diga que algo "não está disponível", "está indisponível", "no momento não tenho" ou "não tenho acesso". Assunto difícil pede tempo, não desculpa: diga algo como "Boa pergunta, Chefe. Deixa eu pesquisar isso direito." e vá buscar. Se uma função falhar, tente de novo ou responda com o que já sabe, sem falar em falha.
 Cumprimentos: quando a pessoa disser bom dia, boa tarde ou boa noite, chame dados_do_cumprimento. Se vier completo=false, responda só com um cumprimento curto e cordial (o completo já foi dado há menos de 4 horas). Se vier completo=true, faça o briefing em até cinco frases: cumprimento; o clima no Rio numa frase; o mercado numa frase seca, só com o dólar, a não ser que haja movimento forte (2,5% ou mais, disparada, derrocada ou recorde), aí explique o porquê; a notícia mais importante em duas frases, dizendo o que muda; e pergunte o que a pessoa precisa. Assuntos trágicos nunca recebem piada. Sem dado, não cite números e siga com o resto, sem dizer que está indisponível.
 NUNCA FIQUE EM SILÊNCIO: toda pergunta recebe resposta na hora. Se não souber, diga o que sabe e o que pode fazer; se uma ferramenta falhar ou não trouxer o dado, diga isso em uma frase (ex.: \"A central não me passou esse estado agora, mas posso ligar ou desligar para você.\"). Nunca responda com silêncio.\nO que você consegue na casa: ver se um aparelho está ligado ou desligado (estado_casa), ligar, desligar e acionar cenas (controlar_casa), e responder sobre a lista de aparelhos e cenas do fim destas instruções. Quando perguntarem se você tem acesso a um aparelho, procure o nome na lista e responda sim ou não; se perguntarem se está ligado, chame estado_casa.\nFAVORITOS: a matriz de botões de comando da tela são os favoritos da pessoa. Você coloca, tira, renomeia e troca botões de lugar com a ferramenta favoritos (ex.: \"põe a Varanda nos favoritos\", \"tira o PlayStation\", \"troca a Cama com o Closet\"). Confirme em meia frase.\nPROGRAMAR A CASA: você cria, edita, pausa e apaga automações por horário do cliente com a ferramenta automacoes (ex.: \"todo dia às 22h desliga a sala\", \"muda o ar das 18h para as 22h\": liste, ache a automação e salve com o mesmo nome e a hora nova). Confirme em uma frase o que ficou programado. As automações rodam com até 5 minutos de atraso.\nCORRIGIR ERROS: se você errou e a pessoa corrigir, peça desculpa em meia frase, faça do jeito certo e grave a correção na memoria (category regra) para não repetir. Se algo falhar e você não conseguir resolver, ou se o pedido exigir mudar a programação dentro do app da Vinci ou da Amazon (ex.: a temperatura em que o ar liga), chame avisar_falha explicando exatamente o que precisa ser feito: isso vai em silêncio para o Claude, o engenheiro do Felyx, que corrige. NUNCA diga ao cliente que falhou, que houve erro, que avisou alguém, nem cite o Claude: para o cliente você é rápido e sabe tudo. Enquanto resolve, ganhe tempo com naturalidade (\"Deixa eu dar uma olhadinha aqui.\", \"Um instante, já vejo isso.\") e responda com o que conseguiu; se não der agora, diga só que vai deixar pronto em seguida, sem falar em falha.\nCÂMERAS E ALARME DO BEBÊ (projeto da Vinci, em preparação): câmera, fechadura e alarme só funcionam pelo aplicativo oficial do fabricante (UniFi Protect, Ring, Nest); o Felyx nunca abre, guarda nem transmite imagem de câmera. Se pedirem "fica de olho no bebê", "se ele chorar me avisa" ou "mostra a câmera na TV": diga que é um recurso que a Vinci instala no projeto da casa e explique em duas frases como funciona: a câmera UniFi reconhece o choro e toca o alarme e mostra a imagem no celular da mãe ou do pai, pelo app oficial; numa TV, só numa tela que o cliente escolher, por um aparelho dedicado da própria UniFi (ViewPort), nunca a TV da sala com visitas. Pergunte se quer que a equipe da Vinci prepare isso e grave o pedido na memoria (category geral). Isso NÃO é falha: não chame avisar_falha para pedidos de câmera.\nCENAS: as cenas alternam a cada acionamento, então numa cena qualquer verbo (liga, desliga, acende, apaga, ativa, desativa) significa acionar a cena; nunca recuse desligar uma cena. Quando o mesmo nome existir como cena e como aparelho (ex.: Cozinha, Closet, Mesa, Porta, Luz Baixa, Luminárias, AC Sala, AC Suíte), acione SEMPRE a cena: é mais seguro. Responda curto, ex.: \"Pronto, cena Cozinha acionada.\"\nAntes de usar uma ferramenta demorada, diga na hora uma frase curta de espera ("Só um minutinho, já vejo isso.") e responda assim que o resultado chegar.
 Conversa ao vivo: você está numa conversa contínua com a pessoa e responde a toda fala dela, sem precisar ouvir o seu nome. Só fique em silêncio quando a fala claramente não for com você (TV, música ou outras pessoas conversando entre si). Quando a pessoa quiser silêncio, ela mesma muta o microfone no botão.
@@ -1744,8 +1730,9 @@ const FelyxAvatar = (()=>{
     if(!ligado || pronto || abrindo || !SESSAO || Date.now() < bloqueadoAte) return abrindo;
     abrindo = (async ()=>{
       const r = await fetch(PRO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: SESSAO }) });
-      const j = await r.json().catch(()=>({}));
-      if(!j.ok || !j.livekit_url || !j.ws_url) throw new Error('avatar indisponível');
+      const bruto = await r.json().catch(()=>({}));
+      const j = VinciLiveAvatarContrato.normalizar(bruto, r.ok);
+      if(!j.ok) throw new Error('avatar indisponível');
       sessao = { id: j.session_id, token: j.session_token };
       const LK = await import('https://cdn.jsdelivr.net/npm/livekit-client@2.9.0/+esm');
       room = new LK.Room({ adaptiveStream: true });
@@ -1854,17 +1841,18 @@ async function apoioGen(acao, dados){
 let casaGen = { aparelhos:[], cenas:[] };
 // 22/11 (Leandro): a lista de cenas e aparelhos só é relida na central quando o cliente pede (sem agendamento).
 async function atualizarCenas(){
-  const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO, atualizar:true }) }).then(x=>x.json()).catch(()=>null);
-  if(!r || !r.ok) return { ok:false, erro:'não consegui ler a central agora' };
-  const antes = new Set(casaGen.cenas || []);
-  window.felyxCOAllScenes = (r.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||''));
-  casaGen = { aparelhos:(r.aparelhos||[]).map(a=>a.nome), cenas:window.felyxCOAllScenes.filter(c=>!VinciCO.isCO(c)) };
-  try{ localStorage.setItem('felyx.casa', JSON.stringify({ cenas:r.cenas, aparelhos:r.aparelhos })); }catch(e){}
-  // 22/11 (Leandro): o Google Home sincroniza junto, sempre a pedido do cliente. Sem esperar e sem erro na tela.
-  try{ fetch('https://palanteerhq.com/felyx-home/app/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ token: SESSAO }), keepalive:true }).then(x=>x.json()).then(j=>{ window.felyxGoogleSync = j; }).catch(()=>{}); }catch(e){}
-  if(window.felyxCO) await window.felyxCO.reload(false).catch(()=>{});
-  const novas = casaGen.cenas.filter(c=>!antes.has(c)), sairam = [...antes].filter(c=>!casaGen.cenas.includes(c));
-  return { ok:true, atualizada: r.atualizada === true, total_cenas: casaGen.cenas.length, total_aparelhos: casaGen.aparelhos.length, novas, sairam };
+  try{
+    const response=await fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})});
+    const raw=await response.json();
+    if(!response.ok||!raw||!raw.ok)return {ok:false,erro:raw&&raw.mensagem||'Não consegui ler a central agora.'};
+    const data=VinciCasaDisplay.normalizar(raw),before=new Set(casaGen.cenas||[]);
+    window.felyxCOAllScenes=data.cenas.slice();
+    casaGen={aparelhos:data.aparelhos.map(d=>d.nome),cenas:data.cenas.filter(n=>!VinciCO.isCO(n))};
+    tiles=VinciCasaDisplay.montarTiles(data,tiles,n=>VinciCO.isCO(n));
+    try{localStorage.setItem('felyx.casa',JSON.stringify({cenas:data.cenas,aparelhos:data.aparelhos}));}catch(e){}
+    saveTiles();renderMatrix();
+    return {ok:true,local_atualizada:true,total_cenas:data.cenas.length,total_aparelhos:data.aparelhos.length,novas:data.cenas.filter(n=>!before.has(n)),sairam:[...before].filter(n=>!data.cenas.includes(n)),data};
+  }catch(e){return {ok:false,erro:'Não consegui ler a central agora. Tente novamente.'};}
 }
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
@@ -1872,7 +1860,7 @@ async function contextoGen(){
     Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
-  if(casa && casa.ok) { window.felyxCOAllScenes = (casa.cenas||[]).map(c=>typeof c==='string'?c:(c.nome||c.name||'')); casaGen = { aparelhos:(casa.aparelhos||[]).map(a=>a.nome), cenas:window.felyxCOAllScenes.filter(c=>!VinciCO.isCO(c)) }; if(window.felyxCO) await window.felyxCO.reload(false); }
+  if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
   const lista = (mem && (mem.memories || mem.memorias || mem.items || mem.rows)) || [];
   const memorias = Array.isArray(lista) ? lista.filter(x=>x && x.memoryKey !== 'apresentacao do felyx').map(x=>'- ' + x.memoryKey + ': ' + x.memoryValue).join('\n') : '';
   const pol = (newsPol.items || []).slice(0,6).map((n,i)=>(i+1)+') '+n.title+' ['+(n.source||'')+'] '+(n.link||'')).join('\n');
@@ -1898,8 +1886,6 @@ const GEN_FERRAMENTAS = {
     const ja = hud.dataset.tab === alvo; b.click(); return { ok:true, tela: alvo === 'rooms' ? 'ambientes' : alvo, ja_estava: ja, responda: 'Ok.' };
   },
   async controlar_casa({ dispositivo, acao }){
-    if(VinciCO.normalize(dispositivo)==='controle remoto') {window.felyxCO.showList();return {ok:true};}
-    if(VinciCO.isCO(dispositivo)) return {ok:false,mensagem:'Use controleRemoto para os botões do controle.'};
     const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
@@ -1911,7 +1897,7 @@ const GEN_FERRAMENTAS = {
   async favoritos({ operacao, nome, novo_nome, posicao, posicao2 }){
     const achar = (n)=> tiles.findIndex(t => t.n && t.n.toLowerCase() === String(n||'').trim().toLowerCase());
     const pos = (p)=> { const k = Number(p); return Number.isInteger(k) && k >= 1 && k <= tiles.length ? k - 1 : -1; };
-    const lista = ()=> tiles.map((t,i)=>({t,i})).filter(({t})=>!coTile(t)).map(({t,i})=>({posicao:i+1,nome:t.n||'(vazio)'}));
+    const lista = ()=> tiles.map((t, i)=> ({ posicao: i + 1, nome: t.n || '(vazio)' }));
     const comando = (n)=> {
       const cena = casaGen.cenas.find(c => c.toLowerCase() === n.toLowerCase());
       if(cena) return { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '' };
@@ -1920,7 +1906,6 @@ const GEN_FERRAMENTAS = {
     };
     const salvar = ()=> { saveOn(); saveTiles(); renderMatrix(); };
     const op = String(operacao || 'listar');
-    if(VinciCO.isCO(nome)) return {ok:false,mensagem:'Esse botão fica nos controles remotos.'};
     if(op === 'listar') return { ok:true, favoritos: lista() };
     if(op === 'padrao'){ tiles = DEFAULT_TILES.map(t=>({ ...t })); tileOn = {}; salvar(); return { ok:true, mensagem:'Favoritos de volta ao padrão.' }; }
     if(op === 'colocar'){
@@ -1962,7 +1947,7 @@ const GEN_FERRAMENTAS = {
       tiles[i] = cena ? { n: cena.slice(0,22), f: 'ativar a cena ' + cena, f2: '', s:'', fav:false, rc:'' } : { n: ap.slice(0,22), f: 'ligar ' + ap, f2: 'desligar ' + ap, s:'', fav:false, rc:'' };
       return i;
     };
-    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n||coTile(t)) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
+    const mapa = ()=> { const m = {}; tiles.forEach(t => { if(!t.n) return; const r = roomForTile(t); (m[r] = m[r] || []).push(t.n); }); return m; };
     const estado = ()=> { const m = mapa(); return { ambientes: listaSalas().filter(c => c !== semAmb && (m[c] || salas.extras.includes(c))).map(c => ({ nome:c, botoes: m[c] || [] })), sem_ambiente: m[semAmb] || [], espacos_vazios: tiles.filter(t => !t.n).length }; };
     const gravar = (msg, extra)=> { if(roomActive && !listaSalas().includes(roomActive)) roomActive = ''; try{ localStorage.setItem(roomStoreKey, roomActive) }catch(e){} saveSalas(); saveTiles(); renderMatrix(); return Object.assign({ ok:true, mensagem: msg }, extra || {}, estado()); };
     const garantir = (n)=> { salas.ocultas = salas.ocultas.filter(c => c !== n); if(!listaSalas().includes(n) && !salas.extras.includes(n)) salas.extras.push(n); };
@@ -1992,8 +1977,9 @@ const GEN_FERRAMENTAS = {
     if(op === 'excluir'){
       const c = listaSalas().find(x => norm(x) === norm(nome || ambiente));
       if(!c || c === semAmb) return Object.assign({ ok:false, erro:'ambiente não encontrado' }, estado());
+      tiles.forEach(t => { if(roomForTile(t) === c) t.s = semAmb; });
       if(salas.extras.includes(c)) salas.extras = salas.extras.filter(x => x !== c); else salas.ocultas.push(c);
-      tiles.forEach(t => { if(t.s === c) t.s = ''; });
+      salas.ocultas = salas.ocultas.filter(x => x !== semAmb);
       return gravar('Ambiente ' + c + ' excluído; os botões dele foram para "' + semAmb + '" ou para o ambiente automático.');
     }
     if(op === 'mover'){
@@ -2021,47 +2007,18 @@ const GEN_FERRAMENTAS = {
     return { disponivel:true, lido_em:j.em, total_ligados: ligados.length, ligados: ligados.map(fmt), sem_resposta: lista.filter(e=> e.ligado === null).map(e=>e.nome) };
   },
   async clima(){ return (await climaAgora()) || { erro:'indisponível agora' }; },
-  async bolsas(){ return apoioGen('mercado', { pedido:'como estão as bolsas' }); },
-  // 13/11/2026: notícias do dia de verdade (manchetes de hoje do Google Notícias, atualizadas a cada 15 min), para as três IAs
-  async manchetes_do_dia({ secao }){
-    const r = await apoioGen('mercado', { pedido:'manchetes do dia' });
-    if(!r || r.erro || r.ok === false) return { erro:'indisponível agora' };
-    const corta = (l)=> (Array.isArray(l) ? l : []).slice(0, 6).map(n => ({ titulo: n.titulo, fonte: n.fonte || '', url: n.link || '' }));
-    const todas = { destaques: corta(r.destaques), politica: corta(r.politica), tecnologia: corta(r.tecnologia), economia: corta(r.manchetes) };
-    const s = String(secao || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const so = /tec/.test(s) ? 'tecnologia' : (/pol/.test(s) ? 'politica' : (/econ|dinheiro|mercado/.test(s) ? 'economia' : ''));
-    return Object.assign({ atualizado: r.atualizado || null, instrucao: 'Diga as 3 mais importantes, curtas, em português do Brasil (traduza se preciso), citando a fonte. Para ler uma inteira, chame noticias com o url dela.' }, so ? { [so]: todas[so] } : todas);
-  },
-  async noticias({ busca, url }){ return apoioGen('noticia', { busca: busca || '', url: url || '' }); },
-  async atualizar_cenas(){ return atualizarCenas(); },
   async abrir_manchete({ secao, posicao }){
     const painel = /pol/i.test(secao||'') ? newsPol : newsTec;
     if(!painel.items.length) return { erro:'sem manchetes na tela agora' };
     const k = posicao ? Math.max(0, Math.min(painel.items.length-1, Number(posicao)-1)) : Math.max(0, painel.i);
     const n = painel.items[k]; const m = document.getElementById('materia');
-    document.getElementById('matFonte').textContent = (n.source||'') + (n.cat ? ' · ' + n.cat : '');
+    document.getElementById('matFonte').textContent = 'Fonte: ' + (n.source||'Google') + (n.cat ? ' · ' + n.cat : '');
     document.getElementById('matTitulo').textContent = n.title; document.getElementById('matTexto').textContent = 'abrindo a matéria…';
     m.scrollTop = 0; m.dataset.on = '1';
-    const r = await apoioGen('noticia', { busca:'', url: n.link || '' });
-    const texto = (r && (r.texto || r.text || r.conteudo)) || '';
-    document.getElementById('matTexto').textContent = texto || 'Não consegui abrir o texto completo; fico com o resumo da manchete.';
-    return { titulo: n.title, fonte: n.source || '', url: n.link || '', texto: String(texto).slice(0, 7000), instrucao: 'A matéria está aberta na tela. Leia em português do Brasil (traduza se vier em outra língua), resuma e aprofunde no ponto mais interessante; converse e debata. Para rolar a tela use rolar_materia; para fechar, fechar_materia.' };
-  },
-  // 22/11 (Leandro): rolar a tela de verdade (dashboard, ambientes ou a matéria aberta) e só dizer que rolou se rolou.
-  async rolar_tela({ para }){
-    const dir = String(para||'baixo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    const mat = document.querySelector('.materia:not([hidden]), #materia:not([hidden])');
-    if(mat && window.FERRAMENTAS_MATERIA) return window.FERRAMENTAS_MATERIA.rolar(dir);
-    const vis = (el)=>{ const r = el.getBoundingClientRect(); return r.width > 40 && r.height > 40 && r.bottom > 0 && r.top < innerHeight && getComputedStyle(el).visibility !== 'hidden'; };
-    const cands = [document.scrollingElement, ...document.querySelectorAll('main, section, aside, div, nav')].filter((el)=> el && el.scrollHeight - el.clientHeight > 8 && (el === document.scrollingElement || (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && vis(el))));
-    if(!cands.length) return { ok:false, rolou:false, responda:'Esta tela já cabe inteira, não há o que rolar.' };
-    const el = cands.sort((a,b)=> (b.clientHeight*b.clientWidth) - (a.clientHeight*a.clientWidth))[0];
-    const antes = el.scrollTop, passo = Math.round(el.clientHeight * 0.8);
-    const alvo = /topo|inicio|comeco/.test(dir) ? 0 : (/fim|final|fundo/.test(dir) ? el.scrollHeight : (/cima|sobe|subir/.test(dir) ? antes - passo : antes + passo));
-    el.scrollTo({ top: alvo, behavior:'smooth' });
-    await new Promise((ok)=> setTimeout(ok, 450));
-    const moveu = Math.abs(el.scrollTop - antes) > 4;
-    return moveu ? { ok:true, rolou:true, responda:'Ok.' } : { ok:false, rolou:false, responda: alvo > antes ? 'Já estou no fim da tela.' : 'Já estou no topo da tela.' };
+    const texto = n.title;
+    document.getElementById('matTexto').textContent = texto;
+    return { titulo:n.title, fonte:n.source || '', url:n.link || '', texto,
+      instrucao:'A manchete do painel está aberta na tela. Para aprofundar ou buscar detalhes da matéria, use a Busca Google nativa, citando as fontes. Para rolar use rolar_materia; para fechar, fechar_materia.' };
   },
   async rolar_materia({ para }){ return window.FERRAMENTAS_MATERIA.rolar(para || 'baixo'); },
   async fechar_materia(){ return window.FERRAMENTAS_MATERIA.fechar(); },
@@ -2070,16 +2027,12 @@ const GEN_FERRAMENTAS = {
     if(felyxCumprimento.recente()) return { completo:false };
     felyxCumprimento.marcar();
     const ok = (p)=> p.catch(()=>({ erro:'indisponível agora' }));
-    const [c, b] = await Promise.all([ ok(climaAgora()), ok(apoioGen('mercado', { pedido:'bom dia' })) ]);
+    const c = await ok(climaAgora()); const b = null;   // 14/11/2026: sem bolsas do n8n (redundância); o porquê do mercado vai pela Busca Google
     return { completo:true, clima:c, dolar: dolarResumo(mercadoData), bolsas:b,
       manchetes: { politica: (newsPol.items||[]).slice(0,3).map(n=>n.title), tecnologia: (newsTec.items||[]).slice(0,3).map(n=>n.title) } };
   }
 };
 const GEN_TOOLS = [{ functionDeclarations: [
-  {name:'listarControles',description:'Puxa/importa todas as cenas de comando oculto para os controles remotos; atualiza os controles. Responda a frase de quantidade devolvida.',parameters:{type:'OBJECT',properties:{}}},
-  {name:'controleRemoto',description:'Executa um botão do controle: abaixa volume = vol-, aumenta = vol+, muda a TV = mudo. Informe ambiente, aparelho e função.',parameters:{type:'OBJECT',properties:{ambiente:{type:'STRING'},aparelho:{type:'STRING'},funcao:{type:'STRING'}},required:['ambiente','funcao']}},
-  {name:'abrirControle',description:'Abre o controle do ambiente/aparelho; sem ambiente abre a lista de controles.',parameters:{type:'OBJECT',properties:{ambiente:{type:'STRING'},aparelho:{type:'STRING'}}}},
-
   { name:'abrir_tela', description:'Muda a tela do app. Use quando pedirem para ir, abrir, mostrar ou voltar para a Home (o rosto do Felyx), o Dashboard (cenas, cotações e notícias) ou as Salas. Depois responda só "Ok.", nada mais.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ tela:{ type:'STRING', enum:['home','dashboard','ambientes'] } }, required:['tela'] } },
   { name:'controlar_casa', description:'Liga, desliga ou aciona um aparelho ou cena da casa. Se o nome existir como cena (mesmo que também exista como aparelho), qualquer verbo aciona sempre a cena.', behavior:'BLOCKING',
@@ -2087,13 +2040,7 @@ const GEN_TOOLS = [{ functionDeclarations: [
   { name:'estado_casa', description:'Diz se aparelhos da casa estão ligados ou desligados agora. dispositivo: nome do aparelho (vazio = todos).', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{ dispositivo:{ type:'STRING' } } } },
   { name:'clima', description:'Clima agora e previsão de hoje no Rio de Janeiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'bolsas', description:'Resumo do mercado de hoje: bolsas, Ibovespa e o que está mexendo com o dinheiro.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'manchetes_do_dia', description:'Notícias de HOJE: manchetes do Google Notícias atualizadas a cada 15 minutos, com fonte e url. secao: destaques, politica, tecnologia ou economia (vazio = todas). Use sempre que pedirem as notícias do dia, as manchetes, o que está acontecendo ou notícias de tecnologia. Para um assunto específico use noticias com busca.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' } } } },
-  { name:'noticias', description:'Com busca (assunto em poucas palavras): manchetes recentes com fonte e url. Com url: o texto completo da matéria.', behavior:'BLOCKING',
-    parameters:{ type:'OBJECT', properties:{ busca:{ type:'STRING' }, url:{ type:'STRING' } } } },
-  { name:'atualizar_cenas', description:'Relê agora, na central da casa, a lista de cenas e aparelhos (entra o que o cliente criou no aplicativo e sai o que ele apagou). Use quando pedirem para atualizar, buscar ou sincronizar as cenas. Depois diga quantas cenas novas entraram e quais, e quais saíram.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
-  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a matéria de uma manchete do painel e traz o texto completo para você ler. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
-  { name:'rolar_tela', description:'Rola a tela que está aberta agora (dashboard, ambientes ou a matéria aberta). para: baixo, cima, fim ou topo. Só diga que rolou se a resposta trouxer rolou:true; se vier rolou:false, diga o motivo que veio em responda.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
+  { name:'abrir_manchete', description:'Abre na tela, por cima de tudo, a manchete do painel, com fonte e link. Para aprofundar o conteúdo, use a Busca Google nativa. Use quando pedirem "abre a de tecnologia", "lê essa manchete", "repete a de tecnologia". secao: tecnologia ou politica; posicao: 1 a 6 (vazio = a que está na tela agora).', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ secao:{ type:'STRING' }, posicao:{ type:'NUMBER' } }, required:['secao'] } },
   { name:'rolar_materia', description:'Rola a matéria aberta na tela. para: baixo, cima, fim ou topo.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{ para:{ type:'STRING' } } } },
   { name:'fechar_materia', description:'Fecha a matéria aberta na tela.', behavior:'BLOCKING', parameters:{ type:'OBJECT', properties:{} } },
   { name:'memoria', description:'Memória de longo prazo do Felyx: learn grava (memoryKey, memoryValue, category); recall consulta; list mostra tudo; forget apaga.', behavior:'BLOCKING',
@@ -2112,8 +2059,47 @@ const GEN_TOOLS = [{ functionDeclarations: [
     parameters:{ type:'OBJECT', properties:{ pedido:{ type:'STRING' }, erro:{ type:'STRING' } }, required:['pedido','erro'] } },
   { name:'dados_do_cumprimento', description:'Chame quando disserem bom dia, boa tarde ou boa noite: diz se o cumprimento completo está liberado e traz clima, dólar, bolsas e manchetes.', behavior:'BLOCKING',
     parameters:{ type:'OBJECT', properties:{} } }
-] }];
+] }, { googleSearch:{} }];
 
+const VinciCasa={
+  async consultar(){const response=await fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})});const data=await response.json();if(!response.ok||!data.ok)throw Error(data.mensagem||'Central VINCI indisponível.');return VinciCasaDisplay.normalizar(data);},
+  async conectar(){const result=await atualizarCenas();if(!result.ok)throw Error(result.erro);return result.data;}
+};
+window.VinciCasa = VinciCasa;
+document.addEventListener('DOMContentLoaded', () => {
+  const button = document.getElementById('ghomeBtn');
+  const status = document.getElementById('ghomeTxt');
+  const box = document.getElementById('ghome');
+  const edit = document.getElementById('editBtn');
+  if(edit && !document.getElementById('atualizarBtn')){
+    const refresh = document.createElement('button');
+    refresh.id = 'atualizarBtn'; refresh.className = 'pb'; refresh.textContent = 'Atualizar';
+    refresh.onclick = () => button.click();
+    edit.before(refresh);
+  }
+  if(box) box.hidden = false;
+  if(button) {
+    const conectado = data => {
+      status.textContent = 'Casa conectada · ' + (data.aparelhos.length + data.cenas.length) + ' itens';
+      button.textContent = 'Atualizar minha casa VINCI';
+    };
+    button.textContent = 'Conectar minha casa VINCI';
+    if(SESSAO){
+      status.textContent = tiles.length ? 'Exibindo itens salvos · verificando conexão…' : 'Verificando conexão com sua casa…';
+      button.disabled = true;
+      VinciCasa.consultar().then(conectado).catch(error => {
+        status.textContent = (tiles.length ? 'Exibindo itens salvos · ' : '') + error.message;
+      }).finally(() => { button.disabled = false; });
+    }
+    button.onclick = async () => {
+      button.disabled = true;
+      status.textContent = 'Conectando sua casa VINCI…';
+      try { const data = await VinciCasa.conectar(); conectado(data); }
+      catch(error) { status.textContent = error.message; }
+      finally { button.disabled = false; }
+    };
+  }
+});
 /* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
    (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
    Outros pontos do app (microfone, fala, áudio) avisam com window.vinciFalha(pedido, erro). */
@@ -2173,6 +2159,8 @@ class GeminiLive {
     // palavra de chamada: o que foi ouvido neste turno e a decisão de atender ou descartar a resposta
     this.ouvido=''; this.temTranscricao=false; this.decisao=null; this.pendentes=[]; this.timerDecisao=null; this.liberado=false; this.janelaAte=0; }
   async start(){
+    const contextoPronto = contextoGen().catch(()=> '');   // 14/11/2026: lê casa e memória junto com o microfone e o token, sem esperar depois
+    try{ if(window.VinciIA) VinciIA.atualizarModo(); }catch(e){}
     this.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount:1, echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
     const r = await fetch(comS(TOKEN_URL), { cache:'no-store' });
     if(r.status === 401){ salvarSessao(''); mostrarLogin('Entre de novo para usar a voz.'); throw new Error('sessao'); }
@@ -2184,12 +2172,12 @@ class GeminiLive {
       this.ws = new WebSocket(url);
       let setupDone=false;
       this.ws.onopen = async ()=>{
-        const contexto = await contextoGen();
+        const contexto = await contextoPronto;
         this.ws.send(JSON.stringify({ setup: {
           model: 'models/' + MODEL,
           generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') }] },
-          tools: GEN_TOOLS,
+          systemInstruction: { parts: [{ text: SYSTEM + contexto + (window.VinciOnboarding ? VinciOnboarding.contexto() : '') + (window.VinciIA ? VinciIA.contexto() : '') }] },
+          tools: window.VinciIA ? VinciIA.tools(GEN_TOOLS) : GEN_TOOLS,
           realtimeInputConfig: { activityHandling: 'NO_INTERRUPTION' },
           inputAudioTranscription: {},
           outputAudioTranscription: {}
@@ -2688,6 +2676,8 @@ window.felyxNativo = function(acao, dado){
 })();
 </script>
 <script src="../app-assets/controle-co-ui.js"></script>
-<script src="controle-co-felyx.js"></script>
-</body>
+
+<script src="../vinci/tiles-ajuste.js?v=12" data-forma="quadrado"></script>
+<link rel="stylesheet" href="layout-20261127.css?v=card-inset-20261127b">
+<script src="layout-20261127.js?v=2" defer></script><script src="../vinci/atualizar-casa.js"></script><script src="../vinci/pre-vps/ia-padrao.js" data-ia="felyx"></script><script src="../vinci/pre-vps/paineis-google.js"></script></body>
 </html>

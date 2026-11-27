@@ -1,0 +1,1 @@
+(function(){const ui=window.VinciOnboarding,old=window.VinciOnboardingPreVPS;if(!ui||!old)throw Error('onboarding context missing');const iniciar=ui.iniciar.bind(ui);ui.iniciar=function(o){old.iniciar(o);return iniciar(o);};ui.contexto=old.contexto.bind(old);})();

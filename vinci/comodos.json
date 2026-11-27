@@ -1,266 +1,237 @@
 {
-  "_como_funciona": "Cada cena ou aparelho vai para o primeiro cômodo cuja palavra aparece no nome (sem acento, sem maiúscula). Palavras com até 3 letras só valem como palavra inteira. 'fixos' força um item num cômodo ('Nome' ou 'Nome|TIPO'). 'cor' é a cor do cômodo (paleta do manual da Vinci); 'texto' é a cor da letra no cartão. A lista 'comodos' está na ordem de procura (Sala por último, porque tem palavras genéricas como 'mesa' e 'estante'); 'ordemTela' é a ordem em que aparecem.",
-  "comodos": [
-    {
-      "nome": "Felipe",
-      "cor": "#9EACB5",
-      "texto": "#1D2830",
-      "palavras": [
-        "felipe",
-        "mesafel"
-      ]
-    },
-    {
-      "nome": "Suíte",
-      "cor": "#E1FE06",
-      "texto": "#1D2830",
-      "palavras": [
-        "suite",
-        "casal",
-        "cama",
-        "master",
-        "sm",
-        "cab leandro",
-        "cab joana",
-        "boa noite"
-      ]
-    },
-    {
-      "nome": "Closet",
-      "cor": "#B0C034",
-      "texto": "#1D2830",
-      "palavras": [
-        "closet",
-        "joana_clos",
-        "armario"
-      ]
-    },
-    {
-      "nome": "Cozinha",
-      "cor": "#D5EC23",
-      "texto": "#1D2830",
-      "palavras": [
-        "cozinha",
-        "bancada",
-        "fita pia",
-        "cafe",
-        "nespresso",
-        "adega"
-      ]
-    },
-    {
-      "nome": "Banheiros",
-      "cor": "#79868F",
-      "texto": "#0E1519",
-      "palavras": [
-        "banheiro",
-        "lavabo",
-        "toalheiro",
-        "banho"
-      ]
-    },
-    {
-      "nome": "Varanda",
-      "cor": "#C8DC2A",
-      "texto": "#1D2830",
-      "palavras": [
-        "varanda",
-        "corda"
-      ]
-    },
-    {
-      "nome": "Serviço",
-      "cor": "#5B6770",
-      "texto": "#F2F5F7",
-      "palavras": [
-        "area servico",
-        "area"
-      ]
-    },
-    {
-      "nome": "Entrada",
-      "cor": "#3B464F",
-      "texto": "#F2F5F7",
-      "palavras": [
-        "entrada",
-        "porta",
-        "corredor",
-        "way 210",
-        "ring"
-      ]
-    },
-    {
-      "nome": "Sala",
-      "cor": "#C1CFD9",
-      "texto": "#1D2830",
-      "palavras": [
-        "sala",
-        "lustre",
-        "estante",
-        "painel",
-        "muxarabi",
-        "indireta",
-        "sanca",
-        "tela",
-        "led",
-        "luminaria",
-        "abajur",
-        "mesa",
-        "net",
-        "globo",
-        "apple tv",
-        "playstation",
-        "musica",
-        "persiana",
-        "cort",
-        "luz alta",
-        "luz baixa",
-        "z1",
-        "z2",
-        "pw net",
-        "mudo",
-        "3wbm",
-        "ch"
-      ]
-    }
-  ],
-  "ordemTela": [
-    "Sala",
-    "Suíte",
-    "Felipe",
-    "Closet",
-    "Cozinha",
-    "Banheiros",
-    "Varanda",
-    "Serviço",
-    "Entrada"
-  ],
-  "fixos": {
-    "Mudo|CENA": "Sala",
-    "MudoSM|CENA": "Suíte",
-    "Vol SM|CENA": "Suíte",
-    "Master OFF|CENA": "Suíte"
+ "_como_funciona": "NEXT UPDATE 25/11/2026: cômodos e aparelhos vêm do Google Link da casa (não inventamos cômodo). 'fixos' põe cada aparelho no cômodo do Google; cenas vão pelo nome para um dos cômodos do Google; o que não casa fica na Sala de estar.",
+ "comodos": [
+  {
+   "nome": "Suíte",
+   "cor": "#E1FE06",
+   "texto": "#1D2830",
+   "palavras": [
+    "suite",
+    "casal",
+    "cama",
+    "master",
+    "sm",
+    "closet",
+    "toalheiro",
+    "boa noite",
+    "cab leandro",
+    "cab joana",
+    "joana"
+   ]
   },
-  "ocultar": [
-    "CAMERA",
-    "SECURITY_PANEL"
-  ],
-  "semComodo": "Outros",
-  "corSemComodo": "#2A3640",
-  "textoSemComodo": "#F2F5F7",
-  "_retorno": "Cor dos botões na tela de Cenas: amarelo = ligado ou sem status; grafite = só quando a central confirma que está desligado. 'retorno' liga cada cena aos aparelhos que dizem se ela está ligada (basta um ligado). Cena com aparelho de mesmo nome já se liga sozinha. 'semRetorno' = cenas sem status (ficam sempre amarelas).",
-  "retorno": {
-    "Cama": [
-      "Casal Cama"
-    ],
-    "Luz Alta": [
-      "Lustre"
-    ],
-    "Sanca": [
-      "Indireta"
-    ],
-    "3wBM": [
-      "Banho Master"
-    ]
+  {
+   "nome": "Quarto do Felipe",
+   "cor": "#9EACB5",
+   "texto": "#1D2830",
+   "palavras": [
+    "felipe",
+    "mesafel"
+   ]
   },
-  "semRetorno": [
-    "OFF_Sala",
-    "Master OFF",
-    "Boa Noite",
-    "Música",
-    "Apple TV",
-    "PlayStation",
-    "Globo",
-    "PW Net",
-    "PW Z1",
-    "PW Z2",
-    "CH",
-    "Persianas",
-    "CortDir",
-    "Estante Felipe"
+  {
+   "nome": "Sala de estar",
+   "cor": "#C1CFD9",
+   "texto": "#1D2830",
+   "palavras": [
+    "sala",
+    "z1",
+    "tv",
+    "apple",
+    "playstation",
+    "globo",
+    "musica",
+    "mudo",
+    "luz",
+    "sanca",
+    "indireta",
+    "lustre",
+    "mesa",
+    "persiana",
+    "cort",
+    "luminaria",
+    "estante",
+    "cozinha",
+    "bancada",
+    "varanda"
+   ]
+  }
+ ],
+ "ordemTela": [
+  "Sala de estar",
+  "Suíte",
+  "Quarto do Felipe"
+ ],
+ "fixos": {
+  "3wACFelipe": "Quarto do Felipe",
+  "3wMesaFel": "Quarto do Felipe",
+  "Corda": "Quarto do Felipe",
+  "OFFs Felipe": "Quarto do Felipe",
+  "3wCortFelipe": "Quarto do Felipe",
+  "Blackout do Felipe": "Quarto do Felipe",
+  "Estante": "Quarto do Felipe",
+  "TomadaFelipe": "Quarto do Felipe",
+  "Abajur": "Sala de estar",
+  "Indireta": "Sala de estar",
+  "Nespresso": "Sala de estar",
+  "Tomada Adega": "Sala de estar",
+  "Ventilador": "Sala de estar",
+  "Cozinha": "Sala de estar",
+  "Luminária Varanda": "Sala de estar",
+  "Sala de estar Lights": "Sala de estar",
+  "TV Frame": "Sala de estar",
+  "3wCloset": "Suíte",
+  "Cama": "Suíte",
+  "3wToalheiro": "Suíte",
+  "Closet": "Suíte",
+  "Mudo|CENA": "Sala de estar",
+  "MudoSM|CENA": "Suíte",
+  "Vol SM|CENA": "Suíte",
+  "Master OFF|CENA": "Suíte"
+ },
+ "ocultar": [
+  "CAMERA",
+  "SECURITY_PANEL"
+ ],
+ "semComodo": "Sala de estar",
+ "corSemComodo": "#2A3640",
+ "textoSemComodo": "#F2F5F7",
+ "_retorno": "Cor dos botões na tela de Cenas: amarelo = ligado ou sem status; grafite = só quando a central confirma que está desligado. 'retorno' liga cada cena aos aparelhos que dizem se ela está ligada (basta um ligado). Cena com aparelho de mesmo nome já se liga sozinha. 'semRetorno' = cenas sem status (ficam sempre amarelas).",
+ "retorno": {
+  "Cama": [
+   "Casal Cama"
   ],
-  "_controles": "Controle remoto: cada botão dispara uma CENA da Smart Life/Tuya; vale a primeira cena da lista que existir na casa. 'volumeCentral' (sala ou suite): quando falta a cena de um lado do volume, o botão manda aumentar/abaixar o volume direto para a TV pela central da Vinci (a Amazon só recebe uma cena de volume por TV: Vol+ e Vol- chegam com o mesmo nome). Botão sem cena não aparece.",
-  "controles": [
-    {
-      "nome": "TV Sala",
-      "tipo": "tv",
-      "comodo": "Sala",
-      "botoes": {
-        "power": [
-          "TV Sala"
-        ],
-        "mudo": [
-          "Mudo"
-        ],
-        "volMais": [
-          "Vol Z1"
-        ],
-        "volMenos": [
-          "Vol Menos Sala"
-        ]
-      },
-      "volumeCentral": "sala",
-      "rotulos": {
-        "volMais": "Vol +",
-        "volMenos": "Vol −"
-      }
-    },
-    {
-      "nome": "TV Suíte",
-      "tipo": "tv",
-      "comodo": "Suíte",
-      "botoes": {
-        "power": [
-          "TV Suíte"
-        ],
-        "mudo": [
-          "MudoSM"
-        ],
-        "volMais": [
-          "Vol SM"
-        ],
-        "volMenos": [
-          "Vol Menos SM"
-        ]
-      },
-      "volumeCentral": "suite",
-      "rotulos": {
-        "volMais": "Vol + SM",
-        "volMenos": "Vol − SM"
-      }
-    },
-    {
-      "nome": "Ar Sala",
-      "tipo": "ar",
-      "comodo": "Sala",
-      "botoes": {
-        "ligar": [
-          "ONAutACSala"
-        ],
-        "desligar": [
-          "OffautACSala"
-        ]
-      }
-    },
-    {
-      "nome": "Ar Suíte",
-      "tipo": "ar",
-      "comodo": "Suíte",
-      "botoes": {
-        "power": [
-          "AC Suíte"
-        ]
-      }
-    },
-    {
-      "nome": "Ar Felipe",
-      "tipo": "ar",
-      "comodo": "Felipe",
-      "botoes": {
-        "power": [
-          "AC Felipe"
-        ]
-      }
-    }
+  "Luz Alta": [
+   "Lustre"
+  ],
+  "Sanca": [
+   "Indireta"
+  ],
+  "3wBM": [
+   "Banho Master"
   ]
+ },
+ "semRetorno": [
+  "OFF_Sala",
+  "Master OFF",
+  "Boa Noite",
+  "Música",
+  "Apple TV",
+  "PlayStation",
+  "Globo",
+  "PW Net",
+  "PW Z1",
+  "PW Z2",
+  "CH",
+  "Persianas",
+  "CortDir",
+  "Estante Felipe"
+ ],
+ "_controles": "Controle remoto: cada botão dispara uma CENA da Smart Life/Tuya; vale a primeira cena da lista que existir na casa. 'volumeCentral' (sala ou suite): quando falta a cena de um lado do volume, o botão manda aumentar/abaixar o volume direto para a TV pela central da Vinci (a Amazon só recebe uma cena de volume por TV: Vol+ e Vol- chegam com o mesmo nome). Botão sem cena não aparece.",
+ "controles": [
+  {
+   "nome": "TV Sala",
+   "tipo": "tv",
+   "comodo": "Sala de estar",
+   "botoes": {
+    "power": [
+     "TV Sala"
+    ],
+    "mudo": [
+     "Mudo"
+    ],
+    "volMais": [
+     "Vol Z1"
+    ],
+    "volMenos": [
+     "Vol Menos Sala"
+    ]
+   },
+   "volumeCentral": "sala",
+   "rotulos": {
+    "volMais": "Vol +",
+    "volMenos": "Vol −"
+   }
+  },
+  {
+   "nome": "TV Suíte",
+   "tipo": "tv",
+   "comodo": "Suíte",
+   "botoes": {
+    "power": [
+     "TV Suíte"
+    ],
+    "mudo": [
+     "MudoSM"
+    ],
+    "volMais": [
+     "Vol SM"
+    ],
+    "volMenos": [
+     "Vol Menos SM"
+    ]
+   },
+   "volumeCentral": "suite",
+   "rotulos": {
+    "volMais": "Vol + SM",
+    "volMenos": "Vol − SM"
+   }
+  },
+  {
+   "nome": "Ar Sala",
+   "tipo": "ar",
+   "comodo": "Sala de estar",
+   "botoes": {
+    "ligar": [
+     "ONAutACSala"
+    ],
+    "desligar": [
+     "OffautACSala"
+    ]
+   }
+  },
+  {
+   "nome": "Ar Suíte",
+   "tipo": "ar",
+   "comodo": "Suíte",
+   "botoes": {
+    "power": [
+     "AC Suíte"
+    ]
+   }
+  },
+  {
+   "nome": "Ar Felipe",
+   "tipo": "ar",
+   "comodo": "Quarto do Felipe",
+   "botoes": {
+    "power": [
+     "AC Felipe"
+    ]
+   }
+  }
+ ],
+ "categorias": {
+  "3wACFelipe": "Iluminação",
+  "3wMesaFel": "Tomadas",
+  "Corda": "Tomadas",
+  "OFFs Felipe": "Tomadas",
+  "3wCortFelipe": "Iluminação",
+  "Blackout do Felipe": "Outros",
+  "Estante": "Iluminação",
+  "TomadaFelipe": "Tomadas",
+  "Abajur": "Tomadas",
+  "Indireta": "Iluminação",
+  "Nespresso": "Tomadas",
+  "Tomada Adega": "Tomadas",
+  "Ventilador": "Iluminação",
+  "Cozinha": "Iluminação",
+  "Luminária Varanda": "Tomadas",
+  "Sala de estar Lights": "Iluminação",
+  "TV Frame": "TVs",
+  "3wCloset": "Iluminação",
+  "Cama": "Iluminação",
+  "3wToalheiro": "Iluminação",
+  "Closet": "Iluminação"
+ },
+ "_categorias": "Categoria de cada aparelho como o Google classifica (Google Link da casa, 25/11/2026). Cenas e controles entram como 'Cenas'/'TVs' pela tela."
 }

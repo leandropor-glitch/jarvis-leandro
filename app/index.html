@@ -275,7 +275,7 @@ body.vision .tile,body.vision .chip{border-radius:28px}
   addEventListener('DOMContentLoaded', folgas); addEventListener('resize', folgas); addEventListener('orientationchange', ()=>setTimeout(folgas, 250));
 })();
 </script>
-</head>
+<script src="../vinci/senha-campos.js?v=4" defer></script></head>
 <body>
 
 <!-- ================= LOGIN ================= -->
@@ -470,12 +470,12 @@ body.vision .tile,body.vision .chip{border-radius:28px}
 /* ===================== configuração ===================== */
 const VERSAO = '1.0.6';
 const N8N = 'https://ia.uservinci.com/api';
-const APP_URL = N8N + '/felix/app';
-const TOKEN_URL = N8N + '/felix/token';
-const PERGUNTA_URL = N8N + '/felix/pergunta';
+const APP_URL = N8N + '/felyx-pre-vps/felix/app';
+const TOKEN_URL = N8N + '/felyx-pre-vps/felix/token';
+const PERGUNTA_URL = N8N + '/felyx-pre-vps/felix/pergunta';
 const MOTOR_URL = 'https://script.google.com' + '/macros/s/' + 'AKfycbyYzB4W_omCbBVCqUNGLqz4EGJps2PHoDbiOeRHqc-iKsU70lHAsLiFShNIRgCtxgen' + '/exec';
-const MERCADO_URL = N8N + '/felix/mercado';
-const NOTICIAS_URL = N8N + '/felix/noticias';
+const MERCADO_URL = N8N + '/felyx-pre-vps/felix/mercado';
+const NOTICIAS_URL = N8N + '/felyx-pre-vps/felix/noticias';
 const WHATSAPP = '5521967789150';
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
@@ -498,7 +498,7 @@ const NATIVO = !!params.get('p');
 let toastT = null;
 function toast(t, ms){ const el = $('#toast'); el.textContent = t; el.dataset.show = '1'; clearTimeout(toastT); toastT = setTimeout(() => { el.dataset.show = '0'; }, ms || 3500); }
 async function api(acao, dados){
-  const r = await fetch(APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
+  const r = await fetch(['casa','comando','estados'].includes(acao) ? N8N + '/felyx-pre-vps/felix/app' : APP_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao, ...dados }) });
   if (!r.ok) throw new Error('n8n ' + r.status);
   return r.json();
 }
@@ -774,7 +774,7 @@ let casa = store.get('felyx.casa', null), filtro = 'cenas';
 let roomConfig = {comodos:[],ordemTela:[],fixos:{},semComodo:'Outros'}, roomConfigReady=false;
 let casaRoom = store.get('felyx.comodo', '');
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig=j;roomConfigReady=true;renderCasa();}}).catch(()=>{});
-let favoritos = store.get('felyx.favoritos', ['Luz Alta', 'Sanca', 'TV Sala', 'Boa Noite']);
+let favoritos = store.get('felyx.favoritos', []);
 let ligado = store.get('felyx.ligado', {});
 let casaAt = 0;
 const TIPO = { SWITCH: 'interruptor', LIGHT: 'luz', SMARTPLUG: 'tomada', THERMOSTAT: 'ar', OTHER: 'aparelho' };
@@ -852,7 +852,7 @@ async function comandar(texto, el, nome, estado, cena=false){
       if (nome != null){ ligado[nome] = estado; store.set('felyx.ligado', ligado); }
       if(!cena) estadoCasa(true, 'casa online');
     } else if (j.recusado){
-      // o atalho entendeu, mas a Amazon não permite (ex.: desativar uma cena que só tem "ativar"): não é falha da casa
+      // o atalho entendeu, mas o Google não permite (ex.: desativar uma cena que só tem "ativar"): não é falha da casa
       if(cena){el.dataset.res='fail';const result=el.querySelector('.scene-result');if(result)result.textContent='Não concluída';}else toast(j.text || 'A Vinci não permite esse comando.');
     } else if (!j.atalho && cena){
       el.dataset.res='fail'; const result=el.querySelector('.scene-result'); if(result) result.textContent='Não concluída';
@@ -975,9 +975,9 @@ function gravarIA(v){ store.set(chaveIA(), v); $('#ajIA').checked = v === true; 
 // A conta de demonstração da revisão das lojas continua na tela clássica; ?cerebro=claude também volta para ela.
 function irParaGen(){
   // 13/11/2026 (Leandro): logado, abre sempre o Felyx Full (igual à Leda); a permissão de IA é pedida lá dentro. Só ?cerebro=claude fica nesta tela clássica.
-  if (!sessao || !sessao.token || params.get('cerebro') === 'claude') return false;
+  if (!sessao || !sessao.token) return false;
   try{ localStorage.setItem('felyx_sessao', sessao.token); }catch(e){}
-  const q = new URLSearchParams(location.search); q.set('v', '20261120local'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
+  const q = new URLSearchParams(location.search); q.delete('cerebro'); q.delete('modo'); q.set('v', '20261127full'); location.replace('full.html?' + q.toString()); return true;   // v novo a cada publicação: o app nunca abre a tela antiga do cache
 }
 let iaPedido = null;
 function permissaoIA(){
@@ -998,7 +998,7 @@ async function perguntar(p){
   const r = await fetch(PERGUNTA_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pergunta: quemFala(felyxCumprimento.ajustar(p)), sessionId: SESSION_ID, origem: 'app-' + (PLAT || 'web'), usuario: sessao ? sessao.nome : '', sessao: tokenSessao() }) });
   const j = await r.json().catch(() => ({}));
   if (sessaoCaiu(r, j)) throw new Error('sessao');
-  return String(j.text || '').replace(/\balexa\b/gi, 'Vinci');
+  return String(j.text || '');
 }
 function bolha(txt, quem){ const el = document.createElement('div'); el.className = 'bub ' + quem; el.textContent = txt; $('#chat').appendChild(el); $('#chat').scrollTop = 1e9; $('#vFelyx').classList.add('conversa'); return el; }
 async function perguntarPorTexto(p, mostrar){
@@ -1020,7 +1020,7 @@ Quem está falando com você agora pelo aplicativo é ${n}.${sessao && sessao.de
 Personalidade: um homem jovem, forte e confiante, voz grave e encorpada, direto, elegante e com bom humor na medida. Frases curtas, próprias para serem ouvidas.
 Como chamar a pessoa: sempre de "Chefe", em todo cumprimento e resposta (ex.: "Bom dia, Chefe.", "Pronto, Chefe."). Nunca chame a pessoa pelo nome, nem mesmo se souber quem é; é para não ter erro de nome.
 Nomes: o seu nome é Félix e só Félix. Nunca diga, soletre ou escreva a palavra "Jarvis"; se o usuário disser "Jarvis", entenda que está falando com você. Quando o usuário disser "vinte" ou "20" falando da empresa, ele quer dizer "Vinci". Pronúncia de "Vinci" (a empresa e Leonardo da Vinci): sempre em italiano, "Víntchi" (como "vinti" dito no português do Brasil). Nunca diga "Vince", "Vínsi" nem "Vinssi". Pronúncia do seu nome: Felyx se escreve com Y mas se fala sempre "Félix" (FÉ-lix, como o nome Félix em português); nunca diga "Felics", "Felis", "Fe-lí-quis" nem soletre. Chamar alguém pelo nome errado é ofensa: fale certo o seu nome, o da Vinci e o de cada pessoa.
-Palavra proibida: a palavra "Alexa" não existe no seu vocabulário. Nunca a diga. O sistema que aciona a casa chama-se Vinci: diga "a Vinci" ou "a central da Vinci". Se um texto contiver essa palavra, leia "Vinci" no lugar.
+O sistema que aciona a casa chama-se Vinci: se precisar falar dele, diga "a Vinci" ou "a central da Vinci".
 Regra principal: você não sabe nada sozinho. Para qualquer pergunta, pedido, consulta ou tarefa (casa, clima, dólar, notícias do painel, memória, trabalho, Vinci, qualquer assunto), e também para "bom dia", "boa tarde" e "boa noite", chame a função consultar_cerebro com a fala completa do usuário e leia a resposta recebida de forma fiel, sem resumir, sem inventar e sem acrescentar nada.
 Quem você é: quando perguntarem quem você é ou quem o criou, chame consultar_cerebro e leia a história que vier, inteira.
 Só responda por conta própria em "oi", "olá", "tchau", agradecimentos e conversa trivial de uma frase.
@@ -1042,7 +1042,7 @@ const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]li
 // (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
 // créditos, então ele fecha sozinho depois de AVATAR_OCIOSO_MIN sem conversa e reabre quando chamam o Felyx.
 // Enquanto não está pronto (ou se falhar), a voz toca normal aqui. Desligar: ?avatar=0 (fica salvo neste aparelho).
-const PRO_URL = N8N + '/felix/pro-sessao';
+const PRO_URL = N8N + '/felyx-pre-vps/felix/pro-sessao';
 const AVATAR_OCIOSO_MIN = 3;
 // Regra do Leandro (07/11): no rosto, a sincronia do lábio com a voz é o produto. A voz sai pelo vídeo do LiveAvatar desde a
 // primeira fala, em qualquer aparelho. Plano B, só se o rosto não devolver a voz em 2,5 s: o rosto fecha (nada de boca fora de
@@ -1053,7 +1053,7 @@ const SOM_MUDO = 'data:audio/wav;base64,UklGRkwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAf
 const falhasDaVoz = new Set();
 function avisarSilencioso(erro){   // vai em silêncio para o Claude (felyx_falhas, sem WhatsApp), uma vez por tipo a cada abertura
   const k = String(erro).slice(0, 80); if(falhasDaVoz.has(k) || !(sessao && sessao.token)) return; falhasDaVoz.add(k);
-  fetch(N8N + '/felix/gemini-apoio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao.token, acao:'falha',
+  fetch(N8N + '/felyx-pre-vps/felix/gemini-apoio', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sessao: sessao.token, acao:'falha',
     pedido: 'voz do app, tela clássica (' + APARELHO + ')', erro: String(erro) + ' · ' + navigator.userAgent.slice(0, 140) }) }).catch(()=>{});
 }
 let fraseEspera = null;   // "Só um momentinho, vou dar uma pesquisada aqui." gravada com a voz do Felyx (Gemini Live, Algieba)

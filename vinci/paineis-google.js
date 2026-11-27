@@ -75,9 +75,18 @@
         cripto:{ bitcoin:{ usd:btc, usdt:btc, brl:Math.round(btc*usd), chgUsdt:d('btc_usd') } }, ibovespa:{ pontos:ibov, chg:d('ibovespa') } },
       noticias:{ ok:true, atualizadoEm, politica, tecnologia } };
   }
+  // 24/11/2026 (Claude, pedido do Leandro): fotos das matérias achadas no servidor da Vinci a cada 15 min.
+  const FOTOS_URL = 'https://ia.uservinci.com/vinci/noticias-fotos.json';
+  const chaveTitulo = t => String(t || '').replace(/\s+[-|]\s+[^-|]{2,40}$/, '').normalize('NFKD').replace(/[^\x00-\x7f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 120);
+  function comFotos(r, fotos){
+    if(!r || !r.noticias || !fotos) return r;
+    ['politica', 'tecnologia'].forEach(k=>{ (r.noticias[k] || []).forEach(n=>{ if(!n.image){ const f = fotos[chaveTitulo(n.title)]; if(/^https:\/\//.test(String(f || ''))) n.image = f; } }); });
+    return r;
+  }
   function buscarMotor(){
     const ctl = typeof AbortController === 'function' ? new AbortController() : null; const t = setTimeout(()=>ctl && ctl.abort(), 6000);
-    return fetch(MOTOR_URL, { cache:'no-store', signal: ctl ? ctl.signal : undefined }).then(r=>r.json()).then(doMotor).finally(()=>clearTimeout(t));
+    const fotos = fetch(FOTOS_URL + '?t=' + Math.floor(Date.now() / 600000), { cache:'no-store' }).then(r=>r.ok ? r.json() : null).catch(()=>null);
+    return fetch(MOTOR_URL, { cache:'no-store', signal: ctl ? ctl.signal : undefined }).then(r=>r.json()).then(doMotor).then(r=>fotos.then(f=>comFotos(r, f))).finally(()=>clearTimeout(t));
   }
   function criar({ia, tokenUrl, sessao, model, onEstado}){
     const chave = 'vinci.paineis.google.v1.' + ia;

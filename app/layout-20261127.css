@@ -1,0 +1,171 @@
+#hud {
+  --vinci-card-font: var(--sans, system-ui);
+  --vinci-card-size: .81rem;
+  --vinci-card-line: 1.22;
+  --vinci-nav-height: var(--tabsH);
+  --vinci-cols: 4;
+}
+#hud .panel,
+#hud .panel :is(.ph,.pf,.k,.pr,.tile,.tt,.rows,.climaBox),
+#hud :is(.roombar,.pavBar,#catBar) button {
+  font-family: var(--vinci-card-font);
+  font-size: var(--vinci-card-size);
+  line-height: var(--vinci-card-line);
+  letter-spacing: normal;
+}
+#hud .panel :is(.ph,.pf) { min-width: 0; flex-wrap: wrap; }
+#hud .panel :is(.k,.pr,.pf,.tile span) { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+#hud[data-tab="home"] > :is(.top,.bottom),
+#hud[data-tab="home"] .stage :is(.col,.deck,.boot,.scan) { display: none !important; }
+#hud[data-tab="rooms"] :is(.col.left,.center,.news,.deck,.orbWrap),
+#hud[data-tab="rooms"] > :is(.top,.bottom,.mic) { display: none !important; }
+
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) {
+  box-sizing: border-box;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+           calc(var(--vinci-nav-height) + 8px) max(10px, env(safe-area-inset-left)) !important;
+  grid-template-rows: minmax(0, 1fr);
+}
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) > .stage {
+  position: relative;
+  display: grid;
+  grid-row: 1;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  grid-template-rows: none;
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-items: start;
+  gap: 10px;
+  padding: 2px 2px 14px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+#hud[data-tab="dashboard"] > :is(.top,.bottom,.mic) { display: none !important; }
+#hud[data-tab="dashboard"] > .stage {
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  grid-template-areas: "center center" "cmd cmd" "clima market" "c4d c4d" "n1 n2";
+}
+#hud[data-tab="dashboard"] .col { display: contents; }
+#hud[data-tab="dashboard"] .center { grid-area: center; min-height: 0; display: flex; justify-content: center; padding: 0; }
+#hud[data-tab="dashboard"] #climaP { grid-area: clima; }
+#hud[data-tab="dashboard"] #market { grid-area: market; }
+#hud[data-tab="dashboard"] #matrix { grid-area: cmd; }
+#hud[data-tab="dashboard"] #casa4dP { grid-area: c4d; }
+#hud[data-tab="dashboard"] #newsPol { grid-area: n1; }
+#hud[data-tab="dashboard"] #newsTec { grid-area: n2; }
+#hud[data-tab="dashboard"] :is(.deck,.boot) { display: none; }
+#hud[data-tab="dashboard"] :is(.panel,.matrix) { width: auto; min-width: 0; max-width: none; margin: 0; overflow: visible; }
+#hud[data-tab="dashboard"] .news { min-height: 170px; }
+#hud[data-tab="dashboard"] .orbWrap,
+#hud[data-tab="dashboard"].com-rosto .orbWrap { width: min(100%,19dvh,164px); margin-inline: auto; height: auto; }
+#hud[data-tab="rooms"] > .stage { grid-template-columns: minmax(0,1fr); grid-template-areas: "right"; }
+#hud[data-tab="rooms"] .col.right { min-width: 0; display: block; }
+#hud[data-tab="rooms"] .matrix { width: 100%; max-width: none; margin: 0; }
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid {
+  display: grid;
+  grid-template-columns: repeat(var(--vinci-cols),minmax(0,1fr)) !important;
+  grid-auto-rows: minmax(48px,auto);
+  align-content: start;
+  gap: 6px;
+  padding: 4px 8px 8px;
+}
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .tile {
+  min-width: 0;
+  min-height: 40px;
+  height: auto;
+  aspect-ratio: auto;
+  padding: 3px;
+}
+@media (min-width: 840px) {
+  #hud[data-tab="dashboard"] > .stage {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    grid-template-areas: "center cmd cmd" "clima market c4d" "n1 n2 n2";
+  }
+}
+#hud[data-vinci-dual="true"] { --vinci-cols: 8; }
+#hud[data-vinci-dual="true"]:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid {
+  grid-template-columns: repeat(4,minmax(0,1fr)) max(0px,var(--vinci-hinge,0px)) repeat(4,minmax(0,1fr)) !important;
+}
+#hud[data-vinci-dual="true"]:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid > :nth-child(8n + 5) { grid-column: 6; }
+@media (horizontal-viewport-segments: 2) {
+  #hud { --vinci-cols: 8; --vinci-hinge: calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0)); }
+  #hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid {
+    grid-template-columns: repeat(4,minmax(0,1fr)) max(0px,var(--vinci-hinge,0px)) repeat(4,minmax(0,1fr)) !important;
+  }
+  #hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid > :nth-child(8n + 5) { grid-column: 6; }
+}
+
+#hud[data-vinci-dual="true"][data-tab="dashboard"] > .stage {
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  grid-template-areas: "center center" "cmd cmd" "clima market" "c4d c4d" "n1 n2";
+}
+@media (horizontal-viewport-segments: 2) {
+  #hud[data-tab="dashboard"] > .stage {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-areas: "center center" "cmd cmd" "clima market" "c4d c4d" "n1 n2";
+  }
+}
+
+html body #hud:is([data-tab="dashboard"],[data-tab="rooms"]) > #talk.mic { display: none !important; }
+#hud #matrix { --card-inset: clamp(10px, 1.5vw, 18px); }
+#hud #matrix :is(.roombar,.pavBar,.ghome,#leoCasaNav) {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding-inline: var(--card-inset);
+}
+#hud #matrix .ghome { flex-wrap: wrap; row-gap: 8px; }
+#hud #matrix .ghome > * { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+#hud #matrix #leoCasaNav { margin-inline: 0; }
+#hud #matrix #leoCasaNav .ghome { padding-inline: 0; }
+@media (min-width: 600px) {
+  #hud[data-tab="dashboard"] > .stage {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-areas: "center center" "cmd cmd" "clima market" "c4d market" "n1 n2";
+  }
+  #hud[data-tab="dashboard"] #market { align-self: stretch; }
+}
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid { gap: 6px; padding-inline: 0; }
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .tile {
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 0;
+  height: auto;
+  padding: 4px;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#hud #matrix .tile span, #hud :is(.pavBar,.roombar) button {
+  font: 600 12px/1.15 system-ui, sans-serif;
+  overflow-wrap: anywhere;
+}
+#hud #matrix { --card-inset: clamp(10px, 1.5vw, 18px); }
+#hud #matrix :is(.roombar,.pavBar,.ghome) {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding-inline: var(--card-inset);
+}
+#hud[data-tab="rooms"] #matrix #catBar { margin-inline: var(--card-inset); }
+#hud #matrix .ghome { flex-wrap: wrap; row-gap: 8px; }
+#hud #matrix .ghome > * { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+/* Landscape keeps the first row of four home cards visible beside the avatar. */
+@media (min-width: 600px) and (max-height: 500px) {
+  #hud[data-tab="dashboard"] > .stage {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+    grid-template-areas: "center cmd cmd" "clima c4d market" "n1 n2 n2" !important;
+  }
+  #hud[data-tab="dashboard"] #matrix { align-self: start; }
+  #hud[data-tab="dashboard"] .orbWrap { width: min(100%,24dvh,164px); }
+}
+
+#hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix .grid { box-sizing: border-box; padding-inline: var(--card-inset); }
