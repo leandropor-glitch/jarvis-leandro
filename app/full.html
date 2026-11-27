@@ -615,7 +615,7 @@ input,select,textarea{font-size:16px!important}
       <section class="orbWrap" aria-label="Felyx">
         <canvas id="rings" aria-hidden="true"></canvas>
         <div class="face">
-          <img class="retrato" src="felyx-retrato-16x9.jpg" alt="" aria-hidden="true"><canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
+          <img class="retrato" src="felyx-avatar-aprovado-20261127.png" data-avatar-approved="20261127" alt="" aria-hidden="true"><canvas id="cv" width="1000" height="1000" aria-hidden="true"></canvas>
           <video id="avatarVideo" autoplay playsinline muted aria-hidden="true"></video>
           <audio id="avatarAudio" autoplay></audio>
           <div class="scan" id="scan" data-on="0" aria-hidden="true"><div class="line"></div><div class="ret l"></div><div class="ret r"></div></div>
@@ -1683,7 +1683,7 @@ const OPENING = 'Mensagem automática do sistema: a sessão acabou de abrir. Dig
 // a fala só vale quando chama o Félix; a transcrição do Gemini pode escrever Félix, Felix, Felyx ou Félis
 const CHAMA_FELIX = /(^|[^a-zà-ú])(f[eé]l[iíy]x|felyx|f[eé]lis|phelix)([^a-zà-ú]|$)|^\W*(ei|oi|ô|o)?\W*f[eé]liz([^a-zà-ú]|$)/i;
 const SO_O_NOME = /^\W*(ei|oi|ô|o|olá|e aí)?\W*(f[eé]l[iíy]x|felyx|f[eé]lis|f[eé]liz|phelix)\W*$/i;
-try{ const q = localStorage.getItem('felyx.rosto.parado'); const r = document.querySelector('.face .retrato'); if(q && r) r.src = q; }catch(e){}   // foto parada = último quadro do LiveAvatar calado
+try{ const q = localStorage.getItem('felyx.rosto.parado'); const r = document.querySelector('.face .retrato'); if(q && r && !r.dataset.avatarApproved) r.src = q; }catch(e){}   // foto parada = último quadro do LiveAvatar calado
 /* ---------- rosto ao vivo (LiveAvatar, modo LITE) ---------- */
 // O avatar só faz o vídeo e a boca: a voz continua sendo a do Gemini, enviada pelo WebSocket da sessão
 // (PCM 16-bit 24 kHz) e devolvida pelo LiveKit já sincronizada com os lábios. Cada minuto aberto consome
@@ -1777,6 +1777,7 @@ const FelyxAvatar = (()=>{
   // 09/11/2026 (Leandro): a foto parada depois da íris tem que ser igualzinha ao LiveAvatar calado.
   // Com o rosto pronto e em silêncio, guarda um quadro do próprio vídeo neste aparelho e passa a usá-lo como foto parada.
   function capturarParado(tentativa){
+    if(document.querySelector(".face .retrato")?.dataset.avatarApproved) return;
     tentativa = tentativa || 0;
     if(!pronto || tentativa > 20) return;
     const calado = !agenteFalando && Date.now() - falouEm > 1500;
