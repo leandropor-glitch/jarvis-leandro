@@ -1,0 +1,104 @@
+/* Tab ownership is authoritative, including in older Duo shells whose injected
+   stylesheet forces all three HUD columns visible. The repeated ID deliberately
+   outranks that stylesheet regardless of injection order. */
+html body #hud#hud[data-tab] {
+  --abas-bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+}
+html body #hud#hud[data-tab] > :is(.top,.bottom),
+html body #hud#hud[data-tab] .stage :is(.deck,.boot,.scan),
+html body #hud#hud:not([data-tab="home"]) > .mic,
+html body #hud#hud:not([data-tab="home"]) .stage > .center,
+html body #hud#hud[data-tab="home"] .stage > :is(.left,.right),
+html body #hud#hud[data-tab="rooms"] .stage > .left,
+html body #hud#hud[data-tab="rooms"] .stage > .right > :not(#matrix),
+html body #hud#hud:not([data-tab="receitas"]) > #receitas,
+html body #hud#hud[data-tab="receitas"] > .stage { display:none!important; }
+
+html body #hud#hud[data-tab] > .appTabs {
+  position:fixed!important; left:0!important; right:0!important; top:auto!important;
+  bottom:0!important; width:100%!important; height:var(--abas-bottom)!important;
+  box-sizing:border-box!important; transform:none!important;
+  padding-bottom:env(safe-area-inset-bottom,0px)!important;
+}
+html body #hud#hud[data-tab="home"] > .mic {
+  display:grid!important; position:fixed!important;
+  left:50%!important; right:auto!important; top:auto!important;
+  bottom:calc(var(--abas-bottom) + 36px)!important;
+  width:56px!important; height:56px!important; transform:translateX(-50%)!important;
+}
+html body #hud#hud:is([data-tab="dashboard"],[data-tab="rooms"]) > .stage {
+  display:grid!important; position:fixed!important;
+  inset:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) calc(var(--abas-bottom) + 8px) max(12px,env(safe-area-inset-left))!important;
+  width:auto!important; height:auto!important; min-height:0!important;
+  max-height:none!important; overflow:auto!important; padding:0 0 12px!important;
+  grid-template-areas:none!important; grid-template-rows:none!important;
+  grid-auto-rows:max-content!important; align-content:start!important; gap:12px!important;
+}
+html body #hud#hud[data-tab="dashboard"] > .stage {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))!important;
+}
+html body #hud#hud[data-tab="dashboard"] .stage > .col { display:contents!important; }
+html body #hud#hud[data-tab="dashboard"] .stage > .col > * {
+  grid-area:auto!important; min-width:0!important; max-width:100%!important;
+}
+html body #hud#hud:is([data-tab="dashboard"],[data-tab="rooms"]) #matrix {
+  display:flex!important; position:relative!important; flex-direction:column!important;
+  width:100%!important; height:auto!important; min-height:0!important;
+  max-height:none!important; box-sizing:border-box!important; overflow:visible!important;
+}
+html body #hud#hud[data-tab="dashboard"] #newsTec { display:flex!important; }
+html body #hud#hud[data-tab="rooms"] > .stage { grid-template-columns:minmax(0,1fr)!important; }
+html body #hud#hud[data-tab="rooms"] .stage > .right {
+  display:block!important; position:static!important; inset:auto!important;
+  width:100%!important; height:auto!important; min-height:0!important;
+  max-height:none!important; overflow:visible!important; transform:none!important;
+}
+html body #hud#hud[data-tab="receitas"] > #receitas {
+  position:fixed!important; inset:max(12px,env(safe-area-inset-top)) 12px calc(var(--abas-bottom) + 8px)!important;
+  width:auto!important; height:auto!important; overflow:auto!important;
+}
+/* Home has one content rectangle in every orientation. Explicit grid placement
+   cancels old dashboard areas inherited by LiveAvatar (.com-rosto). */
+html body #hud#hud[data-tab="home"] > .stage {
+  display:grid!important; position:fixed!important;
+  inset:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) calc(var(--abas-bottom) + 104px) max(8px,env(safe-area-inset-left))!important;
+  width:auto!important; height:auto!important; min-height:0!important;
+  grid-template: minmax(0,1fr) / minmax(0,1fr)!important;
+  grid-template-areas:none!important; gap:0!important; padding:0!important;
+}
+html body #hud#hud[data-tab="home"] .stage > .center {
+  display:grid!important; position:relative!important; inset:auto!important;
+  grid-area:1 / 1!important; grid-template:minmax(0,1fr) / minmax(0,1fr)!important;
+  width:100%!important; height:100%!important; min-height:0!important;
+  overflow:hidden!important; place-items:stretch!important; padding:0!important;
+}
+html body #hud#hud[data-tab="home"] .orbWrap,
+html body #hud#hud[data-tab="home"] .face {
+  position:relative!important; inset:auto!important; grid-area:1 / 1!important;
+  width:100%!important; height:100%!important; min-width:0!important; min-height:0!important;
+  max-width:none!important; max-height:none!important; aspect-ratio:auto!important;
+  transform:none!important; margin:0!important; overflow:hidden!important;
+  border-radius:0!important;
+}
+html body #hud#hud[data-tab="home"] .face :is(.retrato,video,.ledaBusto) {
+  position:absolute!important; inset:0!important; width:100%!important; height:100%!important;
+  max-width:100%!important; max-height:100%!important; transform:none!important;
+  translate:none!important; object-fit:contain!important; object-position:center!important;
+}
+/* Folding must not silently remove controls from the automation tab. */
+html[data-duo] body #hud#hud[data-tab="rooms"] #grid .tile:not([hidden]) { display:flex!important; }
+html[data-duo] body #hud#hud[data-tab="rooms"] #roomBar:not([hidden]) { display:flex!important; }
+/* Native shells may use flex for the same button. Center its glyph in either
+   layout mode, including the muted/idle captions in landscape. */
+html body #hud#hud[data-tab] > .mic {
+  justify-content:center!important; align-items:center!important;
+  padding:0!important; box-sizing:border-box!important;
+}
+html body #hud#hud[data-tab] > .mic svg {
+  display:block!important; margin:0!important; flex:none!important;
+}
+html body #hud#hud[data-tab] > .mic::after {
+  top:calc(100% + 4px)!important; line-height:20px!important;
+  left:50%!important; right:auto!important;
+  transform:translateX(-50%)!important; text-align:center!important;
+}

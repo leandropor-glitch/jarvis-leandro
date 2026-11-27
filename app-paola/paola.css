@@ -78,3 +78,39 @@ nav a{font-size:10.56px}
 @keyframes paola-listen{0%,100%{transform:rotate(-.15deg) translateY(0)}50%{transform:rotate(-.1deg) translateY(-1.5px)}}
 @keyframes paola-speak{0%,100%{transform:rotate(-.2deg) translateY(0)}35%{transform:rotate(.25deg) translateY(-1.5px)}68%{transform:rotate(-.1deg) translateY(-1px)}}
 @media(prefers-reduced-motion:reduce){#paola .paola-portrait,#paola:has(.voice-button[data-state]) .paola-portrait{animation:none;transform:none}}
+
+/* One viewport, one active tab. Home reserves the microphone and navigation
+   before sizing the complete portrait; content tabs scroll independently. */
+html,body { height:100%; }
+body:not(.signed-out) { height:100dvh; min-height:0; overflow:hidden; grid-template-rows:minmax(0,1fr) auto; }
+body:not(.signed-out) > main { min-height:0; overflow:hidden; padding:8px max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left)); padding-top:max(8px,env(safe-area-inset-top)); }
+body:not(.signed-out) > nav { min-height:64px; box-sizing:border-box; padding-top:6px; padding-bottom:max(6px,env(safe-area-inset-bottom)); }
+body:not(.signed-out) > nav a { display:grid; place-items:center; min-height:44px; box-sizing:border-box; }
+body:not(.signed-out) main > section { width:100%; height:100%; min-height:0; overflow:auto; }
+body:not(.signed-out) main > #paola:target,
+body:not(.signed-out) main:not(:has(> section:target)) > #paola {
+  display:grid; grid-template-rows:minmax(0,1fr) 54px 24px;
+  justify-items:center; align-items:center; gap:6px; overflow:hidden;
+}
+body:not(.signed-out) #paola .paola-portrait {
+  width:100%; height:100%; min-height:0; max-width:100%; max-height:100%;
+  margin:0; object-fit:contain; padding:3px; box-sizing:border-box;
+}
+#paola .voice-button { flex:none; }
+#voice-status { margin:0; max-width:100%; font-size:12px; line-height:1.2; }
+/* Initial idle copy is descriptive text for assistive technology; actual voice
+   feedback remains visible once the existing voice controller sets its state. */
+#paola:not(:has(.voice-button[data-state])) #voice-status {
+  position:absolute; width:1px; height:1px; padding:0; overflow:hidden;
+  clip-path:inset(50%); white-space:nowrap;
+}
+.dashboard-grid .house-card a { display:inline-block; padding:12px; border:1px solid #2c6379; border-radius:12px; }
+#paola .voice-button {
+  justify-content:center!important; align-items:center!important;
+  padding:0!important; box-sizing:border-box!important;
+}
+#paola .voice-button svg { display:block!important; margin:0!important; flex:none!important; }
+#paola .voice-button::after {
+  left:50%!important; right:auto!important;
+  transform:translateX(-50%)!important; text-align:center!important;
+}
