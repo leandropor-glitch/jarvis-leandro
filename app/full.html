@@ -2072,7 +2072,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const marker=()=> 'felyx.google.house.v2:'+owner();
   const read=()=>{try{return JSON.parse(localStorage.getItem(marker())||'{}')}catch(e){return {}}};
   const write=value=>localStorage.setItem(marker(),JSON.stringify(value));
-  let nativePending=!!(window.webkit?.messageHandlers?.felyx?.postMessage||window.FelyxAndroid?.googleHome);
   window.VinciGoogleHouseDisconnected=()=>read().disconnected===true;
   window.VinciGoogleHouseMode=()=>read().provider==='google'||read().disconnected===true;
   if(!button||!status||!box)return;
@@ -2080,7 +2079,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const email=document.createElement('span');email.id='ghomeEmail';box.prepend(email);
   const error=document.createElement('span');error.id='ghomeError';error.setAttribute('role','status');box.append(error);
   let current={connected:false},busy=false;
-  function draw(s){if(s.checked)nativePending=false;current=s;status.textContent=s.connected?'Casa conectada':'Casa desconectada';email.textContent=s.email||'';email.hidden=!s.email;button.textContent=s.connected?'logout':'Conecte sua casa';button.dataset.connected=String(s.connected);button.title=s.capable?'':'Atualize o aplicativo para identificar sua conta Google';button.hidden=false;button.disabled=busy;}
+  function draw(s){
+    current=s;
+    const binding=read();
+    const hasSavedItems=tiles.some(tile=>tile && tile.n);
+    if(s.connected) status.textContent='Casa conectada';
+    else if(binding.disconnected) status.textContent='Casa desconectada';
+    else if(hasSavedItems) status.textContent='Itens salvos';
+    else status.textContent='Conexão não verificada';
+    status.title=hasSavedItems && !s.connected && !binding.disconnected
+      ? 'Itens salvos neste aparelho. A conexão atual da casa ainda não foi confirmada.' : '';
+    email.textContent=s.email||'';
+    email.hidden=!s.email;
+    button.textContent=s.connected?'logout':hasSavedItems && !binding.disconnected?'Vincular Google':'Conecte sua casa';
+    button.dataset.connected=String(s.connected);
+    button.title=s.capable?'':'Atualize o aplicativo para identificar sua conta Google';
+    button.hidden=false;
+    button.disabled=busy;
+  }
   function clearCurrent(){
     VinciHouseV2.resetCurrent();
     [MATRIX_KEY,MATRIX_ON_KEY,SALAS_KEY,roomStoreKey,'felyx.casa'].forEach(k=>localStorage.removeItem(k));
