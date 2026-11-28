@@ -1,0 +1,25 @@
+/* Paola has a separate DOM; keep voice and account controllers untouched. */
+html body[data-duo-layout-v2]:not(.signed-out) {--duo-nav:calc(64px + env(safe-area-inset-bottom,0px));height:100dvh;overflow:hidden;background:#000;}
+html body[data-duo-layout-v2] > nav {position:fixed;inset:auto 0 0;display:flex;justify-content:center;align-items:center;gap:4px;height:var(--duo-nav,64px);box-sizing:border-box;padding:8px 12px max(8px,env(safe-area-inset-bottom,0px));z-index:40;background:#080808;}
+html body[data-duo-layout-v2] > nav > a {flex:0 1 150px;min-width:0;min-height:44px;box-sizing:border-box;display:grid;place-items:center;padding:8px;font-size:11px;}
+html body[data-duo-layout-v2]:not(.signed-out) > main {position:fixed;inset:max(8px,env(safe-area-inset-top,0px)) max(8px,env(safe-area-inset-right,0px)) calc(var(--duo-nav) + 8px) max(8px,env(safe-area-inset-left,0px));padding:0;width:auto;height:auto;}
+html body[data-duo-layout-v2]:not(.signed-out):has(#paola:target) > main,
+html body[data-duo-layout-v2]:not(.signed-out):not(:has(main > section:target)) > main {left:8px;right:8px;}
+html body[data-duo-layout-v2] #paola {padding:0 0 24px;box-sizing:border-box;}
+html body[data-duo-layout-v2] #dashboard {padding:8px;box-sizing:border-box;}
+html body[data-duo-layout-v2] .dashboard-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:12px;}
+html body[data-duo-layout-v2] .dashboard-grid > article {min-width:0;padding:12px;box-sizing:border-box;}
+html body[data-duo-layout-v2] .dashboard-grid > .duo-dashboard-avatar {grid-area:avatar;padding:0;border:0;background:none;display:grid;place-items:center;}
+html body[data-duo-layout-v2] .duo-dashboard-avatar img {width:180px;height:180px;max-width:100%;object-fit:contain;}
+html body[data-duo-layout-v2] .dashboard-grid {grid-template-areas:"avatar" "house" "market" "weather" "news";}
+html body[data-duo-layout-v2] .house-card {grid-area:house;}
+html body[data-duo-layout-v2] .dashboard-grid > article:has(#dashboard-market) {grid-area:market;}
+html body[data-duo-layout-v2] .dashboard-grid > article:has(#dashboard-weather) {grid-area:weather;}
+html body[data-duo-layout-v2] .dashboard-grid > .news-card {grid-area:news;}
+html body[data-duo-layout-v2] #paola-house-list ul {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:0;list-style:none;}
+html body[data-duo-layout-v2] #paola-house-list li {min-width:0;min-height:48px;padding:6px;box-sizing:border-box;border:1px solid #2c6379;border-radius:10px;font-size:12px;overflow-wrap:anywhere;display:flex;align-items:center;}
+html body[data-duo-layout-v2] #ambientes button {min-height:36px;font-size:12px;padding:8px 12px;}
+@media(min-width:700px){
+ html body[data-duo-layout-v2] .dashboard-grid {grid-template-columns:1fr 2fr;grid-template-areas:"avatar house" "market weather" "news news";}
+ html body[data-duo-layout-v2] #paola-house-list ul {grid-template-columns:repeat(auto-fit,minmax(110px,1fr));}
+}

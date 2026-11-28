@@ -31,7 +31,9 @@
           const novos = [];
           (j.comodos || []).forEach(c => (c.aparelhos || []).forEach(a => novos.push({ n: a.nome.slice(0, 40), f: 'ligar ' + a.nome, f2: 'desligar ' + a.nome, s: c.nome, fav: true, rc: '' })));
           (j.cenas || []).forEach(r => novos.push({ n: r.nome.slice(0, 40), f: 'ativar a cena ' + r.nome, f2: '', s: '', fav: true, rc: '' }));
-          localStorage.setItem(MATRIX_KEY, JSON.stringify(novos));
+          if(window.VinciHouseV2){
+            if(!window.VinciHouseV2.acceptImport(novos)) localStorage.setItem(MATRIX_KEY, JSON.stringify(window.VinciHouseV2.importTiles(novos,window.VinciHouseV2.loadTiles(localStorage.getItem(MATRIX_KEY)))));
+          }else localStorage.setItem(MATRIX_KEY, JSON.stringify(novos));
           if(typeof MATRIX_ON_KEY !== 'undefined') localStorage.removeItem(MATRIX_ON_KEY);
           localStorage.setItem('vinci.casaGoogle', JSON.stringify({ casa: j.casa, lido_em: j.lido_em }));
         }

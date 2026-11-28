@@ -566,7 +566,7 @@ input,select,textarea{font-size:16px!important}
 }
 </style>
 <style id="modoLive">/* 14/11/2026: botão de mudo do modo live */#hud>.mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}#hud>.mic[data-on="1"][data-mudo="1"]{filter:grayscale(1);opacity:.6}#hud>.mic[data-on="1"][data-mudo="1"]::after{content:"microfone mudo";position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);color:var(--down,#ff6a62);font:700 1rem/1.1 "Barlow Semi Condensed","Barlow",system-ui,sans-serif;letter-spacing:.04em;white-space:nowrap;pointer-events:none;filter:none}@media (orientation:landscape){#hud>.mic[data-on="1"][data-mudo="1"]::after{left:auto;right:-4px;transform:none;text-align:right}}</style>
-<script src="base/noticias-fotos.js?v=20261127leda" defer></script><script src="base/dashboard-links.js?v=20261127leda" defer></script><script src="base/casa-google.js?v=20261127leda" defer></script><script src="base/senha-campos.js?v=20261127leda" defer></script><style id="favCabe">/* 25/11/2026 (Leandro): no computador os Favoritos cabem na tela (4 colunas, quadrado limitado pela altura), sem depender de rolagem */@media (min-width:900px){#hud[data-tab="dashboard"] #matrix .grid{grid-template-columns:repeat(4,min(104px,calc((100dvh - 250px) / 8)))!important;justify-content:center!important}#hud[data-tab="dashboard"]>.stage{scrollbar-width:thin;scrollbar-color:rgba(201,138,75,.45) transparent}}</style><style id="ledaVisual">
+<script src="base/noticias-fotos.js?v=20261127leda" defer></script><script src="base/dashboard-links.js?v=20261127leda" defer></script><script src="base/senha-campos.js?v=20261127leda" defer></script><style id="favCabe">/* 25/11/2026 (Leandro): no computador os Favoritos cabem na tela (4 colunas, quadrado limitado pela altura), sem depender de rolagem */@media (min-width:900px){#hud[data-tab="dashboard"] #matrix .grid{grid-template-columns:repeat(4,min(104px,calc((100dvh - 250px) / 8)))!important;justify-content:center!important}#hud[data-tab="dashboard"]>.stage{scrollbar-width:thin;scrollbar-color:rgba(201,138,75,.45) transparent}}</style><style id="ledaVisual">
 /* Leda (12/11/2026, revisão 3): arte oficial em fundo marrom; barra, microfone e frase em cobre metálico (como o anel do pescoço); aba Receitas; sem cotações */
 :root{--leda:#c98a4b;--ledaRGB:201,138,75;--cobre:linear-gradient(135deg,#f6d2a4 0%,#d39a5f 28%,#a8692f 52%,#e2b07a 74%,#8c5527 100%);--fundo:#291b16;--ink950:#291b16;--ink900:#34231c;--ink800:#3d2a22;--ink700:#4a3328;--linha:#563c2f;--mist:#bfa38b;--texto:#f3e8dc;--accent:#c98a4b;--accent-rgb:201,138,75}
 html,body,#hud{overscroll-behavior:none;background:var(--fundo)!important}
@@ -957,7 +957,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
           <label>controle remoto depois da cena<select id="edRc"><option value="">automático (TV e ar pelo nome)</option><option value="tv">televisão</option><option value="ar">ar-condicionado</option><option value="som">som</option><option value="nao">nenhum</option></select></label>
           <label class="chk"><input type="checkbox" id="edFav"> favorito (vai para o topo do Dashboard e para a sala Favoritos)</label>
           <datalist id="phrases"></datalist>
-          <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">esvaziar</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
+          <div class="eb"><button class="pb" id="edSave" type="button">salvar</button><button class="pb" id="edClear" type="button">remover da minha seleção</button><button class="pb" id="edCancel" type="button">cancelar</button><button class="pb" id="edReset" type="button">restaurar padrão</button></div>
           <div class="hint">a frase é mandada à central da Vinci. fica salvo neste aparelho.</div>
         </div>
       </section>
@@ -994,7 +994,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 <script src="base/iris-sons.js?v=20261127leda"></script>
 <script src="base/iris.js?v=20261127leda"></script>
 <script src="base/esqueci-senha.js?v=20261127leda"></script>
-<script src="base/onboarding-ui.js?v=20261127leda"></script><script src="base/liveavatar-contract.js?v=20261127leda"></script><script src="base/house-display-adapter.js?v=20261127leda"></script><script src="base/onboarding-contexto.js?v=20261127leda"></script><script src="base/contexto-adapter.js?v=20261127leda"></script>
+<script src="base/onboarding-ui.js?v=20261127leda"></script><script src="base/liveavatar-contract.js?v=20261127leda"></script><script src="base/house-display-adapter.js?v=20261127leda"></script><script src="duo-house-v2.js?v=20261127-v2"></script><script src="base/onboarding-contexto.js?v=20261127leda"></script><script src="base/contexto-adapter.js?v=20261127leda"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -1262,11 +1262,12 @@ const SESSION_ID = 'hud-' + Math.random().toString(36).slice(2, 8);
 const LOGIN_URL = 'https://ia.uservinci.com/api/felix/login';
 let SESSAO = '';
 try{ SESSAO = localStorage.getItem('leda_sessao') || ''; }catch(e){}
-function salvarSessao(t){
+function salvarSessao(t,telefone){
+  if(t && telefone){try{localStorage.setItem('leda.sessao',JSON.stringify({token:t,telefone:String(telefone).replace(/\D/g,'')}));}catch(e){}}
   SESSAO = t || '';
   try{ if(t) localStorage.setItem('leda_sessao', t); else localStorage.removeItem('leda_sessao'); }catch(e){}
   if(syncMatrixOwner()){
-    casaGen = {aparelhos:[],cenas:[]}; window.felyxCOAllScenes = []; tiles = []; tileOn = {}; salas = {renomes:{},extras:[],ocultas:[]}; roomActive = '';
+    casaGen = {aparelhos:[],cenas:[]}; window.felyxCOAllScenes = []; tiles = loadTiles(); tileOn = JSON.parse(localStorage.getItem(MATRIX_ON_KEY)||'{}'); salas = JSON.parse(localStorage.getItem('leda.salas.v1')||'null') || {renomes:{},extras:[],ocultas:[],pavimentos:[],pavDe:{}}; roomActive = localStorage.getItem('leda.room.active')||'';
     renderMatrix();
   }
 }
@@ -1297,14 +1298,14 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
         r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
         j = {}; try{ j = await r.json(); }catch(e){}
       }
-      if(r.ok && j.ok && j.token){ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); }
+      if(r.ok && j.ok && j.token){ salvarSessao(j.token,document.getElementById('flTel').value); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); }
       else { erro.textContent = 'Telefone ou senha não conferem, ou você não está autorizado.'; }
     }catch(e){ erro.textContent = 'Não consegui conectar. Tente de novo.'; }
     entrar.disabled = false;
   }
   entrar.addEventListener('click', tentar);
   document.getElementById('flEsqueci').addEventListener('click', ()=> felyxEsqueciSenha({ telefone: document.getElementById('flTel').value, aparelho: 'Felyx GEN',
-    aoEntrar: (j)=>{ salvarSessao(j.token); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); } }));
+    aoEntrar: (j)=>{ salvarSessao(j.token,document.getElementById('flTel').value); erro.textContent = ''; esconderLogin(); VinciOnboarding.depoisDoLogin(()=>{ primeAudio(); if(!conv) start(); }); } }));
   document.getElementById('flSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') tentar(); });
 })();
 function mostrarLogin(msg){ if(window.felyxVoltarAoLogin) return window.felyxVoltarAoLogin(); const el = document.getElementById('felyxLogin'); const er = document.getElementById('flErro'); if(er) er.textContent = msg || ''; if(el){ el.dataset.on = '1'; setTimeout(()=>{ try{ document.getElementById('flTel').focus(); }catch(e){} }, 50); } }
@@ -1457,17 +1458,7 @@ async function buscarNoticias(){
 const MATRIX_KEY = 'leda.matrix.v2', MATRIX_ON_KEY = 'leda.matrix.on.v2';
 const MATRIX_OWNER_KEY = 'leda.matrix.owner.v1';
 function syncMatrixOwner(){
-  try{
-    let phone = '';
-    try{ const profile = JSON.parse(localStorage.getItem('leda.sessao')||'null'); if(profile && profile.token === SESSAO) phone = String(profile.telefone||'').replace(/\D/g,''); }catch(e){}
-    const owner = (SESSAO || '') + '|' + phone;
-    if(localStorage.getItem(MATRIX_OWNER_KEY) !== owner){
-      [MATRIX_KEY,MATRIX_ON_KEY,'leda.salas.v1','leda.room.active','leda.casaGen','vinci.casaGoogle'].forEach(k=>localStorage.removeItem(k));
-      localStorage.setItem(MATRIX_OWNER_KEY,owner);
-      return true;
-    }
-  }catch(e){}
-  return false;
+  try{return VinciHouseV2.syncOwner(SESSAO,localStorage);}catch(e){return false;}
 }
 syncMatrixOwner();
 const DEFAULT_TILES = [];
@@ -1484,17 +1475,16 @@ const gridEl = document.getElementById('grid'), matrixEl = document.getElementBy
 const editorEl = document.getElementById('editor'), edName = document.getElementById('edName'), edPhrase = document.getElementById('edPhrase'), edPhrase2 = document.getElementById('edPhrase2');
 let tiles = loadTiles(), editMode = false, editing = -1;
 function loadTiles(){
-  try{ const raw = localStorage.getItem(MATRIX_KEY); if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr) && (arr.length >= 32 || (arr.length && localStorage.getItem('vinci.casaGoogle')))) return arr.slice(0, 160).map(t=>({ n:String((t&&t.n)||''), f:String((t&&t.f)||''), f2:String((t&&t.f2)||''), s:String((t&&t.s)||''), fav:!!(t&&t.fav), rc:String((t&&t.rc)||'') })); } }catch(e){}
-  return DEFAULT_TILES.map(t=>({ ...t }));
+  try{return VinciHouseV2.loadTiles(localStorage.getItem(MATRIX_KEY));}catch(e){return [];}
 }
-function saveTiles(){ try{ localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles)); }catch(e){} }
+function saveTiles(){ try{tiles=VinciHouseV2.prepareSave(tiles);localStorage.setItem(MATRIX_KEY, JSON.stringify(tiles));}catch(e){} }
 let tileOn = (()=>{ try{ return JSON.parse(localStorage.getItem(MATRIX_ON_KEY)||'{}') || {}; }catch(e){ return {}; } })();
 function saveOn(){ try{ localStorage.setItem(MATRIX_ON_KEY, JSON.stringify(tileOn)); }catch(e){} }
 const SALAS_KEY='leda.salas.v1';let salas=(()=>{try{const j=JSON.parse(localStorage.getItem(SALAS_KEY)||'null');if(j)return{renomes:j.renomes||{},extras:j.extras||[],ocultas:j.ocultas||[],pavimentos:j.pavimentos||[],pavDe:j.pavDe||{}};}catch(e){}return{renomes:{},extras:[],ocultas:[],pavimentos:[],pavDe:{}};})();
 function saveSalas(){try{localStorage.setItem(SALAS_KEY,JSON.stringify(salas))}catch(e){}}
 const roomStoreKey='leda.room.active';let roomConfig={comodos:[],ordemTela:[],fixos:{},semComodo:'Sem ambiente'},roomActive=localStorage.getItem(roomStoreKey)||'';
 const normRoom=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/_/g,' ').trim();
-function coTile(t){ return !!t && (VinciCO.isCO(t.n)||VinciCO.isCO(String(t.f||'').replace(/^.*\bcena\s+/i,''))); }
+function coTile(t){ return !!t && !t.ctl && (VinciCO.isCO(t.n)||VinciCO.isCO(String(t.f||'').replace(/^.*\bcena\s+/i,''))); }
 function isSceneTile(t){ return !!t && /\b(?:ativar|acionar)\s+(?:a\s+)?cena\b/i.test(String(t.f||'')); }
 function roomForTile(t){const r=roomForTileBase(t);return salas.ocultas.includes(r)?(roomConfig.semComodo||'Outros'):r;}
 function roomForTileBase(t){if(t&&t.s)return t.s;const r0=roomForTileAuto(t);return salas.renomes[r0]||r0;}
@@ -1507,7 +1497,7 @@ function abrirSala(nome){salaEditando=nome;const ed=document.getElementById('roo
 function fecharSala(){document.getElementById('roomEditor').hidden=true;salaEditando=null;}
 function renomearSala(velho,novo){if(salas.extras.includes(velho))salas.extras=salas.extras.map(c=>c===velho?novo:c);else{let orig=Object.keys(salas.renomes).find(k=>salas.renomes[k]===velho)||velho;salas.renomes[orig]=novo;}tiles.forEach(t=>{if(t.s===velho)t.s=novo;});}
 function salvarSala(){const novo=document.getElementById('rmName').value.trim().slice(0,22);if(!novo)return;const velho=salaEditando;salas.pavDe=salas.pavDe||{};{const pv=document.getElementById('rmPav').value;if(velho&&velho!==novo)delete salas.pavDe[velho];if(pv)salas.pavDe[novo]=pv;else delete salas.pavDe[novo];}salas.ocultas=salas.ocultas.filter(c=>c!==novo);if(!velho){if(!salas.extras.includes(novo))salas.extras.push(novo);}else if(velho!==novo)renomearSala(velho,novo);roomActive=novo;try{localStorage.setItem(roomStoreKey,novo)}catch(e){}saveSalas();saveTiles();fecharSala();renderMatrix();}
-function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c)t.s='';});saveSalas();saveTiles();fecharSala();renderMatrix();}
+function excluirSala(){const c=salaEditando;if(!c)return;if(salas.extras.includes(c))salas.extras=salas.extras.filter(x=>x!==c);else salas.ocultas.push(c);tiles.forEach(t=>{if(t.s===c||roomForTile(t)===c)t.s=roomConfig.semComodo||'Sem ambiente';});saveSalas();saveTiles();fecharSala();renderMatrix();}
 try{localStorage.removeItem('leda.tab')}catch(e){}document.getElementById('hud').dataset.tab='home';scrollTo(0,0);
 document.querySelectorAll('[data-tab-target]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('hud').dataset.tab=b.dataset.tabTarget;document.querySelectorAll('[data-tab-target]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));try{localStorage.setItem('leda.tab',b.dataset.tabTarget)}catch(e){}renderMatrix()}));
 fetch('../vinci/comodos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){roomConfig={...j,semComodo:"Sem ambiente"};renderMatrix()}}).catch(()=>{});
@@ -1583,7 +1573,7 @@ function tipoControle(t){ if(!t || !t.n) return ''; if(t.rc === 'nao') return ''
 function renderMatrix(){
   limparEstadosDeCena();renderRoomTabs();
   const naSala=document.getElementById('hud').dataset.tab==='rooms', ordem=tiles.map((t,i)=>i).sort((a,b)=>naSala?0:(tiles[b].fav?1:0)-(tiles[a].fav?1:0));
-  gridEl.innerHTML = ordem.filter(i=>(naSala||i<32)&&!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
+  gridEl.innerHTML = ordem.filter(i=>(naSala||editMode||tiles[i].fav)&&!coTile(tiles[i])).map((i)=>{const t=tiles[i],cena=isSceneTile(t),room=roomForTile(t),fora=(naSala&&(roomActive==='Favoritos'?!t.fav:room!==roomActive))||(naSala&&pavAtivo&&!salaNoPav(room))||(!editMode&&!t.n);return `<button class="tile${cena ? ' scene-command' : ''}${t.fav?' fav':''}${t.ctl?' ctl':''}" type="button" data-i="${i}" data-room="${esc(room)}" ${fora?'hidden':''} ${t.n ? '' : 'data-empty="1"'} ${cena ? 'data-scene="1"' : (t.f2 ? 'data-toggle="1" data-on="'+(tileOn[i]?'1':'0')+'"' : '')} title="${esc(!cena && t.f2 ? (tileOn[i] ? t.f2 : t.f) : (t.f||'vazio'))}">${t.ctl?'<span class="ctlTag">controle</span>':''}${tipoControle(t)||t.ctl?RC_ICO:''}<span>${t.n ? esc(t.n) : '+'}</span>${cena?'<span class="scene-result" aria-live="polite"></span>':''}</button>`}).join('') + (editMode ? '<button class="tile addTile" type="button" data-add="1" aria-label="Adicionar">+</button>' : '');
   renderRoomTabs(); renderPavimentos();
 }
 renderMatrix();
@@ -2250,7 +2240,7 @@ const GEN_FERRAMENTAS = {
     }
     if(op === 'tirar'){
       let i = nome ? achar(nome) : pos(posicao); if(i < 0) return { ok:false, erro:'não achei esse botão', favoritos: lista() };
-      const n = tiles[i].n; tiles[i] = { n:'', f:'', f2:'' }; delete tileOn[i]; salvar(); return { ok:true, mensagem: n + ' saiu dos favoritos.' };
+      const n = tiles[i].n; tiles[i].fav=false; salvar(); return { ok:true, mensagem: n + ' saiu dos favoritos e continua no ambiente.' };
     }
     if(op === 'renomear'){
       const i = nome ? achar(nome) : pos(posicao); if(i < 0 || !novo_nome) return { ok:false, erro:'diga o botão e o nome novo' };
@@ -3008,6 +2998,9 @@ window.felyxNativo = function(acao, dado){
   setInterval(()=>{ if(document.visibilityState === 'visible') painelClima(); }, 30*60e3);
 })();
 </script>
+<script>
+VinciHouseV2.bind({getTiles:()=>tiles,setTiles:v=>{tiles=v},getRoom:()=>roomActive,getTab:()=>document.getElementById('hud').dataset.tab,getEditing:()=>editing,save:()=>saveTiles(),render:()=>renderMatrix(),closeEditor:()=>closeEditor()});
+</script>
 <script src="base/controle-co-ui.js?v=20261127leda"></script>
 
 <script src="base/tiles-ajuste.js?v=20261127leda" data-forma="quadrado"></script>
@@ -3022,5 +3015,7 @@ window.felyxNativo = function(acao, dado){
 try{ var l=(window.ledaReceitas&&window.ledaReceitas.lista())||[]; if(l.length){ var r=l[new Date().getDate()%l.length]; var d=document.getElementById('receitaDia'); if(d&&r&&r.nome) d.textContent='hoje: '+String(r.nome).toLowerCase(); } }catch(e){}
 </script>
 <link rel="stylesheet" href="../app-assets/abas-layout.css?v=20261127-tabs1">
+<link rel="stylesheet" href="duo-layout-v2.css?v=20261127-duo2">
+<script src="duo-layout-v2.js?v=20261127-duo2" defer></script>
 </body>
 </html>
