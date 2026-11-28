@@ -674,7 +674,7 @@ input,select,textarea{font-size:16px!important}
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
-<script src="../vinci/pre-vps/onboarding-ui.js?v=pre-vps-20261127"></script><script src="../vinci/pre-vps/liveavatar-contract.js"></script><script src="../vinci/pre-vps/house-display-adapter.js"></script><script src="duo-house-v2.js?v=20261127-v2"></script><script src="../vinci/pre-vps/onboarding-contexto.js"></script><script src="../vinci/pre-vps/contexto-adapter.js"></script>
+<script src="../vinci/pre-vps/onboarding-ui.js?v=pre-vps-20261127"></script><script src="../vinci/pre-vps/liveavatar-contract.js"></script><script src="../vinci/pre-vps/house-display-adapter.js"></script><script src="duo-house-v2.js?v=20261127-house"></script><script src="duo-house-voice.js?v=20261127-house"></script><script src="../vinci/pre-vps/onboarding-contexto.js"></script><script src="../vinci/pre-vps/contexto-adapter.js"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -2091,6 +2091,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 });
+VinciHouseVoice.install({
+  house: VinciHouseV2, getTiles:()=>tiles, getRooms:()=>listaSalas(), getSalas:()=>salas,
+  roomFor:t=>roomForTile(t), saveSalas:()=>saveSalas(), saveTiles:()=>saveTiles(), render:()=>renderMatrix(),
+  showRooms:(name)=>{if(name)roomActive=name;pavAtivo='';try{localStorage.setItem(roomStoreKey,roomActive)}catch(e){}document.querySelector('[data-tab-target="rooms"]').click();VinciHouseV2.afterRender();},
+  filter:category=>VinciHouseV2.setFilter(category)
+},GEN_FERRAMENTAS,GEN_TOOLS);
 /* 13/11/2026: falha nunca morre calada. Ferramenta que quebra ou volta "indisponível" vai sozinha para o registro de falhas
    (felyx_falhas, que o Claude lê e cobra), no máximo um aviso igual a cada 10 minutos, sem falar nada ao cliente.
    Outros pontos do app (microfone, fala, áudio) avisam com window.vinciFalha(pedido, erro). */
@@ -2107,7 +2113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return true;
     }catch(e){ return false; }
   };
-  const LOCAIS = new Set(['abrir_tela','favoritos','ambientes','rolar_materia','fechar_materia','dados_do_cumprimento']);
+  const LOCAIS = new Set(['organizar_casa','abrir_tela','favoritos','ambientes','rolar_materia','fechar_materia','dados_do_cumprimento']);
   const resumo = (a)=> { try{ return JSON.stringify(a || {}).slice(0,200); }catch(e){ return ''; } };
   for(const nome of Object.keys(GEN_FERRAMENTAS)){
     if(nome === 'avisar_falha') continue;
@@ -2671,9 +2677,9 @@ VinciHouseV2.bind({getTiles:()=>tiles,setTiles:v=>{tiles=v},getRoom:()=>roomActi
 </script>
 <script src="../app-assets/controle-co-ui.js"></script>
 
-<script src="../vinci/tiles-ajuste.js?v=12" data-forma="quadrado"></script>
+
 <link rel="stylesheet" href="layout-20261127.css?v=card-inset-20261127b">
 <script src="layout-20261127.js?v=2" defer></script><script src="../vinci/atualizar-casa.js"></script><script src="../vinci/pre-vps/ia-padrao.js" data-ia="felyx"></script><script src="../vinci/pre-vps/paineis-google.js"></script><link rel="stylesheet" href="../app-assets/abas-layout.css?v=20261127-tabs1">
-<link rel="stylesheet" href="duo-layout-v2.css?v=20261127-house-toolbar"><link rel="stylesheet" href="duo-avatar-v2.css?v=20261127-face"><script src="duo-layout-v2.js?v=20261127-v2" defer></script>
+<link rel="stylesheet" href="duo-layout-v2.css?v=duo-grid4"><link rel="stylesheet" href="duo-avatar-v2.css?v=20261127-face"><script src="duo-layout-v2.js?v=duo-grid4" defer></script>
 </body>
 </html>

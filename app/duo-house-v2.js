@@ -71,6 +71,13 @@ function prepareSave(list){
  Object.entries(prefs.removed).forEach(([k,t])=>{if(!present.has(k))result.push(archived(t));});persist();return result;
 }
 function importTiles(incoming,previous){ensure();return mergeImport(incoming,previous,prefs);}
+function resetCurrent(){
+ ensure();storage.removeItem(PREFIX+scope);storage.removeItem(PREFIX+scope+':snapshot');prefs=empty();filter='Tudo';return true;
+}
+function setFilter(category){
+ if(!['Tudo','Cenas','Dispositivos','Controles'].includes(category))return false;
+ filter=category;afterRender();return true;
+}
 function acceptImport(incoming){
  if(!bound)return false;bound.setTiles(importTiles(incoming,bound.getTiles()));bound.save();bound.render();return true;
 }
@@ -121,6 +128,6 @@ function bind(options){
  const hud=root.document.getElementById('hud');if(hud)new root.MutationObserver(schedule).observe(hud,{attributes:true,attributeFilter:['data-tab']});
  bound.render();afterRender();
 }
-const api={category,key,account,syncOwner,loadTiles,mergeImport,prepareSave,importTiles,acceptImport,bind,afterRender,remove,restore};
+const api={category,key,account,syncOwner,loadTiles,mergeImport,prepareSave,importTiles,acceptImport,resetCurrent,setFilter,bind,afterRender,remove,restore};
 if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.VinciHouseV2=api;
 })(typeof window==='object'?window:null);
