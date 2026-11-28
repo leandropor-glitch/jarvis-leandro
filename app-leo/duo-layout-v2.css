@@ -141,3 +141,13 @@ html body #hud#hud#hud[data-duo-layout-v2] > .appTabs > [data-tab-target="news"]
 /* Filter presentation is independent of the optional provider adapter. */
 html body #hud#hud#hud[data-duo-layout-v2] #catBar > button {border:1px solid var(--line,#454545)!important;border-radius:20px!important;background:transparent!important;color:var(--ink,#eee)!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #catBar > button[aria-pressed="true"] {border-color:var(--accent)!important;background:rgba(var(--accent-rgb),.12)!important;color:var(--accent)!important;}
+
+/* Leandro: centered labels inside the selected rectangles. */
+html body #hud#hud#hud[data-duo-layout-v2] > .appTabs > button,
+html body #hud#hud#hud[data-duo-layout-v2] #matrix button {
+  text-align:center!important; justify-content:center!important; align-items:center!important;
+  text-indent:0!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile > span:not(.ctlTag):not(.scene-result) {
+  width:100%!important; text-align:center!important; margin-inline:auto!important;
+}

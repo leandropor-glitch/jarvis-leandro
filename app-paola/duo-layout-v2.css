@@ -23,3 +23,7 @@ html body[data-duo-layout-v2] #ambientes button {min-height:36px;font-size:12px;
  html body[data-duo-layout-v2] .dashboard-grid {grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"avatar house" "market weather" "news news";}
  html body[data-duo-layout-v2] #paola-house-list ul {grid-template-columns:repeat(auto-fit,minmax(110px,1fr));}
 }
+
+html body[data-duo-layout-v2] > nav > a,
+html body[data-duo-layout-v2] #ambientes button,
+html body[data-duo-layout-v2] #paola-house-list li {text-align:center;justify-content:center;align-items:center;text-indent:0;}
