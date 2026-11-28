@@ -97,19 +97,19 @@ html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile {
   grid-column:auto!important; box-sizing:border-box!important; width:100%!important;
   height:auto!important; min-width:0!important; min-height:48px!important; aspect-ratio:auto!important;
   padding:6px!important; margin:0!important; border-radius:10px!important;
-  font:600 12px/1.2 var(--sans,system-ui)!important; white-space:normal!important;
+  font:600 11px/1.2 var(--sans,system-ui)!important; white-space:normal!important;
 }
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile > span:not(.ctlTag):not(.scene-result) {
   font:inherit!important; line-height:1.2!important; white-space:normal!important;
   word-break:normal!important; overflow-wrap:anywhere!important; -webkit-line-clamp:3;
 }
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile[hidden] {display:none!important;}
-html body #hud#hud#hud[data-duo-layout-v2] #matrix :is(.ph,.pavBar,.roombar,#catBar,.ghome) {
+html body #hud#hud#hud[data-duo-layout-v2] :where(#matrix) :where(.ph,.pavBar,.roombar,#catBar,.ghome) {
   box-sizing:border-box!important; max-width:100%!important; min-width:0!important;
   gap:6px!important; padding-inline:0!important; margin-inline:0!important; flex-wrap:wrap!important;
   overflow:visible!important;
 }
-html body #hud#hud#hud[data-duo-layout-v2] #matrix :is(.ph,.pavBar,.roombar,#catBar) button,
+html body #hud#hud#hud[data-duo-layout-v2] :where(#matrix) :where(.ph,.pavBar,.roombar,#catBar) button,
 html body #hud#hud#hud[data-duo-layout-v2] #ghomeBtn {
   box-sizing:border-box!important; max-width:100%!important; min-width:0!important;
   min-height:36px!important; padding:7px 10px!important; margin:0!important;
@@ -123,7 +123,7 @@ html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned {justify-content:flex-
 html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned > button {min-height:32px!important;font-size:10px!important;padding:6px 10px!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #duoUnassigned {display:none!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] :is(#roomBar,#pavBar,#catBar) {display:none!important;}
-@media (min-width:700px) {
+@media (min-width:650px) {
   html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] > .stage {
     grid-template-columns:minmax(180px,1fr) minmax(0,2fr)!important;
     grid-template-areas:"avatar house" "market market" "weather casa" "politics technology"!important;
@@ -183,16 +183,16 @@ html body #hud#hud#hud[data-duo-layout-v2] #ghome {justify-content:flex-start!im
 
 /* Room navigation and house account are separate from the four-column controls. */
 html body #hud#hud#hud[data-duo-layout-v2] #matrix > .ph {
- display:grid!important;grid-template-columns:1fr 58px 68px!important;grid-template-areas:"title refresh edit" ". . unassigned"!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) max-content max-content!important;grid-template-areas:"title refresh edit" ". . unassigned"!important;
  gap:4px 10px!important;align-items:center!important;padding:0 0 8px!important;
 }
 html body #hud#hud#hud[data-duo-layout-v2] #matrix > .ph .k {grid-area:title!important;}
-html body #hud#hud#hud[data-duo-layout-v2] #atualizarBtn {grid-area:refresh!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #atualizarBtn {grid-area:refresh!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #editBtn {grid-area:edit!important;}
-html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned {grid-area:unassigned!important;justify-self:end!important;margin:0!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned {grid-area:unassigned!important;justify-self:center!important;margin:0!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned > button {
  color:#909090!important;background:transparent!important;border:0!important;box-shadow:none!important;
- font:500 9px/1.2 var(--sans,system-ui)!important;white-space:nowrap!important;min-height:28px!important;padding:3px!important;
+ font:500 9px/1.2 var(--sans,system-ui)!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;text-transform:none!important;min-height:28px!important;padding:3px!important;
 }
 html body #hud#hud#hud[data-duo-layout-v2] .duo-house-top {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(150px,1fr)!important;gap:16px!important;align-items:start!important;margin-bottom:14px!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #roomBar {display:flex!important;align-items:center!important;gap:4px!important;}
@@ -223,3 +223,10 @@ html body #hud#hud#hud[data-duo-layout-v2] #ghomeBtn[data-connected] {
 html body #hud#hud#hud[data-duo-layout-v2] #ghomeBtn[data-connected="true"] {color:#ff8585!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #ghomeEmail:not([hidden]) {width:100%;text-align:end;overflow-wrap:anywhere;color:#ccc;}
 html body #hud#hud#hud[data-duo-layout-v2] #ghomeError:empty {display:none;}
+
+html body #hud#hud#hud[data-duo-layout-v2] #ghome.account {
+ display:grid!important;grid-template-columns:auto max-content!important;align-items:center!important;justify-content:end!important;column-gap:6px!important;row-gap:2px!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #ghome.account > :is(#ghomeEmail,#ghomeError) {grid-column:1/-1!important;min-width:0;max-width:100%;}
+html body #hud#hud#hud[data-duo-layout-v2] #ghome.account > #ghomeTxt {grid-column:1;white-space:nowrap;font:500 11px/1.2 var(--sans,system-ui);letter-spacing:normal;}
+html body #hud#hud#hud[data-duo-layout-v2] #ghome.account > #ghomeBtn {grid-column:2;white-space:nowrap!important;padding:4px!important;}

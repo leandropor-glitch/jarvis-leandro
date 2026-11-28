@@ -674,7 +674,7 @@ input,select,textarea{font-size:16px!important}
 <script src="iris-sons.js"></script>
 <script src="iris.js"></script>
 <script src="esqueci-senha.js"></script>
-<script src="../vinci/pre-vps/onboarding-ui.js?v=pre-vps-20261127"></script><script src="../vinci/pre-vps/liveavatar-contract.js"></script><script src="../vinci/pre-vps/house-display-adapter.js"></script><script src="duo-house-v2.js?v=20261127-house"></script><script src="duo-house-voice.js?v=20261127-house"></script><script src="../vinci/pre-vps/onboarding-contexto.js"></script><script src="../vinci/pre-vps/contexto-adapter.js"></script>
+<script src="../vinci/pre-vps/onboarding-ui.js?v=pre-vps-20261127"></script><script src="../vinci/pre-vps/liveavatar-contract.js"></script><script src="../vinci/pre-vps/house-display-adapter.js"></script><script src="duo-house-v2.js?v=20261127-house"></script><script src="duo-google-house.js?v=20261127-google"></script><script src="duo-house-voice.js?v=20261127-v1"></script><script src="../vinci/pre-vps/onboarding-contexto.js"></script><script src="../vinci/pre-vps/contexto-adapter.js"></script>
 <script>
 /* =====================================================================
    Felyx — interface HUD oficial (15/10/2026)
@@ -972,7 +972,7 @@ function sessaoCaiu(resp, j){ if((resp && resp.status === 401) || (j && j.reloga
     entrar.disabled = true; erro.textContent = 'entrando…';
     try{
       // mesma senha do app Felyx (GEM, FULL e apps); a senha antiga da casa continua valendo como segunda tentativa
-      let r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'entrar', telefone: tel, senha, aparelho:'App · Félix GEN' }) });
+      let r = await felyxHouseRequest({ acao:'entrar', telefone: tel, senha, aparelho:'App · Félix GEN' });
       let j = {}; try{ j = await r.json(); }catch(e){}
       if(!(r.ok && j.ok && j.token)){
         r = await fetch(LOGIN_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ telefone: tel, senha }) });
@@ -1297,9 +1297,10 @@ function rcAbrirEditor(i){
   document.getElementById('rcEd').hidden = false; document.getElementById('rcEdCena').focus();
 }
 async function rcEnviar(frase, btn){
+  if(window.VinciGoogleHouseDisconnected?.()){document.getElementById("rcRes").textContent="Casa desconectada.";return;}
   const res = document.getElementById('rcRes'); if(btn) btn.dataset.busy = '1'; res.textContent = 'enviando…';
   let ok = false;
-  try{ const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
+  try{ const r = await felyxHouseRequest({ acao:'comando', token: SESSAO, texto: frase }); const j = await r.json(); if(sessaoCaiu(r, j)) return; ok = !!(j.ok && j.text && !FAIL_RX.test(String(j.text))); }catch(e){}
   if(btn) btn.dataset.busy = '0'; res.textContent = ok ? 'feito' : 'não concluído';
 }
 document.getElementById('remote').addEventListener('click', (e)=>{
@@ -1401,6 +1402,7 @@ function moverBotao(de, para){
 
 const FAIL_RX = /não concluída|não consegui|não foi poss|falhou|\berro\b|indispon|não encontrei|não achei/i;
 async function runTile(i, btn){
+  if(window.VinciGoogleHouseDisconnected?.()){setState("idle","Casa desconectada");return;}
   const t = tiles[i]; if(!t || !t.f) return;
   const cena = isSceneTile(t);
   if(cena && tipoControle(t)) setTimeout(()=>abrirControle(tipoControle(t), t), 350);   // a cena roda e, por fim, o controle remoto abre na mão do cliente
@@ -1413,7 +1415,7 @@ async function runTile(i, btn){
   if(!cena && !conv) setState('thinking', t.n.toLowerCase());
   let texto = '';
   try{
-    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: frase }) });
+    const r = await felyxHouseRequest({ acao:'comando', token: SESSAO, texto: frase, googleDeviceId:t.googleDeviceId, googleSceneId:t.googleSceneId });
     const j = await r.json(); if(sessaoCaiu(r, j)){ btn.dataset.busy='0'; return; }
     texto = j.ok ? String(j.text || 'Pronto, feito.').replace(/\balexa\b/gi, 'Vinci') : '';
   }catch(e){ texto = ''; }
@@ -1823,7 +1825,11 @@ const FelyxAvatar = (()=>{
 addEventListener('pagehide', ()=> FelyxAvatar.fechar());
 
 /* ---------- Felyx GEN: ferramentas do Gemini (sem Claude) ---------- */
+const felyxHouseRequest=VinciGoogleHouse.createHouseRouter(window,()=>window.VinciGoogleHouseBridge,()=>window.VinciGoogleHouseMode?.()===true,
+ body=>fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}));
+
 async function apoioGen(acao, dados){
+  if(acao==='automacao'&&window.VinciGoogleHouseMode?.())return {ok:false,erro:'Programação de automações Google ainda não disponível neste aplicativo.'};
   const r = await fetch(APOIO_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({ sessao: SESSAO, acao }, dados)) });
   const j = await r.json().catch(()=>({}));
   if(sessaoCaiu(r, j)) return { erro:'sessão expirada' };
@@ -1832,8 +1838,9 @@ async function apoioGen(acao, dados){
 let casaGen = { aparelhos:[], cenas:[] };
 // 22/11 (Leandro): a lista de cenas e aparelhos só é relida na central quando o cliente pede (sem agendamento).
 async function atualizarCenas(){
+  if(window.VinciGoogleHouseDisconnected?.())return {ok:false,erro:"Casa desconectada. Conecte sua conta Google."};
   try{
-    const response=await fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})});
+    const response=await felyxHouseRequest({acao:'casa',token:SESSAO});
     const raw=await response.json();
     if(!response.ok||!raw||!raw.ok)return {ok:false,erro:raw&&raw.mensagem||'Não consegui ler a central agora.'};
     const data=VinciCasaDisplay.normalizar(raw),before=new Set(casaGen.cenas||[]);
@@ -1848,7 +1855,7 @@ async function atualizarCenas(){
 async function contextoGen(){
   const espera = (ms)=> new Promise(ok=>setTimeout(ok, ms));
   const [casa, mem] = await Promise.all([
-    Promise.race([fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'casa', token: SESSAO }) }).then(r=>r.json()).catch(()=>null), espera(3000)]),
+    Promise.race([felyxHouseRequest({ acao:'casa', token: SESSAO }).then(r=>r.json()).catch(()=>null), espera(3000)]),
     Promise.race([apoioGen('memoria', { operation:'list' }).catch(()=>null), espera(3000)])
   ]);
   if(casa && casa.ok) casaGen = { aparelhos: (casa.aparelhos||[]).map(a=>a.nome), cenas: casa.cenas || [] };
@@ -1877,7 +1884,8 @@ const GEN_FERRAMENTAS = {
     const ja = hud.dataset.tab === alvo; b.click(); return { ok:true, tela: alvo === 'rooms' ? 'ambientes' : alvo, ja_estava: ja, responda: 'Ok.' };
   },
   async controlar_casa({ dispositivo, acao }){
-    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) }) });
+    if(window.VinciGoogleHouseDisconnected?.())return {ok:false,erro:"Casa desconectada. Conecte sua conta Google."};
+    const r = await felyxHouseRequest({ acao:'comando', token: SESSAO, texto: comandoCasa(dispositivo, acao) });
     const j = await r.json();
     // comando da casa que falhou vai sozinho para o registro de falhas (o Claude é acionado e corrige)
     if(!j.ok) apoioGen('falha', { pedido: acao + ' ' + dispositivo, erro: String(j.text || j.mensagem || j.motivo || 'a central não confirmou') }).catch(()=>{});
@@ -1986,7 +1994,7 @@ const GEN_FERRAMENTAS = {
   async automacoes(a){ const { acao, ...resto } = a || {}; return apoioGen('automacao', Object.assign({}, resto, { acao_casa: acao || '' })); }, // "acao" já é o nome do pedido ao apoio
   async avisar_falha({ pedido, erro }){ return apoioGen('falha', { pedido: pedido || '', erro: erro || '' }); },
   async estado_casa({ dispositivo }){
-    const r = await fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'estados', token: SESSAO }) });
+    const r = await felyxHouseRequest({ acao:'estados', token: SESSAO });
     const j = await r.json().catch(()=>({}));
     const lista = Array.isArray(j.estados) ? j.estados : [];
     if(!lista.length) return { disponivel:false, aviso:'A central não informou os estados agora. Diga isso e ofereça ligar ou desligar.' };
@@ -2053,43 +2061,58 @@ const GEN_TOOLS = [{ functionDeclarations: [
 ] }, { googleSearch:{} }];
 
 const VinciCasa={
-  async consultar(){const response=await fetch(N8N+'/felix/app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({acao:'casa',token:SESSAO})});const data=await response.json();if(!response.ok||!data.ok)throw Error(data.mensagem||'Central VINCI indisponível.');return VinciCasaDisplay.normalizar(data);},
+  async consultar(){const response=await felyxHouseRequest({acao:'casa',token:SESSAO});const data=await response.json();if(!response.ok||!data.ok)throw Error(data.mensagem||'Central VINCI indisponível.');return VinciCasaDisplay.normalizar(data);},
   async conectar(){const result=await atualizarCenas();if(!result.ok)throw Error(result.erro);return result.data;}
 };
 window.VinciCasa = VinciCasa;
 document.addEventListener('DOMContentLoaded', () => {
-  const button = document.getElementById('ghomeBtn');
-  const status = document.getElementById('ghomeTxt');
-  const box = document.getElementById('ghome');
-  const edit = document.getElementById('editBtn');
-  if(edit && !document.getElementById('atualizarBtn')){
-    const refresh = document.createElement('button');
-    refresh.id = 'atualizarBtn'; refresh.className = 'pb'; refresh.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 7v5h-5M19 12a7 7 0 1 0-2 5M20 7l-3-3"/></svg><span>refresh</span>'; refresh.setAttribute('aria-label','Atualizar casa');
-    refresh.onclick = () => button.click();
-    edit.before(refresh);
+  const button=document.getElementById('ghomeBtn'), status=document.getElementById('ghomeTxt'),box=document.getElementById('ghome'),edit=document.getElementById('editBtn');
+  const owner=()=>localStorage.getItem('felyx.house.owner.v2')||'signed-out';
+  window.VinciGoogleHouseOwner=owner;
+  const marker=()=> 'felyx.google.house.v2:'+owner();
+  const read=()=>{try{return JSON.parse(localStorage.getItem(marker())||'{}')}catch(e){return {}}};
+  const write=value=>localStorage.setItem(marker(),JSON.stringify(value));
+  let nativePending=!!(window.webkit?.messageHandlers?.felyx?.postMessage||window.FelyxAndroid?.googleHome);
+  window.VinciGoogleHouseDisconnected=()=>read().disconnected===true;
+  window.VinciGoogleHouseMode=()=>read().provider==='google'||read().disconnected===true;
+  if(!button||!status||!box)return;
+  box.hidden=false;box.classList.add("account");
+  const email=document.createElement('span');email.id='ghomeEmail';box.prepend(email);
+  const error=document.createElement('span');error.id='ghomeError';error.setAttribute('role','status');box.append(error);
+  let current={connected:false},busy=false;
+  function draw(s){if(s.checked)nativePending=false;current=s;status.textContent=s.connected?'Casa conectada':'Casa desconectada';email.textContent=s.email||'';email.hidden=!s.email;button.textContent=s.connected?'logout':'Conecte sua casa';button.dataset.connected=String(s.connected);button.title=s.capable?'':'Atualize o aplicativo para identificar sua conta Google';button.hidden=false;button.disabled=busy;}
+  function clearCurrent(){
+    VinciHouseV2.resetCurrent();
+    [MATRIX_KEY,MATRIX_ON_KEY,SALAS_KEY,roomStoreKey,'felyx.casa'].forEach(k=>localStorage.removeItem(k));
+    tiles=[];tileOn={};salas={renomes:{},extras:[],ocultas:[],pavimentos:[],pavDe:{}};roomActive='';casaGen={aparelhos:[],cenas:[]};window.felyxCOAllScenes=[];renderMatrix();
   }
-  if(box) box.hidden = false;
-  if(button) {
-    const conectado = data => {
-      status.textContent = 'Casa conectada';
-      button.textContent = 'Atualizar minha casa VINCI';
-    };
-    button.textContent = 'Conectar minha casa VINCI';
-    if(SESSAO){
-      status.textContent = tiles.length ? 'Exibindo itens salvos · verificando conexão…' : 'Verificando conexão com sua casa…';
-      button.disabled = true;
-      VinciCasa.consultar().then(conectado).catch(error => {
-        status.textContent = (tiles.length ? 'Exibindo itens salvos · ' : '') + error.message;
-      }).finally(() => { button.disabled = false; });
+  const bridge=VinciGoogleHouse.createBridge(window,{
+    onState:draw,
+    getOwner:owner,
+    getBinding:read,
+    shouldReset:()=>true,
+    onDisconnected:()=>{clearCurrent();write({disconnected:true});},
+    onImport:(data,{reset})=>{
+      const account=bridge.getState(),old=read();
+      // Never merge a newly selected Google home with a previous provider/account.
+      if(reset||old.provider!=='google'||old.house!==account.house||old.email!==account.email)clearCurrent();
+      const incoming=(data.dispositivos||[]).map(d=>({n:d.nome||'',f:'ligar '+d.nome,f2:d.liga_desliga?'desligar '+d.nome:'',s:d.ambiente||'Sem ambiente',fav:true,houseKind:'device',googleDeviceId:d.id})).filter(t=>t.n);
+      incoming.push(...(data.cenas||[]).map(c=>({n:c.nome||'',f:'ativar a cena '+c.nome,f2:'',s:'Sem ambiente',fav:true,houseKind:'scene',googleSceneId:c.id,googleExecutable:c.executavel===true})).filter(t=>t.n));
+      tiles=VinciHouseV2.importTiles(incoming,tiles);saveTiles();renderMatrix();
+      casaGen={aparelhos:incoming.filter(t=>t.houseKind==='device').map(t=>t.n),cenas:incoming.filter(t=>t.houseKind==='scene').map(t=>t.n)};
+      if(data.cenas_disponiveis===false)error.textContent='O Google não disponibilizou as cenas desta conta nesta consulta.';
+      write({provider:'google',house:account.house,structureId:account.structureId,email:account.email,disconnected:false});
+      // Account metadata lives only in the scoped Google marker above.
     }
-    button.onclick = async () => {
-      button.disabled = true;
-      status.textContent = 'Conectando sua casa VINCI…';
-      try { const data = await VinciCasa.conectar(); conectado(data); }
-      catch(error) { status.textContent = error.message; }
-      finally { button.disabled = false; }
-    };
-  }
+  });
+  window.VinciGoogleHouseBridge=bridge;
+  async function run(task){if(busy)return;busy=true;button.disabled=true;error.textContent='';try{await task();}catch(e){error.textContent=e.message;}finally{busy=false;draw(bridge.getState());}}
+  let refresh=document.getElementById('atualizarBtn');
+  if(!refresh&&edit){refresh=document.createElement('button');refresh.id='atualizarBtn';refresh.className='pb';edit.before(refresh);}
+  if(refresh){refresh.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 7v5h-5M19 12a7 7 0 1 0-2 5M20 7l-3-3"/></svg><span>refresh</span>';refresh.onclick=()=>run(async()=>{if(window.VinciGoogleHouseMode()&&bridge.available())return bridge.refresh();if(read().provider==='google'||read().disconnected)throw Error('Atualize o aplicativo para atualizar esta conta Google.');return VinciCasa.conectar();});}
+  button.onclick=()=>run(()=>current.connected?bridge.disconnect():bridge.connect());
+  draw(current);
+  if(bridge.available())run(()=>bridge.status());else error.textContent='Abra o aplicativo para conectar sua conta Google.';
 });
 VinciHouseVoice.install({
   house: VinciHouseV2, getTiles:()=>tiles, getRooms:()=>listaSalas(), getSalas:()=>salas,
@@ -2648,7 +2671,7 @@ window.felyxIA = (function(){
 /* 13/11/2026: recados do app nativo (Siri, atalhos do ícone, notificações) agora também no Full; antes só a tela clássica respondia */
 window.felyxNativo = function(acao, dado){
   const aba = (t)=>{ const m = { vFelyx:'home', felyx:'home', home:'home', dashboard:'dashboard', vDash:'dashboard', rooms:'rooms', salas:'rooms', ambientes:'rooms' }; const b = document.querySelector('[data-tab-target="' + (m[t] || t) + '"]'); if(b) b.click(); };
-  const comando = (frase)=>{ try{ fetch(N8N + '/felix/app', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ acao:'comando', token: SESSAO, texto: String(frase) }) }).catch(()=>{}); }catch(e){} };
+  const comando = (frase)=>{ if(window.VinciGoogleHouseDisconnected?.())return;try{ felyxHouseRequest({ acao:'comando', token: SESSAO, texto: String(frase) }).catch(()=>{}); }catch(e){} };
   if(acao === 'falar' || acao === 'perguntar'){ aba('home'); try{ primeAudio(); }catch(e){} try{ if(!conv) start(); }catch(e){} }
   else if(acao === 'cena' && dado) comando('ativa a cena ' + dado);
   else if(acao === 'comando' && dado) comando(dado);
@@ -2680,6 +2703,6 @@ VinciHouseV2.bind({getTiles:()=>tiles,setTiles:v=>{tiles=v},getRoom:()=>roomActi
 
 <link rel="stylesheet" href="layout-20261127.css?v=card-inset-20261127b">
 <script src="layout-20261127.js?v=2" defer></script><script src="../vinci/atualizar-casa.js"></script><script src="../vinci/pre-vps/ia-padrao.js" data-ia="felyx"></script><script src="../vinci/pre-vps/paineis-google.js"></script><link rel="stylesheet" href="../app-assets/abas-layout.css?v=20261127-tabs1">
-<link rel="stylesheet" href="duo-layout-v2.css?v=duo-grid4"><link rel="stylesheet" href="duo-avatar-v2.css?v=20261127-face"><script src="duo-layout-v2.js?v=duo-grid4" defer></script>
+<link rel="stylesheet" href="duo-layout-v2.css?v=duo-toolbar-v3"><link rel="stylesheet" href="duo-avatar-v2.css?v=20261127-face"><script src="duo-layout-v2.js?v=duo-grid4" defer></script>
 </body>
 </html>

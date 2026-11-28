@@ -14,6 +14,8 @@ function category(t){
  return 'Dispositivos';
 }
 function key(t){
+ if(t?.googleDeviceId)return 'google-device:'+String(t.googleDeviceId);
+ if(t?.googleSceneId)return 'google-scene:'+String(t.googleSceneId);
  const command=norm(t&&t.f).replace(/^(ativar|acionar)\s+(a\s+)?cena\s+/, 'cena ');
  return category(t)+':'+(command||norm(t&&t.ctl)||norm(t&&t.n));
 }

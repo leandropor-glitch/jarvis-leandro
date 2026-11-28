@@ -93,7 +93,7 @@ html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile {
   grid-column:auto!important; box-sizing:border-box!important; width:100%!important;
   height:auto!important; min-width:0!important; min-height:48px!important; aspect-ratio:auto!important;
   padding:6px!important; margin:0!important; border-radius:10px!important;
-  font:600 12px/1.2 var(--sans,system-ui)!important; white-space:normal!important;
+  font:600 11px/1.2 var(--sans,system-ui)!important; white-space:normal!important;
 }
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile > span:not(.ctlTag):not(.scene-result) {
   font:inherit!important; line-height:1.2!important; white-space:normal!important;
@@ -119,13 +119,13 @@ html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned {justify-content:flex-
 html body #hud#hud#hud[data-duo-layout-v2] #duoUnassigned > button {min-height:32px!important;font-size:10px!important;padding:6px 10px!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #duoUnassigned {display:none!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] :is(#roomBar,#pavBar,#catBar) {display:none!important;}
-@media (min-width:700px) {
+@media (min-width:650px) {
   html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] > .stage {
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     grid-template-areas:"avatar house" "market weather" "specialty specialty" "politics technology"!important;
   }
   html body #hud#hud#hud[data-duo-layout-v2][data-tab="rooms"] #grid {
-    grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
   }
 }
 @media (min-width:1000px) {
