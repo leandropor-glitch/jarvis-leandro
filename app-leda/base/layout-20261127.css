@@ -48,14 +48,14 @@
 #hud[data-tab="dashboard"] > :is(.top,.bottom,.mic) { display: none !important; }
 #hud[data-tab="dashboard"] > .stage {
   grid-template-columns: repeat(2,minmax(0,1fr));
-  grid-template-areas: "center center" "cmd cmd" "clima market" "c4d c4d" "n1 n2";
+  grid-template-areas: "center center" "cmd cmd" "clima market" "specialty specialty" "n1 n2";
 }
 #hud[data-tab="dashboard"] .col { display: contents; }
 #hud[data-tab="dashboard"] .center { grid-area: center; min-height: 0; display: flex; justify-content: center; padding: 0; }
 #hud[data-tab="dashboard"] #climaP { grid-area: clima; }
 #hud[data-tab="dashboard"] #market { grid-area: market; }
 #hud[data-tab="dashboard"] #matrix { grid-area: cmd; }
-#hud[data-tab="dashboard"] #casa4dP { grid-area: c4d; }
+#hud[data-tab="dashboard"] #receitaP { grid-area: specialty; }
 #hud[data-tab="dashboard"] #newsPol { grid-area: n1; }
 #hud[data-tab="dashboard"] #newsTec { grid-area: n2; }
 #hud[data-tab="dashboard"] :is(.deck,.boot) { display: none; }
@@ -102,12 +102,12 @@
 
 #hud[data-vinci-dual="true"][data-tab="dashboard"] > .stage {
   grid-template-columns: repeat(2,minmax(0,1fr));
-  grid-template-areas: "center center" "cmd cmd" "clima market" "c4d c4d" "n1 n2";
+  grid-template-areas: "center center" "cmd cmd" "clima market" "specialty specialty" "n1 n2";
 }
 @media (horizontal-viewport-segments: 2) {
   #hud[data-tab="dashboard"] > .stage {
     grid-template-columns: repeat(2,minmax(0,1fr));
-    grid-template-areas: "center center" "cmd cmd" "clima market" "c4d c4d" "n1 n2";
+    grid-template-areas: "center center" "cmd cmd" "clima market" "specialty specialty" "n1 n2";
   }
 }
 

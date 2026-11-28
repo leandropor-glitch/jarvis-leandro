@@ -46,7 +46,7 @@ html body #hud#hud#hud[data-duo-layout-v2]:is([data-tab="dashboard"],[data-tab="
 }
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] > .stage {
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-areas:"avatar" "house" "market" "weather" "casa" "politics" "technology"!important;
+  grid-template-areas:"avatar" "house" "market" "weather" "specialty" "politics" "technology"!important;
 }
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] .stage > .col {display:contents!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] .stage > .center {
@@ -67,7 +67,7 @@ html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] :is(#rings,.sca
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #matrix {grid-area:house!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #market {grid-area:market!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #climaP {grid-area:weather!important;}
-html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #receitaP {grid-area:casa!important;}
+html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #receitaP {grid-area:specialty!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #newsPol {grid-area:politics!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #newsTec {grid-area:technology!important;}
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] .panel {
@@ -121,8 +121,8 @@ html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] #duoUnassigned 
 html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] :is(#roomBar,#pavBar,#catBar) {display:none!important;}
 @media (min-width:700px) {
   html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] > .stage {
-    grid-template-columns:minmax(180px,1fr) minmax(0,2fr)!important;
-    grid-template-areas:"avatar house" "market market" "weather casa" "politics technology"!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-areas:"avatar house" "market weather" "specialty specialty" "politics technology"!important;
   }
   html body #hud#hud#hud[data-duo-layout-v2][data-tab="rooms"] #grid {
     grid-template-columns:repeat(auto-fit,minmax(110px,1fr))!important;
@@ -130,8 +130,8 @@ html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] :is(#roomBar,#p
 }
 @media (min-width:1000px) {
   html body #hud#hud#hud[data-duo-layout-v2][data-tab="dashboard"] > .stage {
-    grid-template-columns:minmax(180px,1fr) minmax(0,1fr) minmax(0,1fr)!important;
-    grid-template-areas:"avatar house house" "market weather casa" "politics technology technology"!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-areas:"avatar house" "market weather" "specialty specialty" "politics technology"!important;
   }
 }
 

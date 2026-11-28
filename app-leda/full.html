@@ -919,7 +919,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         <div class="ph"><span class="k"><i></i>clima · rio de janeiro</span><span class="pr" id="climaWhen">carregando</span></div>
         <div class="climaBox"><b id="climaT">—</b><div><span id="climaD">—</span><small id="climaX"></small></div></div>
       </section>
-      <section class="panel casa4d" id="receitaP" aria-label="Receitas">
+      <section class="panel specialty" id="receitaP" aria-label="Receitas">
         <div class="ph"><span class="k"><i></i>receitas</span><span class="pr" id="receitaDia">da cozinha da leda</span></div>
         <a class="c4dBtn" href="#" id="receitaAbrir">Abrir as receitas da Leda</a>
       </section>
@@ -3015,7 +3015,7 @@ VinciHouseV2.bind({getTiles:()=>tiles,setTiles:v=>{tiles=v},getRoom:()=>roomActi
 try{ var l=(window.ledaReceitas&&window.ledaReceitas.lista())||[]; if(l.length){ var r=l[new Date().getDate()%l.length]; var d=document.getElementById('receitaDia'); if(d&&r&&r.nome) d.textContent='hoje: '+String(r.nome).toLowerCase(); } }catch(e){}
 </script>
 <link rel="stylesheet" href="../app-assets/abas-layout.css?v=20261127-tabs1">
-<link rel="stylesheet" href="duo-layout-v2.css?v=20261127-duo2">
+<link rel="stylesheet" href="duo-layout-v2.css?v=20261127-balanced">
 <script src="duo-layout-v2.js?v=20261127-duo2" defer></script>
 </body>
 </html>
