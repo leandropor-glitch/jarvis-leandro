@@ -1,0 +1,28 @@
+/* Felyx: the still and LiveAvatar are alternate layers of ONE frame.
+   A 16:9 stream letterboxed over a square still used to expose two faces. */
+html body #hud#hud#hud[data-tab] .face > :is(img.retrato,video#avatarVideo) {
+  position:absolute!important; inset:0!important;
+  width:100%!important; height:100%!important;
+  min-width:0!important; min-height:0!important;
+  max-width:100%!important; max-height:100%!important;
+  aspect-ratio:auto!important; object-fit:contain!important;
+  object-position:center!important;
+  transform:none!important; translate:none!important;
+  border:0!important; border-radius:0!important;
+  margin:0!important; padding:0!important;
+  box-sizing:border-box!important;
+}
+html body #hud#hud#hud[data-tab] .face > img.retrato {
+  visibility:visible!important; opacity:1!important;
+}
+html body #hud#hud#hud[data-tab] .face > video#avatarVideo {
+  display:block!important; background:#000!important;
+  opacity:0!important; visibility:hidden!important;
+  transition:none!important; pointer-events:none!important;
+}
+html body #hud#hud#hud[data-tab] .face > video#avatarVideo.on {
+  opacity:1!important; visibility:visible!important;
+}
+html body #hud#hud#hud[data-tab] .face:has(> video#avatarVideo.on) > img.retrato {
+  visibility:hidden!important;
+}

@@ -24,14 +24,17 @@
       const j = await r.json().catch(()=>({}));
       if(!r.ok || !j.ok){ aviso(j.mensagem || (j.erro === 'sessao' ? 'Entre de novo para atualizar.' : j.erro === 'casa_de_outro' ? 'Esta casa não é da sua conta.' : 'O Google não respondeu agora. Tente de novo.')); return; }
       try{ localStorage.removeItem('felyx.casa'); }catch(e){}
-      // 26/11 (Leandro: "Deleta minhas cenas, dispositivos e controles pra eu puxar pelo Google e ver"):
+      // Duo: importar mantém escolhas de cômodos, favoritos, controles e remoções por conta.
+      // Compatibilidade com páginas anteriores sem o módulo Duo:
       // os botões passam a ser só o que veio do Google: cada dispositivo no seu cômodo (liga e desliga) e cada rotina como cena.
       try{
         if(typeof MATRIX_KEY !== 'undefined'){
           const novos = [];
-          (j.comodos || []).forEach(c => (c.aparelhos || []).forEach(a => novos.push({ n: a.nome.slice(0, 40), f: 'ligar ' + a.nome, f2: 'desligar ' + a.nome, s: c.nome, fav: true, rc: '' })));
-          (j.cenas || []).forEach(r => novos.push({ n: r.nome.slice(0, 40), f: 'ativar a cena ' + r.nome, f2: '', s: '', fav: true, rc: '' }));
-          localStorage.setItem(MATRIX_KEY, JSON.stringify(novos));
+          (j.comodos || []).forEach(c => (c.aparelhos || []).forEach(a => novos.push({ n: a.nome.slice(0, 40), houseKind: 'device', f: 'ligar ' + a.nome, f2: 'desligar ' + a.nome, s: c.nome, fav: true, rc: '' })));
+          (j.cenas || []).forEach(r => novos.push({ n: r.nome.slice(0, 40), houseKind: 'scene', f: 'ativar a cena ' + r.nome, f2: '', s: '', fav: true, rc: '' }));
+          if(window.VinciHouseV2){
+            if(!window.VinciHouseV2.acceptImport(novos)) localStorage.setItem(MATRIX_KEY, JSON.stringify(window.VinciHouseV2.importTiles(novos,window.VinciHouseV2.loadTiles(localStorage.getItem(MATRIX_KEY)))));
+          }else localStorage.setItem(MATRIX_KEY, JSON.stringify(novos));
           if(typeof MATRIX_ON_KEY !== 'undefined') localStorage.removeItem(MATRIX_ON_KEY);
           localStorage.setItem('vinci.casaGoogle', JSON.stringify({ casa: j.casa, lido_em: j.lido_em }));
         }
