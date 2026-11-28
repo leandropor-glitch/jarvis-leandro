@@ -37,3 +37,15 @@ html body #hud#hud#hud[data-tab="home"] .face {
 html body #hud#hud#hud[data-tab="home"] .face > :is(img.retrato,video#avatarVideo) {
  object-fit:cover!important;object-position:50% 35%!important;
 }
+
+/* The landscape portrait already includes both shoulders in its wide frame. */
+@media (orientation: landscape) {
+  html body #hud#hud#hud[data-tab="home"] .face:not(:has(> video#avatarVideo.on)) {
+    width:100%!important;
+    height:100%!important;
+  }
+  html body #hud#hud#hud[data-tab="home"] .face:not(:has(> video#avatarVideo.on)) > img.retrato {
+    object-fit:contain!important;
+    object-position:center!important;
+  }
+}
