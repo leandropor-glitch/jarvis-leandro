@@ -49,7 +49,9 @@ function createBridge(host, options={}){
  }
  async function disconnect(){
   const check=snapshot();
-  if(!(await status()).capable)throw Error('Atualize o aplicativo para desconectar esta casa com segurança.');
+  const active=await status();
+  if(!active.capable)throw Error('Atualize o aplicativo para desconectar esta casa com segurança.');
+  if(!active.connected)throw Error('Esta conta não tem uma casa Google vinculada.');
   const confirmed=await (options.confirmDisconnect||(()=>host.confirm('Desconectar sua casa Google e apagar a configuração deste aplicativo? Ao reconectar, a casa será importada novamente com a configuração padrão.')))();
   if(!confirmed)return {cancelled:true};check();
   generation++;invalidate();const disconnectCheck=snapshot();
