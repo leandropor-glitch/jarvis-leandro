@@ -183,7 +183,7 @@ html body #hud#hud#hud[data-duo-layout-v2] #ghome {justify-content:flex-start!im
 
 /* Room navigation and house account are separate from the four-column controls. */
 html body #hud#hud#hud[data-duo-layout-v2] #matrix > .ph {
- display:grid!important;grid-template-columns:minmax(0,1fr) max-content max-content!important;grid-template-areas:"title refresh edit" ". . unassigned"!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) max-content max-content!important;grid-template-areas:"title refresh edit"!important;
  gap:4px 10px!important;align-items:center!important;padding:0 0 8px!important;
 }
 html body #hud#hud#hud[data-duo-layout-v2] #matrix > .ph .k {grid-area:title!important;}
@@ -207,7 +207,7 @@ html body #hud#hud#hud[data-duo-layout-v2] #catBar > button {border:0!important;
 html body #hud#hud#hud[data-duo-layout-v2] #grid {grid-template-columns:repeat(4,minmax(0,1fr))!important;border:0!important;background:none!important;padding:0!important;gap:8px!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile {justify-content:center!important;align-items:center!important;text-align:center!important;background:#141414!important;border:1px solid #292929!important;min-height:52px!important;padding:6px 4px!important;font-size:11px!important;}
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile > span:not(.ctlTag):not(.scene-result) {text-align:center!important;font-size:11px!important;width:100%!important;}
-@media(max-width:480px){html body #hud#hud#hud[data-duo-layout-v2] .duo-house-top {grid-template-columns:1fr!important;gap:6px!important;}}
+
 
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile {
  border:0!important;border-radius:12px!important;background:#111!important;box-shadow:none!important;color:#bdbdbd!important;
@@ -230,3 +230,23 @@ html body #hud#hud#hud[data-duo-layout-v2] #ghome.account {
 html body #hud#hud#hud[data-duo-layout-v2] #ghome.account > :is(#ghomeEmail,#ghomeError) {grid-column:1/-1!important;min-width:0;max-width:100%;}
 html body #hud#hud#hud[data-duo-layout-v2] #ghome.account > #ghomeTxt {grid-column:1;white-space:nowrap;font:500 11px/1.2 var(--sans,system-ui);letter-spacing:normal;}
 html body #hud#hud#hud[data-duo-layout-v2] #ghome.account > #ghomeBtn {grid-column:2;white-space:nowrap!important;padding:4px!important;}
+
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-top {
+ grid-template-columns:minmax(0,1fr) minmax(0,max-content)!important;
+ grid-template-areas:"rooms account" ". unassigned"!important;
+ gap:4px 8px!important;align-items:start!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-navigation {
+ grid-area:rooms;min-width:0;display:flex;flex-flow:row wrap;align-items:start;gap:3px;
+}
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-navigation > nav {
+ min-width:0!important;max-width:100%!important;flex-wrap:wrap!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-navigation > #pavBar[hidden] {display:none!important;}
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-top > #ghome {grid-area:account!important;justify-self:end!important;max-width:100%!important;}
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-top > #duoUnassigned {grid-area:unassigned!important;justify-self:end!important;max-width:100%!important;}
+html body #hud#hud#hud[data-duo-layout-v2] .duo-house-top > #duoUnassigned button {
+ color:#999!important;white-space:nowrap!important;letter-spacing:normal!important;
+ font:500 10px/1.2 var(--sans,system-ui)!important;text-transform:none!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #ghomeEmail {overflow-wrap:anywhere;max-width:min(48vw,30ch);}

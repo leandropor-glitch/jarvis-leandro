@@ -7,10 +7,15 @@
   const matrix = document.getElementById('matrix');
   const roomBar = document.getElementById('roomBar');
   if (!matrix || !roomBar) return;
-  const header = matrix.querySelector('.ph');
+  const floors = document.getElementById('pavBar');
   const connection = document.getElementById('ghome');
   const top = document.createElement('div'); top.className = 'duo-house-top';
-  roomBar.before(top); top.append(roomBar);
+  const navigation = document.createElement('div');
+  navigation.className = 'duo-house-navigation';
+  (floors || roomBar).before(top);
+  top.append(navigation);
+  if (floors) navigation.append(floors);
+  navigation.append(roomBar);
   if(connection) top.append(connection);
   const categories = document.getElementById('catBar'); if(categories) top.after(categories);
   let queued = false;
@@ -26,7 +31,7 @@
       slot.setAttribute('aria-label','Itens sem ambiente');
       const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Sem ambiente';
       slot.appendChild(button);
-      header.append(slot);
+      top.append(slot);
     }
     const proxy = slot.querySelector('button');
     const selected = original.getAttribute('aria-selected') === 'true';

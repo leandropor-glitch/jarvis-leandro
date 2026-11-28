@@ -151,3 +151,7 @@ html body #hud#hud#hud[data-duo-layout-v2] #matrix button {
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile > span:not(.ctlTag):not(.scene-result) {
   width:100%!important; text-align:center!important; margin-inline:auto!important;
 }
+
+/* Keep category names intact on narrow phones. */
+html body #hud#hud#hud[data-duo-layout-v2] #catBar {display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #matrix #catBar > button {min-width:0!important;white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;padding:7px 2px!important;font-size:11px!important;letter-spacing:0!important;}
