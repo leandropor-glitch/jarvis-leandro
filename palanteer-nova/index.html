@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://api.binance.com https://api.met.no https://servicodados.ibge.gov.br; base-uri 'none'; form-action 'none'; object-src 'none'"
+    />
+    <meta name="theme-color" content="#03111d" />
+    <meta name="color-scheme" content="dark" />
+    <title>Palanteer</title>
+    <link rel="icon" href="icon.png" />
+    <link rel="stylesheet" href="app.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <main id="landing">
+      <header class="mast">
+        <a class="brand" href="#inicio"><i></i>Palanteer</a
+        ><a class="quiet" href="#dashboard"
+          >Abrir painel <span aria-hidden="true">↗</span></a
+        >
+      </header>
+      <section class="hero">
+        <div class="hero-art">
+          <canvas data-eye aria-label="Olho ciano do Palanteer"></canvas>
+        </div>
+        <div class="hero-copy">
+          <h1>Sua casa agora <em>superinteligente.</em></h1>
+          <div class="setup">
+            <label for="name">Escolha o nome do assistente</label
+            ><select id="name">
+              <option>Órion</option>
+              <option>Atlas</option>
+              <option>Nova</option>
+              <option>Lia</option>
+            </select>
+          </div>
+          <a class="action" href="#palanteer"
+            >Experimentar a casa <span aria-hidden="true">→</span></a
+          ><small>Casa de demonstração neste navegador</small>
+        </div>
+      </section>
+    </main>
+    <main id="app" hidden>
+      <section
+        id="palanteer"
+        class="tab-pane home"
+        hidden
+        aria-label="Assistente"
+      >
+        <canvas data-eye aria-label="Olho do assistente"></canvas
+        ><button type="button" id="talk" aria-label="Abrir conversa">
+          <span class="mic-shape" aria-hidden="true"><i></i></span
+          ><span id="talk-label">Falar com Órion</span>
+        </button>
+      </section>
+      <section id="dashboard" class="tab-pane content" hidden>
+        <div class="pagehead">
+          <div>
+            <p class="kicker">PALANTEER</p>
+            <h1>Dashboard</h1>
+          </div>
+          <small>Casa de demonstração</small>
+        </div>
+        <div class="dashgrid">
+          <section class="box house-summary">
+            <div class="mini-eye">
+              <canvas data-eye aria-label="Avatar do assistente"></canvas>
+            </div>
+            <div>
+              <div class="boxhead">
+                <h2>Minha casa</h2>
+                <a href="#ambientes" id="dashboard-edit">Editar</a>
+              </div>
+              <h3>Favoritos</h3>
+              <div id="favorites" class="tiles"></div>
+            </div>
+          </section>
+          <section class="box">
+            <div class="boxhead">
+              <h2>Mercado</h2>
+              <a
+                href="https://www.binance.com/pt-BR/markets"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Binance ↗</a
+              >
+            </div>
+            <dl id="quotes"></dl>
+            <small id="market-time"></small>
+          </section>
+          <section class="box">
+            <div class="boxhead">
+              <h2>Clima</h2>
+              <a
+                href="https://www.met.no/en"
+                target="_blank"
+                rel="noopener noreferrer"
+                >MET Norway ↗</a
+              >
+            </div>
+            <div id="weather" class="bigvalue">—</div>
+            <p>Rio de Janeiro</p>
+            <small id="weather-time"></small>
+          </section>
+          <section class="box headlines">
+            <div class="boxhead">
+              <h2>Notícias</h2>
+              <a
+                href="https://agenciadenoticias.ibge.gov.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Agência IBGE ↗</a
+              >
+            </div>
+            <div id="news"></div>
+          </section>
+        </div>
+      </section>
+      <section id="ambientes" class="tab-pane content" hidden>
+        <div class="pagehead">
+          <div>
+            <p class="kicker">PALANTEER</p>
+            <h1>Ambientes</h1>
+          </div>
+          <small>Casa de demonstração</small>
+        </div>
+        <section class="box spaces">
+          <div class="boxhead">
+            <h2>Minha casa</h2>
+            <button type="button" id="edit">Editar</button>
+          </div>
+          <div id="rooms" class="chips" aria-label="Cômodos"></div>
+          <div
+            id="filters"
+            class="chips types"
+            aria-label="Filtrar por tipo"
+          ></div>
+          <div class="tiles" id="things"></div>
+        </section>
+      </section>
+      <nav class="nav" aria-label="Navegação principal">
+        <a href="#palanteer" data-tab="palanteer">Palanteer</a
+        ><a href="#dashboard" data-tab="dashboard">Dashboard</a
+        ><a href="#ambientes" data-tab="ambientes">Ambientes</a>
+      </nav>
+    </main>
+    <dialog id="chat">
+      <div class="boxhead">
+        <h2 id="chat-title">Conversa</h2>
+        <button data-close aria-label="Fechar conversa">×</button>
+      </div>
+      <small>Assistente de comandos da casa de demonstração</small>
+      <p id="reply" role="status">Experimente “ligar a luz da sala”.</p>
+      <form id="command-form">
+        <label for="command">Seu comando</label
+        ><input
+          id="command"
+          maxlength="100"
+          autocomplete="off"
+          placeholder="Digite um comando"
+        />
+        <div class="form-actions">
+          <button id="listen" type="button">Usar microfone</button
+          ><button class="action">Enviar</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="editor">
+      <div class="boxhead">
+        <h2>Editar casa</h2>
+        <button data-close aria-label="Fechar edição">×</button>
+      </div>
+      <form id="nickname-form">
+        <label for="nickname">Como você quer ser chamado?</label>
+        <div class="line">
+          <input id="nickname" maxlength="36" autocomplete="off" /><button>
+            Salvar nome
+          </button>
+        </div>
+      </form>
+      <form id="room-form">
+        <label for="new-room">Novo ambiente</label>
+        <div class="line">
+          <input
+            id="new-room"
+            required
+            maxlength="36"
+            autocomplete="off"
+          /><button>Criar</button>
+        </div>
+      </form>
+      <form id="item-form">
+        <label for="item">Item da casa</label
+        ><select id="item"></select
+        ><label for="destination">Ambiente</label
+        ><select id="destination"></select
+        ><label class="check"
+          ><input type="checkbox" id="favorite" /> Mostrar nos favoritos</label
+        >
+        <div class="form-actions">
+          <button type="button" id="remove">Remover item</button
+          ><button class="action">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="notice" role="status" aria-live="polite"></div>
+  </body>
+</html>

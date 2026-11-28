@@ -1,0 +1,29 @@
+{
+  "quotes": {
+    "BTCUSDT": 59938.27,
+    "EURUSDT": 1.0947,
+    "USDTBRL": 5.6171
+  },
+  "marketTime": "2026-11-28T03:27:27.938372+00:00",
+  "weather": {
+    "time": "2026-11-28T03:00:00Z",
+    "temperature": 20.8
+  },
+  "news": [
+    {
+      "title": "Resultados da POF 2024-2025 são apresentados em coletiva em Brasília",
+      "date": "27/11/2026 04:00:00",
+      "url": "https://agenciadenoticias.ibge.gov.br/agencia-noticias/2012-agencia-de-noticias/noticias/48801-resultados-da-pof-2024-2025-sao-apresentados-em-coletiva-em-brasilia-e-reforcam-papel-das-estatisticas-para-politicas-publicas.html"
+    },
+    {
+      "title": "CONFEST/CONFEGE 2026: Conheça mais de cem palestrantes confirmados",
+      "date": "27/11/2026 03:03:31",
+      "url": "https://agenciadenoticias.ibge.gov.br/agencia-noticias/2012-agencia-de-noticias/noticias/48803-confest-confege-2026-conheca-mais-de-cem-palestrantes-confirmados.html"
+    },
+    {
+      "title": "Caicó (RN): IBGE destaca alcance global e oportunidades da CONFEST/CONFEGE 2026 no Seridó potiguar",
+      "date": "27/11/2026 12:49:29",
+      "url": "https://agenciadenoticias.ibge.gov.br/agencia-noticias/2012-agencia-de-noticias/noticias/48794-em-caico-rn-no-serido-potiguar-ibge-destaca-participacao-global-e-oportunidades-da-confest-confege-2026.html"
+    }
+  ]
+}
