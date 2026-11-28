@@ -114,3 +114,19 @@ body:not(.signed-out) #paola .paola-portrait {
   left:50%!important; right:auto!important;
   transform:translateX(-50%)!important; text-align:center!important;
 }
+
+.account-privacy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 1.2rem;
+  margin: 0.75rem 0;
+}
+.account-privacy a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #8af6ff;
+  font-size: 0.875rem;
+  text-underline-offset: 0.16em;
+}
