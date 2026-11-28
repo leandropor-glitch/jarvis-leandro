@@ -152,3 +152,31 @@ html body #hud#hud#hud[data-duo-layout-v2] #matrix button {
 html body #hud#hud#hud[data-duo-layout-v2] #grid > .tile > span:not(.ctlTag):not(.scene-result) {
   width:100%!important; text-align:center!important; margin-inline:auto!important;
 }
+
+/* House toolbar outside the content card: one refresh action. */
+html body #hud#hud#hud[data-duo-layout-v2] #matrix {
+ border:0!important;background:none!important;box-shadow:none!important;padding:0!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #matrix > .ph {
+ display:flex!important;align-items:center!important;padding:0 8px 12px!important;gap:16px!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #matrix > .ph > .k {margin-right:auto!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #atualizarBtn,
+html body #hud#hud#hud[data-duo-layout-v2] #editBtn {
+ display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;
+ border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;padding:4px 8px!important;min-width:44px!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #atualizarBtn {gap:3px!important;text-transform:none!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #editBtn {text-transform:none!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #ghome {
+ border:1px solid var(--line,#454545)!important;border-bottom:0!important;border-radius:14px 14px 0 0!important;
+ background:rgba(24,24,24,.8)!important;padding:12px!important;margin:0!important;
+}
+html body #hud#hud#hud[data-duo-layout-v2] #grid {
+ border:1px solid var(--line,#454545)!important;border-top:0!important;border-radius:0 0 14px 14px!important;
+ background:rgba(24,24,24,.8)!important;padding:10px!important;
+}
+
+/* The only refresh control is in the external toolbar. */
+html body #hud#hud#hud[data-duo-layout-v2] #ghomeBtn {display:none!important;}
+html body #hud#hud#hud[data-duo-layout-v2] #ghome {justify-content:flex-start!important;}

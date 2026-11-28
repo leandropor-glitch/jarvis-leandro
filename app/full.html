@@ -627,7 +627,7 @@ input,select,textarea{font-size:16px!important}
 
     <aside class="col right">
       <section class="panel matrix" id="matrix" aria-label="Comandos da casa">
-        <div class="ph"><span class="k"><i></i><b class="lbDash">favoritos</b><b class="lbSala">ambientes</b></span><button class="pb" id="editBtn" type="button" data-on="0">editar</button></div>
+        <div class="ph"><span class="k"><i></i><b class="lbDash">favoritos</b><b class="lbSala">ambientes</b></span><button class="pb" id="editBtn" type="button" data-on="0">edit</button></div>
         <nav class="pavBar" id="pavBar" aria-label="Pavimentos" hidden></nav><nav class="roombar" id="roomBar" role="tablist" aria-label="Cômodos"></nav><div class="editor" id="roomEditor" hidden><label>nome do ambiente<input id="rmName" maxlength="22" autocomplete="off"></label><label>pavimento<select id="rmPav"></select></label><div class="eb"><button class="pb" id="rmSave" type="button">salvar</button><button class="pb" id="rmDel" type="button">excluir ambiente</button><button class="pb" id="rmCancel" type="button">cancelar</button></div><div class="hint">toque na sala selecionada para renomear. as cenas escolhem a sala no editor da cena.</div></div><div class="dicaOrdem" id="dicaOrdem">arraste um botão para mudar a posição · toque para editar</div><div class="ghome" id="ghome" hidden><span id="ghomeTxt">Conecte sua casa VINCI</span><button class="pb" type="button" id="ghomeBtn">conectar</button></div><div class="grid" id="grid"></div><span class="aviso-cena" id="avisoCena" role="status" aria-live="polite"></span>
         <div class="editor" id="editor" hidden>
           <div class="edTipoLinha"><label>tipo<select id="edTipo"><option value="cena">cena</option><option value="aparelho">aparelho</option><option value="controle">controle remoto</option><option value="frase">frase livre</option></select></label><label>qual<select id="edAlvo"></select></label><button class="pb" id="edAtualizar" type="button">atualizar lista</button></div>
@@ -1329,7 +1329,7 @@ gridEl.addEventListener('click', (e)=>{
 let pressTimer = null;
 gridEl.addEventListener('pointerdown', (e)=>{ const b = e.target.closest('.tile'); if(!b || b.dataset.add === '1') return; clearTimeout(pressTimer); pressTimer = setTimeout(()=>{ pressTimer = null; openEditor(Number(b.dataset.i), true); }, 650); });
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>gridEl.addEventListener(ev, ()=>{ clearTimeout(pressTimer); }));
-function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'pronto' : 'editar'; if(!on){ closeEditor(); fecharSala(); } renderMatrix(); }
+function setEdit(on){ editMode = on; matrixEl.dataset.edit = on ? '1' : '0'; editBtn.dataset.on = on ? '1' : '0'; editBtn.textContent = on ? 'done' : 'edit'; if(!on){ closeEditor(); fecharSala(); } renderMatrix(); }
 editBtn.addEventListener('click', ()=>setEdit(!editMode));
 document.getElementById('rmSave').addEventListener('click', salvarSala);
 document.getElementById('rmDel').addEventListener('click', excluirSala);
@@ -2064,14 +2064,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const edit = document.getElementById('editBtn');
   if(edit && !document.getElementById('atualizarBtn')){
     const refresh = document.createElement('button');
-    refresh.id = 'atualizarBtn'; refresh.className = 'pb'; refresh.textContent = 'Atualizar';
+    refresh.id = 'atualizarBtn'; refresh.className = 'pb'; refresh.innerHTML = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 7v5h-5M19 12a7 7 0 1 0-2 5M20 7l-3-3"/></svg><span>refresh</span>'; refresh.setAttribute('aria-label','Atualizar casa');
     refresh.onclick = () => button.click();
     edit.before(refresh);
   }
   if(box) box.hidden = false;
   if(button) {
     const conectado = data => {
-      status.textContent = 'Casa conectada · ' + (data.aparelhos.length + data.cenas.length) + ' itens';
+      status.textContent = 'Casa conectada';
       button.textContent = 'Atualizar minha casa VINCI';
     };
     button.textContent = 'Conectar minha casa VINCI';
@@ -2674,6 +2674,6 @@ VinciHouseV2.bind({getTiles:()=>tiles,setTiles:v=>{tiles=v},getRoom:()=>roomActi
 <script src="../vinci/tiles-ajuste.js?v=12" data-forma="quadrado"></script>
 <link rel="stylesheet" href="layout-20261127.css?v=card-inset-20261127b">
 <script src="layout-20261127.js?v=2" defer></script><script src="../vinci/atualizar-casa.js"></script><script src="../vinci/pre-vps/ia-padrao.js" data-ia="felyx"></script><script src="../vinci/pre-vps/paineis-google.js"></script><link rel="stylesheet" href="../app-assets/abas-layout.css?v=20261127-tabs1">
-<link rel="stylesheet" href="duo-layout-v2.css?v=20261127-centered"><link rel="stylesheet" href="duo-avatar-v2.css?v=20261127-face"><script src="duo-layout-v2.js?v=20261127-v2" defer></script>
+<link rel="stylesheet" href="duo-layout-v2.css?v=20261127-house-toolbar"><link rel="stylesheet" href="duo-avatar-v2.css?v=20261127-face"><script src="duo-layout-v2.js?v=20261127-v2" defer></script>
 </body>
 </html>
